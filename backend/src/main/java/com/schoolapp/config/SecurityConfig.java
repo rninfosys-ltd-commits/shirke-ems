@@ -119,25 +119,12 @@ public class SecurityConfig {
         public CorsConfigurationSource corsConfigurationSource() {
                 CorsConfiguration config = new CorsConfiguration();
                 
-                // Allow specific origins or use allowedOriginPatterns for flexibility with credentials
-                config.setAllowedOriginPatterns(List.of(
-                        "http://localhost:4200",
-                        "http://localhost:3000",
-                        "https://selfless-reverence-production.up.railway.app",
-                        "*"
-                ));
+                // Use allowedOriginPatterns("*") to allow all origins while supporting credentials
+                config.setAllowedOriginPatterns(List.of("*"));
                 
                 config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
                 
-                config.setAllowedHeaders(List.of(
-                        "Authorization",
-                        "Content-Type",
-                        "Accept",
-                        "X-Requested-With",
-                        "Origin",
-                        "Access-Control-Request-Method",
-                        "Access-Control-Request-Headers"
-                ));
+                config.setAllowedHeaders(List.of("*"));
                 
                 config.setExposedHeaders(List.of("Authorization"));
                 config.setAllowCredentials(true);
