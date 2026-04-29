@@ -1,0 +1,255 @@
+/* ================= MODERN DASHBOARD STYLES ================= */
+.main {
+    background-color: #f8fafc;
+    padding: 30px;
+    border-radius: 20px;
+    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.page-title {
+    font-size: 28px;
+    font-weight: 800;
+    color: #1e293b;
+    margin: 0;
+    padding: 0;
+}
+
+.filters {
+    display: flex;
+    align-items: flex-end;
+    gap: 15px;
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e2e8f0;
+    margin-bottom: 25px;
+}
+
+/* FILTER FIELDS */
+.date-field.top-label {
+    position: relative;
+    min-width: 160px;
+}
+
+.date-field.top-label label {
+    position: absolute;
+    top: -8px;
+    left: 12px;
+    background: #ffffff;
+    padding: 0 6px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #4f46e5;
+    z-index: 2;
+    text-transform: uppercase;
+}
+
+.filters input[type="date"],
+.filters select {
+    width: 100%;
+    height: 42px;
+    padding: 0 14px;
+    font-size: 14px;
+    border-radius: 10px;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    transition: all 0.2s;
+    color: #1e293b;
+}
+
+.filters input:focus,
+.filters select:focus {
+    outline: none;
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+/* BUTTONS */
+.toggle-btn, .clear-btn, .export-all-btn {
+    height: 42px;
+    padding: 0 20px;
+    border-radius: 10px;
+    border: none;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.toggle-btn { background: #f1f5f9; color: #475569; }
+.toggle-btn:hover { background: #e2e8f0; }
+
+.clear-btn { background: #fee2e2; color: #ef4444; }
+.clear-btn:hover { background: #fecaca; }
+
+.export-all-btn { background: #4f46e5; color: white; }
+.export-all-btn:hover:not(:disabled) { background: #4338ca; transform: translateY(-1px); }
+.export-all-btn:disabled { background: #94a3b8; cursor: not-allowed; opacity: 0.7; }
+
+/* TABLE WRAPPER */
+.table-wrapper {
+    background: #ffffff;
+    border-radius: 16px;
+    overflow: auto;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e2e8f0;
+    max-height: 70vh;
+}
+
+.custom-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.custom-table thead th {
+    background-color: #f8fafc;
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 14px 10px;
+    border-bottom: 2px solid #f1f5f9;
+    text-align: center;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.custom-table tbody td {
+    padding: 14px 10px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #1e293b;
+    font-size: 13px;
+    text-align: center;
+    background: white;
+}
+
+.custom-table tbody tr:hover td {
+    background-color: #f8fafc;
+}
+
+/* PROGRESS BAR */
+.progress-bar-wrapper {
+    width: 60px;
+    height: 6px;
+    background: #e2e8f0;
+    border-radius: 10px;
+    margin: 5px auto;
+    overflow: hidden;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4f46e5, #8b5cf6);
+    border-radius: 10px;
+    transition: width 0.3s ease;
+}
+
+/* STAGE ICONS */
+.stage-icon {
+    font-size: 16px;
+    display: block;
+    margin-bottom: 2px;
+}
+
+.diff {
+    color: #64748b;
+    font-size: 10px;
+    font-style: italic;
+    background-color: #fcfcfc !important;
+}
+
+/* DOWNLOAD BUTTONS */
+.link-btn {
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    margin: 2px;
+    transition: all 0.2s;
+    text-transform: uppercase;
+}
+
+.link-btn.info { background: #eff6ff; color: #2563eb; }
+.link-btn.success { background: #ecfdf5; color: #059669; }
+
+/* PAGINATION */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin-top: 30px;
+}
+
+.pagination button {
+    height: 38px;
+    padding: 0 18px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    background: white;
+    color: #64748b;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.pagination button:hover:not(:disabled) {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    color: #1e293b;
+}
+
+.pagination button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.pagination span {
+    font-weight: 800;
+    color: #1e293b;
+    font-size: 14px;
+}
+
+/* MOBILE FIXES */
+@media (max-width: 1024px) {
+    .filters {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    .date-field.top-label {
+        flex: 1;
+        min-width: 140px;
+    }
+}
+
+@media (max-width: 600px) {
+    .main { padding: 15px; }
+    .top-bar { flex-direction: column; text-align: center; }
+    .filters { flex-direction: column; align-items: stretch; }
+    .pagination { flex-direction: column; }
+}
+r {
+    background: #dbeafe;
+}

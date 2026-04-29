@@ -1,0 +1,382 @@
+<div class="container">
+
+    <!-- ================= LIST VIEW ================= -->
+    <div class="main" *ngIf="!showForm">
+
+        <div class="header">
+            <h2 class="page-title">Wire Cutting Report</h2>
+
+            <div>
+                <button class="add-btn" (click)="openForm()">+ Add</button>
+
+                <button class="dash-btn" (click)="goToDashboard()">
+                    Go To Dashboard
+                </button>
+            </div>
+        </div>
+
+
+        <div class="filters">
+
+            <div class="date-field">
+                <label>From Date</label>
+                <input type="date" [(ngModel)]="filterFromDate" (change)="onDateChange()" />
+            </div>
+
+            <div class="date-field">
+                <label>To Date</label>
+                <input type="date" [(ngModel)]="filterToDate" (change)="onDateChange()" />
+            </div>
+
+            <div class="filter-select">
+                <label>Plant Name</label>
+                <select [(ngModel)]="filterPlant" (change)="applyFilters()">
+                    <option value="Plant 1">Plant 1</option>
+                    <option value="Plant 2">Plant 2</option>
+                </select>
+            </div>
+
+            <div class="filter-select">
+                <label>Export</label>
+                <select (change)="onExportChange($event)">
+                    <option value="">Select Option</option>
+                    <option value="pdf">Export PDF</option>
+                    <option value="excel">Export Excel</option>
+                    <option value="horizontal">📊 Combined Horizontal</option>
+                </select>
+            </div>
+
+            <div class="filter-select">
+                <label>Import</label>
+                <select (change)="onImportSelect($event)">
+                    <option value="">Select Option</option>
+                    <option value="excel">Import Excel</option>
+                </select>
+            </div>
+
+            <button class="clear-btn" (click)="clearFilters()">Clear</button>
+        </div>
+
+        <!-- HIDDEN FILE INPUT -->
+        <input type="file" accept=".xlsx,.xls" hidden id="wireCuttingExcelInput" (change)="onExcelSelect($event)" />
+
+
+        <!-- TABLE -->
+        <div class="table-scroll">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>Batch No</th>
+                        <th>Date</th>
+                        <th>Cutting Date</th>
+                        <th>Mould</th>
+                        <th>Size</th>
+                        <th>Ball Test</th>
+                        <th>Time</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <ng-container *ngFor="let r of pagedList">
+                        <tr *ngIf="canViewWireCutting(r)">
+                            <td class="clickable" (click)="openModal(r)">
+                                {{ r.batchNo }}
+                            </td>
+                            <td>{{ r.createdDate | date:'dd-MM-yyyy' }}</td>
+                            <td>{{ r.cuttingDate | date:'dd-MM-yyyy' }}</td>
+                            <td>{{ r.mouldNo }}</td>
+                            <td>{{ r.size }}</td>
+                            <td>{{ r.ballTestMm }}</td>
+                            <td>{{ r.time }}</td>
+                            <td>
+                                <button class="link-btn" (click)="edit(r)">Edit</button>
+                                <button class="link-btn danger" (click)="delete(r.id)">Delete</button>
+                                <button class="link-btn info" (click)="selected = r; download('pdf')">PDF</button>
+                                <button class="link-btn success" (click)="selected = r; download('excel')">XLS</button>
+                                <button class="link-btn hz" (click)="selected = r; downloadHorizontalReport(r)"
+                                    title="Combined Horizontal">HZ</button>
+                            </td>
+                        </tr>
+                    </ng-container>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- ================= PAGINATION ================= -->
+        <div class="pagination" *ngIf="totalPages > 1">
+            <button (click)="prevPage()" [disabled]="currentPage === 1">⬅ Prev</button>
+            <button *ngFor="let p of [].constructor(totalPages); let i = index" (click)="goToPage(i + 1)"
+                [class.active]="currentPage === i + 1">
+                {{ i + 1 }}
+            </button>
+            <button (click)="nextPage()" [disabled]="currentPage === totalPages">Next ➡</button>
+        </div>
+        <!-- ================= WIRE CUTTING IMPORT MODAL ================= -->
+
+
+    </div>
+
+    <!-- ================= FORM VIEW ================= -->
+    <div class="rising-form-card" *ngIf="showForm">
+        <div class="form-header">
+            <div class="indicator-bar"></div>
+            <h3>{{ editId ? 'Edit' : 'Add' }} Wire Cutting Report</h3>
+        </div>
+
+        <form [formGroup]="form" (ngSubmit)="submit()" class="form-body">
+            
+            <!-- HEADER SECTION -->
+            <div class="form-grid header-grid">
+                <div class="form-group">
+                    <label>Date</label>
+                    <input type="date" formControlName="cuttingDate">
+                </div>
+
+                <div class="form-group">
+                    <label>Shift</label>
+                    <select formControlName="shift">
+                        <option value="" disabled>Select Shift</option>
+                        <option *ngFor="let s of shifts" [value]="s">{{ s }}</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Plant</label>
+                    <select formControlName="plantName" (change)="onPlantChange()">
+                        <option value="" disabled>Select Plant</option>
+                        <option value="Plant 1">Plant 1</option>
+                        <option value="Plant 2">Plant 2</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Batch No</label>
+                    <select formControlName="batchNo">
+                        <option value="" disabled>Select Batch</option>
+                        <option *ngFor="let p of productionList" [value]="p.batchNo">{{ p.batchNo }}</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- CORE DATA SECTION -->
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="label-blue">Mould No</label>
+                    <input type="number" formControlName="mouldNo" placeholder="Mould No">
+                </div>
+
+                <div class="form-group">
+                    <label class="label-blue">Size</label>
+                    <input type="text" formControlName="size" placeholder="650x240x100/150">
+                </div>
+
+                <div class="form-group">
+                    <label class="label-blue">Ball Test (mm)</label>
+                    <input type="number" formControlName="ballTestMm" placeholder="Ball Test">
+                </div>
+
+                <div class="form-group">
+                    <label class="label-blue">Cutting Time</label>
+                    <input type="text" formControlName="time" placeholder="Time">
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- ITEMS TABLE SECTION -->
+            <div class="cutting-table-container">
+                <table class="cutting-details-table">
+                    <thead>
+                        <tr>
+                            <th>Len (Length)</th>
+                            <th>Qty (Items)</th>
+                            <th>Quantity (Total)</th>
+                            <th>Breakage</th>
+                            <th>Net Qty</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>100</strong></td>
+                            <td><input type="number" formControlName="len100Qty" (input)="calculateTotals()"></td>
+                            <td><input type="number" formControlName="len100TotalQty" (input)="calculateTotals()"></td>
+                            <td><input type="number" formControlName="len100Breakage" (input)="calculateTotals()"></td>
+                            <td><input type="number" formControlName="len100NetQty" readonly></td>
+                        </tr>
+                        <tr>
+                            <td><strong>150</strong></td>
+                            <td><input type="number" formControlName="len150Qty" (input)="calculateTotals()"></td>
+                            <td><input type="number" formControlName="len150TotalQty" (input)="calculateTotals()"></td>
+                            <td><input type="number" formControlName="len150Breakage" (input)="calculateTotals()"></td>
+                            <td><input type="number" formControlName="len150NetQty" readonly></td>
+                        </tr>
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="1" style="text-align: right; padding-right: 20px;"><strong>Total Item:</strong></td>
+                            <td><input type="number" formControlName="totalItem" readonly></td>
+                            <td colspan="3"></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="form-grid">
+                <div class="form-group full-width">
+                    <label>Remark</label>
+                    <input type="text" formControlName="remark" placeholder="Remark">
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-submit">{{ editId ? 'Update' : 'Submit' }}</button>
+                <button type="button" class="btn-cancel" (click)="cancel()">Cancel</button>
+            </div>
+        </form>
+    </div>
+
+</div>
+<ng-container *ngIf="showImportModal">
+
+    <div class="import-backdrop"></div>
+
+    <div class="import-modal">
+        <div class="modal-card">
+
+            <div class="modal-header">
+                <h3>Import Wire Cutting Excel</h3>
+                <button class="btn btn-danger" (click)="closeImportModal()">X</button>
+            </div>
+
+            <div class="modal-body">
+
+                <table class="table custom-table" *ngIf="importPreviewList.length">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th *ngFor="let col of importColumns">{{ col }}</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        <tr *ngFor="let row of pagedImportPreview; let i = index">
+                            <td>{{ (importCurrentPage - 1) * importPageSize + i + 1 }}</td>
+                            <td *ngFor="let col of importColumns">
+                                {{ row[colToKey[col]] }}
+                            </td>
+
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- PAGINATION -->
+                <div class="pagination-bar" *ngIf="importTotalPages > 1">
+                    <button (click)="prevImportPage()">⬅</button>
+                    <button *ngFor="let p of [].constructor(importTotalPages); let i=index"
+                        (click)="goToImportPage(i+1)" [class.active]="importCurrentPage===i+1">
+                        {{ i+1 }}
+                    </button>
+                    <button (click)="nextImportPage()">➡</button>
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-success" (click)="saveImportedWireCutting()">
+                    Save Imported Wire Cutting
+                </button>
+                <button class="btn btn-secondary" (click)="closeImportModal()">Cancel</button>
+            </div>
+
+        </div>
+    </div>
+</ng-container>
+<!-- ================= MODAL ================= -->
+<div class="modal fade" id="wireCuttingModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+
+            <div class="modal-header modal-header-big">
+                <h4 class="modal-title">Batch No - {{ selected?.batchNo }}</h4>
+                <div class="meta-text"><b>Date:</b> {{ selected?.createdDate | date:'longDate' }}</div>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <table class="table custom-table">
+                    <thead>
+                        <tr>
+                            <th>Mould</th>
+                            <th>Size</th>
+                            <th>Ball Test</th>
+                            <th>Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>{{ selected?.mouldNo }}</td>
+                            <td>{{ selected?.size }}</td>
+                            <td>{{ selected?.ballTestMm }}</td>
+                            <td>{{ selected?.time }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+
+                <!-- ================= APPROVAL TABLE ================= -->
+                <table class="table1">
+                    <thead class="tablehead">
+                        <tr>
+                            <th style="padding:8px;color:white">CHECKED BY</th>
+                            <th style="padding:8px;color:white">REVIEWED BY</th>
+                            <th style="padding:8px;color:white">APPROVED BY</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        <tr>
+                            <td class="level-text">
+                                <div>{{ getApprovalLevels(selected).checkedBy.name }}</div>
+                                <div>{{ getApprovalLevels(selected).checkedBy.level }}</div>
+                            </td>
+                            <td class="level-text">
+                                <div>{{ getApprovalLevels(selected).reviewedBy.name }}</div>
+                                <div>{{ getApprovalLevels(selected).reviewedBy.level }}</div>
+                            </td>
+                            <td class="level-text">
+                                <div>{{ getApprovalLevels(selected).approvedBy.name }}</div>
+                                <div>{{ getApprovalLevels(selected).approvedBy.level }}</div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-primary" (click)="edit(selected); closeModal()">Edit</button>
+                <button class="btn btn-info" (click)="download('pdf')">PDF</button>
+                <button class="btn btn-success" (click)="download('excel')">XLS</button>
+                <button class="btn" style="background:#2e7d32;color:#fff" (click)="downloadHorizontalReport()"
+                    title="Combined Horizontal Report">HZ</button>
+                <button class="btn btn-success" *ngIf="canApproveWireCutting(selected)" (click)="approve()">
+                    Approve
+                </button>
+
+                <button class="btn btn-warning" *ngIf="canRejectWireCutting(selected)" (click)="reject()">
+                    Reject
+                </button>
+
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+
+        </div>
+    </div>
+</div>

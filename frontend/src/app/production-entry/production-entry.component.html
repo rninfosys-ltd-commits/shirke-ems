@@ -1,0 +1,577 @@
+<div class="container">
+
+    <!-- ================= LIST VIEW ================= -->
+    <div class="main" *ngIf="!showForm">
+
+        <div class="header">
+            <h2 class="page-title">Production Register</h2>
+
+            <div>
+                <button class="add-btn" (click)="openForm()">+ Add Production</button>
+
+                <button class="dash-btn" (click)="goToDashboard()">
+                    Go To Dashboard
+                </button>
+            </div>
+        </div>
+
+
+        <!-- 🔵 FILTER BAR -->
+        <div class="filters">
+
+            <div class="date-field">
+                <label>From Date</label>
+                <input type="date" [(ngModel)]="filterFromDate" (change)="applyFilters()" />
+            </div>
+
+            <div class="date-field">
+                <label>To Date</label>
+                <input type="date" [(ngModel)]="filterToDate" (change)="applyFilters()" />
+            </div>
+
+            <div class="filter-select">
+                <label>Plant</label>
+                <select [(ngModel)]="filterPlant" (change)="applyFilters()">
+                    <option value="Plant 1">Plant 1</option>
+                    <option value="Plant 2">Plant 2</option>
+                </select>
+            </div>
+
+
+            <div class="filter-select">
+                <label>Export</label>
+                <select (change)="exportData($any($event.target).value)">
+                    <option value="">Select Option</option>
+                    <option value="pdf">Export PDF</option>
+                    <option value="excel">Export Excel</option>
+                    <option value="horizontal">📊 Combined Horizontal</option>
+                </select>
+            </div>
+
+            <div class="filter-select">
+                <label>Import</label>
+                <select (change)="onImportSelect($event, fileInput)">
+                    <option value="">Select Option</option>
+                    <option value="excel">Import Excel</option>
+                </select>
+            </div>
+
+
+            <input type="file" hidden #fileInput accept=".xlsx,.xls" (change)="importExcel($event)" />
+
+            <button class="clear-btn" (click)="clearFilters()">Clear</button>
+
+        </div>
+
+        <div class="table-scroll">
+            <!-- TABLE -->
+            <table class="table custom-table">
+                <thead>
+                    <tr>
+                        <th>Batch No</th>
+                        <th>Plant</th>
+                        <th>Date</th>
+                        <th>Created By</th>
+                        <th>Shift</th>
+                        <th>Total Solid</th>
+                        <!-- Dynamic Material Columns in list -->
+                        <th *ngFor="let m of materialList">{{ m.materialName }}</th>
+                        <th>Production Time</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <ng-container *ngFor="let p of pagedProductionList">
+
+                        <tr *ngIf="canViewProduction(p)">
+                            <td class="clickable" (click)="openProductionModal(p)">
+                                {{ p.batchNo }}
+                            </td>
+                            <td>{{ p.plantName || '—' }}</td>
+                            <td>{{ p.createdDate | date:'dd-MM-yyyy' }}</td>
+                            <td>{{ p.createdByName || getUserName(p.userId) }}</td>
+                            <td>{{ p.shift }}</td>
+                            <td>{{ p.totalSolid }}</td>
+                            <!-- Dynamic Material Values -->
+                            <td *ngFor="let m of materialList">
+                                {{ getMaterialValue(p, m.id) }}
+                            </td>
+                            <td>{{ p.productionTime }}</td>
+                            <td>
+                                <button class="link-btn" *ngIf="canEditDelete()" (click)="edit(p)">
+                                    Edit
+                                </button>
+                                <button class="link-btn danger" *ngIf="canEditDelete()" (click)="delete(p.id)">
+                                    Delete
+                                </button>
+                                <button class="link-btn info"
+                                    (click)="selectedProduction = p; downloadProduction('pdf')">PDF</button>
+                                <button class="link-btn success"
+                                    (click)="selectedProduction = p; downloadProduction('excel')">XLS</button>
+                                <button class="link-btn hz" (click)="downloadHorizontalReport(p.batchNo)"
+                                    title="Combined Horizontal">HZ</button>
+                            </td>
+                        </tr>
+                    </ng-container>
+
+                </tbody>
+            </table>
+        </div>
+        <div class="import-backdrop" *ngIf="showImportModal"></div>
+
+        <div class="import-modal" *ngIf="showImportModal">
+
+
+            <div class="modal-card">
+
+                <div *ngIf="apiMessage" class="error-banner">
+                    {{ apiMessage }}
+                </div>
+
+                <div class="modal-header">
+                    <h1>Production Excel Preview</h1>
+                </div>
+
+                <div class="modal-body table-scroll">
+                    <table class="custom-table">
+                        <thead>
+                            <tr>
+                                <th *ngFor="let h of excelHeaders">{{ h }}</th>
+                                <th>Status</th>
+                                <th>Error</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            <tr *ngFor="let r of excelRows" [class.success-row]="r.importStatus === 'SUCCESS'"
+                                [class.error-row]="r.importStatus === 'FAILED'">
+
+                                <td *ngFor="let h of excelHeaders">
+                                    {{ r[h] }}
+                                </td>
+
+                                <td>{{ r.importStatus }}</td>
+                                <td>{{ r.errorMessage }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button class="add-btn1" [disabled]="hasExcelErrors" (click)="saveExcelToDB()">
+                        Save Imported Production
+                    </button>
+
+                    <button class="clear-btn" (click)="clearExcelPreview()">
+                        Cancel
+                    </button>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ================= PAGINATION ================= -->
+        <div class="pagination">
+            <button (click)="prevPage()">Prev</button>
+            <span>{{currentPage}} / {{totalPages}}</span>
+            <button (click)="nextPage()">Next</button>
+        </div>
+
+    </div>
+
+    <!-- ================= FORM (MODERN RISING DESIGN) ================= -->
+    <div class="rising-form-card" *ngIf="showForm">
+        <div class="form-header">
+            <div class="indicator-bar"></div>
+            <h3>{{ editId ? 'Edit' : 'Create' }} Production Batch</h3>
+        </div>
+
+        <form [formGroup]="productionForm" (ngSubmit)="submit()" class="form-body">
+            
+            <!-- HEADER SECTION -->
+            <div class="form-grid header-grid">
+                <div class="form-group">
+                    <label>Batch No</label>
+                    <input type="text" value="Auto-generated" readonly class="readonly-input">
+                </div>
+
+                <div class="form-group">
+                    <label>Date</label>
+                    <input type="date" formControlName="productionDate">
+                </div>
+
+                <div class="form-group">
+                    <label>Shift</label>
+                    <select formControlName="shift">
+                        <option value="" disabled>Select Shift</option>
+                        <option *ngFor="let s of shifts" [value]="s">{{ s }}</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Operator</label>
+                    <input type="text" [value]="getOperatorName()" readonly class="readonly-input">
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="batch-layout-container">
+                <!-- LEFT: FORM FIELDS -->
+                <div class="batch-fields-area">
+                    
+                    <!-- PLANT / SILO SECTION -->
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="label-blue">Plant</label>
+                            <select formControlName="plantName">
+                                <option value="" disabled>Select Plant</option>
+                                <option value="Plant 1">Plant 1</option>
+                                <option value="Plant 2">Plant 2</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="label-blue">Silo No 1</label>
+                            <select formControlName="siloNo1">
+                                <option value="" disabled>Select Silo</option>
+                                <option *ngFor="let s of siloList" [value]="s">Silo {{ s }}</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="label-blue">Batcher</label>
+                            <input list="batcherOptions" formControlName="batcher" placeholder="Select Batcher">
+                            <datalist id="batcherOptions">
+                                <option *ngFor="let b of batchers" [value]="b"></option>
+                            </datalist>
+                        </div>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <!-- SLURRY SECTION -->
+                    <h4 class="section-subtitle">SLURRY PROPERTIES</h4>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>FA Density (L/W)</label>
+                            <input type="number" formControlName="faDensity" (input)="recalculate()">
+                        </div>
+                        <div class="form-group">
+                            <label>FA Solid %</label>
+                            <input type="number" formControlName="faSolid1" (input)="recalculate()">
+                        </div>
+                        <div class="form-group">
+                            <label>Excess Density</label>
+                            <input type="number" formControlName="excessDensity" (input)="recalculate()">
+                        </div>
+                        <div class="form-group">
+                            <label>Excess Solid %</label>
+                            <input type="number" formControlName="excessSolid" (input)="recalculate()">
+                        </div>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <!-- INGREDIENTS SECTION -->
+                    <h4 class="section-subtitle">INGREDIENTS</h4>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="label-blue">FA Slurry (kg)</label>
+                            <input type="number" formControlName="faSlurryQty" (input)="recalculate()">
+                        </div>
+                        <div class="form-group">
+                            <label class="label-blue">Excess Slurry (kg)</label>
+                            <input type="number" formControlName="excessSlurryQty" (input)="recalculate()">
+                        </div>
+                        <div class="form-group">
+                            <label class="label-blue">Water (L)</label>
+                            <input type="number" formControlName="waterLiter" (input)="recalculate()">
+                        </div>
+                        <div class="form-group">
+                            <label class="label-blue">Lime (kg)</label>
+                            <input type="number" formControlName="limeKg" (input)="recalculate()">
+                        </div>
+                        <div class="form-group">
+                            <label class="label-blue">Cement (kg)</label>
+                            <input type="number" formControlName="cementKg" (input)="recalculate()">
+                        </div>
+                        <div class="form-group">
+                            <label class="label-blue">Gypsum (kg)</label>
+                            <input type="number" formControlName="gypsumKg" (input)="recalculate()">
+                        </div>
+                        <div class="form-group">
+                            <label class="label-blue">Soluble Oil (L)</label>
+                            <input type="number" formControlName="solOilKg" (input)="recalculate()">
+                        </div>
+                        <div class="form-group">
+                            <label class="label-blue">Surfactant (kg)</label>
+                            <input type="number" formControlName="surfactant" (input)="recalculate()">
+                        </div>
+
+                        <!-- Dynamic Materials -->
+                        <ng-container *ngFor="let m of materialList">
+                            <div class="form-group">
+                                <label class="label-blue">{{ m.materialName }}</label>
+                                <input type="number" [(ngModel)]="materialValues[m.id]"
+                                    [ngModelOptions]="{standalone: true}" (input)="recalculate()" />
+                            </div>
+                        </ng-container>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <!-- PARAMETERS SECTION -->
+                    <h4 class="section-subtitle">PROCESS PARAMETERS</h4>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Mixing Time (s)</label>
+                            <input type="number" formControlName="mixingTime">
+                        </div>
+                        <div class="form-group">
+                            <label>Temp (°C)</label>
+                            <input type="number" formControlName="tempC">
+                        </div>
+                        <div class="form-group">
+                            <label>Discharge Time</label>
+                            <input type="time" formControlName="castingTime">
+                        </div>
+                        <div class="form-group">
+                            <label>Remarks</label>
+                            <input type="text" formControlName="productionRemark">
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- RIGHT: CALCULATION PANEL -->
+                <div class="calc-panel-modern">
+                    <div class="calc-header">LIVE CALCULATIONS</div>
+                    
+                    <div class="calc-row">
+                        <span>Total Solid</span>
+                        <strong>{{ liveCalc.totalSolid | number:'1.2-2' }} kg</strong>
+                    </div>
+                    <div class="calc-row">
+                        <span>Batch Weight</span>
+                        <strong>{{ liveCalc.totalBatchWeight | number:'1.2-2' }} kg</strong>
+                    </div>
+                    <div class="calc-row">
+                        <span>Total Liquid</span>
+                        <strong>{{ liveCalc.totalLiquid | number:'1.2-2' }} kg</strong>
+                    </div>
+                    
+                    <div class="calc-footer-solid">
+                        <span>FINAL SOLID %</span>
+                        <div class="solid-value">{{ liveCalc.finalSolidPercent | number:'1.2-2' }}%</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-submit">
+                    {{ editId ? '💾 Update Batch' : '✅ Create Batch' }}
+                </button>
+                <button type="button" class="btn-cancel" (click)="showForm=false">Cancel</button>
+            </div>
+        </form>
+    </div>
+
+
+
+    <!-- ================= PRODUCTION VIEW MODAL ================= -->
+    <div class="modal fade" id="productionModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+
+                <!-- HEADER -->
+                <div class="modal-header ">
+
+                    <!-- LEFT CONTENT -->
+                    <div class="d-flex align-items-center  modal-header-big">
+
+                        <h4 class="modal-title mb-0">
+                            Batch No - {{ selectedProduction?.batchNo }}
+                        </h4>
+
+                        <div class="meta-text">
+                            <strong>Date:</strong>
+                            {{ selectedProduction?.createdDate | date:'longDate' }}
+                        </div>
+
+                        <div class="meta-text">
+                            <strong>Created By:</strong>
+                            {{ selectedProduction?.createdByName || getUserName(selectedProduction?.userId) }}
+                        </div>
+
+                    </div>
+
+
+                    <!-- CLOSE BUTTON -->
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+
+                </div>
+
+
+                <!-- BODY -->
+                <div class="modal-body">
+
+                    <!-- MATERIAL TABLE -->
+
+                    <table class="table custom-table">
+
+                        <thead>
+                            <tr>
+                                <th>Silo 1</th>
+                                <th>Water 1</th>
+                                <th>Solid 1</th>
+
+                                <th>Silo 2</th>
+                                <th>Water 2</th>
+                                <th>Solid 2</th>
+
+                                <th>Total Solid</th>
+                                <th>Production Time</th>
+                                <th>Temperature</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            <!-- ================= ROW 1 : SILO + PRODUCTION ================= -->
+                            <tr>
+                                <td>{{ selectedProduction?.siloNo1 }}</td>
+                                <td>{{ selectedProduction?.literWeight1 }}</td>
+                                <td>{{ selectedProduction?.faSolid1 }}</td>
+
+                                <td>{{ selectedProduction?.siloNo2 || '—' }}</td>
+                                <td>{{ selectedProduction?.literWeight2 || '—' }}</td>
+                                <td>{{ selectedProduction?.faSolid2 || '—' }}</td>
+
+                                <td>{{ selectedProduction?.totalSolid }}</td>
+                                <td>{{ selectedProduction?.productionTime }}</td>
+                                <td>{{ selectedProduction?.tempC }}</td>
+                            </tr>
+
+                            <!-- ================= ROW 2 : DYNAMIC MATERIALS ================= -->
+                            <tr class="section-header" *ngIf="materialList.length">
+                                <th *ngFor="let m of materialList">{{ m.materialName }}</th>
+                                <th>Casting Time</th>
+                                <th colspan="1">Production Remark</th>
+                                <th *ngIf="materialList.length < 7" [attr.colspan]="9 - materialList.length - 2">Remark
+                                </th>
+                            </tr>
+
+                            <tr *ngIf="materialList.length">
+                                <td *ngFor="let m of materialList">
+                                    {{ getMaterialValue(selectedProduction, m.id) }}
+                                </td>
+                                <td>{{ selectedProduction?.castingTime }}</td>
+                                <td colspan="1">{{ selectedProduction?.productionRemark || '—' }}</td>
+                                <td *ngIf="materialList.length < 7" [attr.colspan]="9 - materialList.length - 2">{{
+                                    selectedProduction?.remark || '—' }}</td>
+                            </tr>
+
+                            <!-- Fallback for legacy data when no dynamic materials -->
+                            <ng-container *ngIf="!materialList.length">
+                                <tr class="section-header">
+                                    <th>Casting Time</th>
+                                    <th>Cement</th>
+                                    <th>Lime</th>
+                                    <th>Gypsum</th>
+                                    <th>Sol Oil</th>
+                                    <th>AI Power</th>
+                                    <th colspan="1">Production Remark</th>
+                                    <th colspan="2">Remark</th>
+                                </tr>
+
+                                <tr>
+                                    <td>{{ selectedProduction?.castingTime }}</td>
+                                    <td>{{ selectedProduction?.cementKg }}</td>
+                                    <td>{{ selectedProduction?.limeKg }}</td>
+                                    <td>{{ selectedProduction?.gypsumKg }}</td>
+                                    <td>{{ selectedProduction?.solOilKg }}</td>
+                                    <td>{{ selectedProduction?.aiPowerGm }}</td>
+                                    <td colspan="1">{{ selectedProduction?.productionRemark || '—' }}</td>
+                                    <td colspan="2">{{ selectedProduction?.remark || '—' }}</td>
+                                </tr>
+                            </ng-container>
+                        </tbody>
+
+                    </table>
+
+
+
+
+                </div>
+                <table class="table1">
+                    <thead class="tablehead">
+                        <tr>
+                            <th style="padding: 8px; color: white;">CHECKED BY</th>
+                            <th style="padding: 8px; color: white;">REVIEWED BY</th>
+                            <th style="padding: 8px; color: white;">APPROVED BY</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        <tr>
+                            <td class="level-text">
+                                <div>{{ getApprovalLevels(selectedProduction).checkedBy.name || '—' }}</div>
+                                <div>
+                                    {{ getApprovalLevels(selectedProduction).checkedBy.level || '' }}
+                                </div>
+                            </td>
+
+                            <td class="level-text">
+                                <div>{{ getApprovalLevels(selectedProduction).reviewedBy.name || '—' }}</div>
+                                <div>
+                                    {{ getApprovalLevels(selectedProduction).reviewedBy.level || '' }}
+                                </div>
+                            </td>
+
+                            <td class="level-text">
+                                <div>{{ getApprovalLevels(selectedProduction).approvedBy.name || '—' }}</div>
+                                <div>
+                                    {{ getApprovalLevels(selectedProduction).approvedBy.level || '' }}
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="modal-footer ">
+
+                    <button class="btn btn-primary btn-sm" *ngIf="canEditDelete()"
+                        (click)="edit(selectedProduction); closeModal()">
+                        Edit
+                    </button>
+
+
+                    <button class="link-btn info" (click)="downloadProduction('pdf')">PDF</button>
+                    <button class="link-btn success" (click)="downloadProduction('excel')">XLS</button>
+                    <button class="link-btn hz" (click)="downloadHorizontalReport(selectedProduction?.batchNo)"
+                        title="Combined Horizontal">HZ</button>
+
+                    <button class="btn btn-success btn-sm" *ngIf="canApprove(selectedProduction)"
+                        (click)="approveProduction()">
+                        Approve
+                    </button>
+
+                    <button class="btn btn-warning btn-sm" *ngIf="canReject(selectedProduction)"
+                        (click)="rejectProduction()">
+                        Reject
+                    </button>
+
+                    <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">
+                        Close
+                    </button>
+
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+
+</div>

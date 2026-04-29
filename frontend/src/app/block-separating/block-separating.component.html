@@ -1,0 +1,213 @@
+<div class="container">
+
+    <!-- ================= TABLE VIEW ================= -->
+    <div class="main" *ngIf="!showForm">
+
+        <div class="header">
+            <h2 class="page-title">Block Separating Register</h2>
+
+            <div>
+                <button class="add-btn" (click)="openForm()">+ Add</button>
+
+                <button class="dash-btn" (click)="goToDashboard()">
+                    Go To Dashboard
+                </button>
+            </div>
+        </div>
+
+
+
+        <div class="filters">
+
+            <div class="date-field">
+                <label>From Date</label>
+                <input type="date" [(ngModel)]="filterFromDate" (change)="onDateChange()" />
+            </div>
+
+            <div class="date-field">
+                <label>To Date</label>
+                <input type="date" [(ngModel)]="filterToDate" (change)="onDateChange()" />
+            </div>
+
+            <div class="filter-select">
+                <label>Plant Name</label>
+                <select [(ngModel)]="filterPlant" (change)="applyFilters()">
+                    <option value="Plant 1">Plant 1</option>
+                    <option value="Plant 2">Plant 2</option>
+                </select>
+            </div>
+
+            <div class="filter-select">
+                <label>Shift</label>
+                <select [(ngModel)]="filterShift" (change)="applyFilters()">
+                    <option value="">All Shifts</option>
+                    <option value="Night (00:00 - 08:00)">Night</option>
+                    <option value="Morning (08:00 - 16:00)">Morning</option>
+                    <option value="Afternoon (16:00 - 00:00)">Afternoon</option>
+                </select>
+            </div>
+
+            <div class="filter-select">
+                <label>Export</label>
+                <select (change)="onExportChange($event)">
+                    <option value="">Select Option</option>
+                    <option value="pdf">Export PDF</option>
+                    <option value="excel">Export Excel</option>
+                    <option value="horizontal">📊 Combined Horizontal</option>
+                </select>
+            </div>
+
+            <div class="filter-select">
+                <label>Import</label>
+                <select (change)="onImportSelect($event)">
+                    <option value="">Select Option</option>
+                    <option value="excel">Import Excel</option>
+                </select>
+            </div>
+
+            <button class="clear-btn" (click)="clearFilters()">Clear</button>
+        </div>
+
+        <!-- HIDDEN FILE INPUT -->
+        <input type="file" accept=".xlsx,.xls" hidden id="blockExcelInput" (change)="onExcelSelect($event)" />
+        <table class="table custom-table">
+            <thead>
+                <tr>
+                    <th>Batch Number</th>
+                    <th>Casting Date</th>
+
+                    <th>shift</th>
+                    <th>Size of Block</th>
+                    <th>Time</th>
+                    <th>Remark</th>
+                    <th>Action</th>
+
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr *ngFor="let r of pagedList">
+
+                    <td>{{ r.batchNumber }}</td>
+                    <td>{{ r.castingDate | date:'dd-MM-yyyy' }}</td>
+                    <td>{{ r.shift === 'G' ? 'General Shift' : r.shift ? 'Shift ' + r.shift : '—' }}</td>
+                    <td>{{ r.blockSize }}</td>
+                    <td>{{ r.time }}</td>
+                    <td>{{ r.remark || '—' }}</td>
+
+                    <td>
+                        <button class="link-btn" (click)="edit(r)">Edit</button>
+                        <button class="link-btn danger" (click)="delete(r.id)">Delete</button>
+                        <button class="link-btn info" (click)="downloadBlock(r, 'pdf')">PDF</button>
+                        <button class="link-btn success" (click)="downloadBlock(r, 'excel')">XLS</button>
+                        <button class="link-btn hz" (click)="downloadHorizontalReport(r)"
+                            title="Combined Horizontal">HZ</button>
+                    </td>
+                </tr>
+
+                <tr *ngIf="!filteredList.length">
+                    <td colspan="5" style="text-align:center;">No records found</td>
+                </tr>
+            </tbody>
+        </table>
+        <!-- ================= PAGINATION ================= -->
+        <div class="pagination-bar" *ngIf="totalPages > 1">
+
+            <button (click)="prevPage()" [disabled]="currentPage === 1">
+                ⬅ Prev
+            </button>
+
+            <button *ngFor="let p of [].constructor(totalPages); let i = index" (click)="goToPage(i + 1)"
+                [class.active]="currentPage === i + 1">
+                {{ i + 1 }}
+            </button>
+
+            <button (click)="nextPage()" [disabled]="currentPage === totalPages">
+                Next ➡
+            </button>
+
+        </div>
+
+
+    </div>
+
+    <!-- ================= FORM VIEW (MODERN RISING DESIGN) ================= -->
+    <div class="rising-form-card" *ngIf="showForm">
+        <div class="form-header">
+            <div class="indicator-bar"></div>
+            <h3>{{ editId ? 'Edit' : 'Add' }} Block Separating Entry</h3>
+        </div>
+
+        <form [formGroup]="form" (ngSubmit)="submit()" class="form-body">
+            
+            <!-- TOP ROW: SYSTEM FIELDS -->
+            <div class="form-grid header-grid">
+                <div class="form-group">
+                    <label>Report Date</label>
+                    <input type="date" formControlName="reportDate">
+                </div>
+
+                <div class="form-group">
+                    <label>Shift</label>
+                    <select formControlName="shift">
+                        <option value="" disabled>Select Shift</option>
+                        <option *ngFor="let s of shifts" [value]="s">{{ s }}</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Plant</label>
+                    <select formControlName="plantName" (change)="onPlantChange()">
+                        <option value="" disabled>Select Plant</option>
+                        <option value="Plant 1">Plant 1</option>
+                        <option value="Plant 2">Plant 2</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Entry Time</label>
+                    <input type="text" formControlName="time" readonly class="readonly-input">
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- CORE DATA SECTION -->
+            <h4 class="section-subtitle">BLOCK DETAILS</h4>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="label-blue">Casting Date</label>
+                    <input type="date" formControlName="castingDate">
+                </div>
+
+                <div class="form-group">
+                    <label class="label-blue">Batch Number</label>
+                    <select formControlName="batchNumber" [disabled]="noBatchAvailable">
+                        <option value="" disabled *ngIf="noBatchAvailable">No batches available</option>
+                        <option value="" disabled *ngIf="!noBatchAvailable">Select Batch</option>
+                        <option *ngFor="let b of autoclaveBatches" [value]="b.batchNo">{{ b.batchNo }}</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="label-blue">Block Size</label>
+                    <input type="text" formControlName="blockSize" placeholder="Enter block size">
+                </div>
+
+                <div class="form-group">
+                    <label>Remark</label>
+                    <input type="text" formControlName="remark" placeholder="Enter additional notes">
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-submit" [disabled]="isSubmitting">
+                    {{ editId ? '💾 Update Record' : '✅ Save Record' }}
+                </button>
+                <button type="button" class="btn-cancel" (click)="cancel()">Cancel</button>
+            </div>
+        </form>
+    </div>
+
+
+</div>

@@ -1,0 +1,43 @@
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { APP_CONFIG } from '../config/config';
+
+@Injectable({
+    providedIn: 'root'
+})
+export class RisingSectionService {
+
+    private baseUrl = `${APP_CONFIG.BASE_URL}${APP_CONFIG.API.RISING_SECTION}`;
+
+    constructor(private http: HttpClient) { }
+
+    private getAuthHeaders() {
+        const token = localStorage.getItem('token');
+        return {
+            headers: new HttpHeaders({
+                Authorization: token ? `Bearer ${token}` : ''
+            })
+        };
+    }
+
+    getAll(): Observable<any[]> {
+        return this.http.get<any[]>(this.baseUrl, this.getAuthHeaders());
+    }
+
+    getById(id: number): Observable<any> {
+        return this.http.get<any>(`${this.baseUrl}/${id}`, this.getAuthHeaders());
+    }
+
+    save(data: any): Observable<any> {
+        return this.http.post(this.baseUrl, data, this.getAuthHeaders());
+    }
+
+    update(id: number, data: any): Observable<any> {
+        return this.http.put(`${this.baseUrl}/${id}`, data, this.getAuthHeaders());
+    }
+
+    delete(id: number): Observable<any> {
+        return this.http.delete(`${this.baseUrl}/${id}`, this.getAuthHeaders());
+    }
+}

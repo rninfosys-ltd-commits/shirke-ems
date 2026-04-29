@@ -1,0 +1,176 @@
+<div class="container">
+
+    <!-- ================= DASHBOARD / LIST VIEW ================= -->
+    <div class="main" *ngIf="!showForm">
+        <div class="header">
+            <h2 class="page-title">Rising Section Dashboard</h2>
+            <div>
+                <button class="add-btn" (click)="openForm()">+ Add Report</button>
+                <button class="dash-btn" (click)="goToDashboard()">Go To Dashboard</button>
+            </div>
+        </div>
+
+        <!-- FILTER BAR -->
+        <div class="filters">
+            <div class="date-field">
+                <label>From Date</label>
+                <input type="date" [(ngModel)]="filterFromDate" (change)="onDateChange()" />
+            </div>
+
+            <div class="date-field">
+                <label>To Date</label>
+                <input type="date" [(ngModel)]="filterToDate" (change)="onDateChange()" />
+            </div>
+
+            <div class="filter-select">
+                <label>Plant Name</label>
+                <select [(ngModel)]="filterPlant" (change)="onFilterChange()">
+                    <option value="Plant 1">Plant 1</option>
+                    <option value="Plant 2">Plant 2</option>
+                </select>
+            </div>
+
+            <div class="filter-select">
+                <label>Export</label>
+                <select (change)="onExportChange($event)">
+                    <option value="">Select Option</option>
+                    <option value="pdf">Export PDF</option>
+                    <option value="excel">Export Excel</option>
+                    <option value="horizontal">📊 Combined Horizontal</option>
+                </select>
+            </div>
+
+            <div class="filter-select">
+                <label>Import</label>
+                <select (change)="onImportSelect($event)">
+                    <option value="">Select Option</option>
+                    <option value="excel">Import Excel</option>
+                </select>
+            </div>
+
+            <button class="clear-btn" (click)="clearFilters()">Clear</button>
+        </div>
+
+        <!-- HIDDEN FILE INPUT -->
+        <input type="file" accept=".xlsx,.xls" hidden id="risingExcelInput" (change)="onExcelSelect($event)" />
+
+        <div class="table-scroll">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>Batch No</th>
+                        <th>Plant Name</th>
+                        <th>Rising Time</th>
+                        <th>Rising Temp (°C)</th>
+                        <th>Mold Penetration</th>
+                        <th>Ball Test</th>
+                        <th>Shift</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let row of pagedList">
+                        <td>{{ row.batchNo }}</td>
+                        <td>{{ row.plantName }}</td>
+                        <td>{{ row.risingTime }}</td>
+                        <td>{{ row.risingTempC }}</td>
+                        <td>{{ row.moldPenetration }}</td>
+                        <td>{{ row.ballTest }}</td>
+                        <td>{{ row.shift }}</td>
+                        <td>
+                            <button class="link-btn" (click)="edit(row)">Edit</button>
+                            <button class="link-btn danger" (click)="delete(row.id)">Delete</button>
+                        </td>
+                    </tr>
+                    <tr *ngIf="list.length === 0">
+                        <td colspan="8" style="text-align: center; padding: 20px;">No records found.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- PAGINATION -->
+        <div class="pagination" *ngIf="totalPages > 1">
+            <button (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">⬅ Prev</button>
+            <button *ngFor="let p of [].constructor(totalPages); let i = index" (click)="goToPage(i + 1)"
+                [class.active]="currentPage === i + 1">
+                {{ i + 1 }}
+            </button>
+            <button (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages">Next ➡</button>
+        </div>
+    </div>
+
+    <!-- ================= FORM VIEW ================= -->
+    <div class="rising-form-card" *ngIf="showForm">
+        <div class="form-header">
+            <div class="indicator-bar"></div>
+            <h3>Add Rising Section</h3>
+        </div>
+
+        <form [formGroup]="form" (ngSubmit)="submit()" class="form-body">
+            <div class="form-grid">
+                <!-- Plant Name -->
+                <div class="form-group">
+                    <label>Plant Name</label>
+                    <select formControlName="plantName">
+                        <option value="Plant 1">Plant 1</option>
+                        <option value="Plant 2">Plant 2</option>
+                    </select>
+                </div>
+
+                <!-- Batch No -->
+                <div class="form-group">
+                    <label>Batch No</label>
+                    <select formControlName="batchNo">
+                        <option value="" disabled>Select Batch</option>
+                        <option *ngFor="let p of productionList" [value]="p.batchNo">{{ p.batchNo }}</option>
+                    </select>
+                </div>
+
+                <!-- Rising Time -->
+                <div class="form-group">
+                    <label class="label-blue">Rising Time</label>
+                    <input type="text" formControlName="risingTime" placeholder="10:46 PM">
+                </div>
+
+                <!-- Rising Temp -->
+                <div class="form-group">
+                    <label class="label-blue">Rising Temp (°C)</label>
+                    <input type="number" formControlName="risingTempC" placeholder="0">
+                </div>
+
+                <!-- Mold Penetration -->
+                <div class="form-group">
+                    <label class="label-blue">Mold Penetration</label>
+                    <input type="number" formControlName="moldPenetration" placeholder="0">
+                </div>
+
+                <!-- Ball Test -->
+                <div class="form-group">
+                    <label>Ball Test</label>
+                    <input type="text" formControlName="ballTest" placeholder="Ball Test">
+                </div>
+
+                <!-- Shift -->
+                <div class="form-group">
+                    <label>Shift</label>
+                    <select formControlName="shift">
+                        <option value="" disabled>Select Shift</option>
+                        <option *ngFor="let s of shifts" [value]="s">{{ s }}</option>
+                    </select>
+                </div>
+
+                <!-- Remark -->
+                <div class="form-group full-width">
+                    <label>Remark</label>
+                    <input type="text" formControlName="remark" placeholder="Remark">
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-submit">Submit</button>
+                <button type="button" class="btn-cancel" (click)="cancel()">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>

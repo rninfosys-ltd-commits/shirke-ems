@@ -1,0 +1,260 @@
+<div class="container">
+
+    <!-- ================= ORDERS LIST ================= -->
+    <div class="main" *ngIf="!showOrderForm">
+
+        <div class="header">
+            <h2 class="page-title">Sale Orders</h2>
+            <button class="add-btn" (click)="showOrderForm = true">+ Sale Order</button>
+        </div>
+
+        <!-- 🔵 FILTER BAR (PRODUCTION STYLE) -->
+        <div class="filters">
+
+            <div class="date-field top-label">
+                <label>From Date</label>
+                <input type="date" [(ngModel)]="filterFromDate" (change)="applyFilters()" />
+            </div>
+
+            <div class="date-field top-label">
+                <label>To Date</label>
+                <input type="date" [(ngModel)]="filterToDate" (change)="applyFilters()" />
+            </div>
+
+            <div class="date-field top-label">
+                <label>Customer Name</label>
+                <input type="text" placeholder=" " [(ngModel)]="filterPartyName" (input)="applyFilters()" />
+            </div>
+
+            <div class="date-field top-label">
+                <label>Min Amount</label>
+                <input type="number" placeholder=" " [(ngModel)]="filterMinAmount" (input)="applyFilters()" />
+            </div>
+
+            <div class="date-field top-label">
+                <label>Max Amount</label>
+                <input type="number" placeholder=" " [(ngModel)]="filterMaxAmount" (input)="applyFilters()" />
+            </div>
+
+            <div class="filter-select">
+                <select (change)="exportData($any($event.target).value)">
+                    <option value="">Export</option>
+                    <option value="excel">Excel</option>
+                    <option value="pdf">PDF</option>
+                </select>
+            </div>
+
+            <button class="clear-btn" (click)="clearFilters()">Clear</button>
+        </div>
+
+        <!-- TABLE -->
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Date</th>
+                    <th>Customer Name</th>
+                    <th>Description</th>
+                    <th>Amount</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr *ngFor="let order of paginatedOrders">
+                    <td>
+                        <a href="javascript:void(0)" (click)="getOrderDetailsById(order.id!)" data-bs-toggle="modal"
+                            data-bs-target="#orderDetailsModal" class="link-btn">
+                            {{ order.id }}
+                        </a>
+                    </td>
+                    <td>{{ order.date | date:'dd-MM-yyyy' }}</td>
+                    <td>{{ order.userName || 'N/A' }}</td>
+                    <td>{{ order.orderDescription }}</td>
+                    <td>{{ order.amount | currency:'INR' }}</td>
+                </tr>
+
+                <tr *ngIf="myOrders.length === 0">
+                    <td colspan="5" style="text-align:center; color:#999; padding:20px;">
+                        No orders found
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- PAGINATION -->
+        <div class="pagination-bar" *ngIf="totalPages > 1">
+            <button [disabled]="currentPage === 1" (click)="prevPage()">Previous</button>
+
+            <button *ngFor="let p of [].constructor(totalPages); let i = index" [class.active]="currentPage === i + 1"
+                (click)="setPage(i + 1)">
+                {{ i + 1 }}
+            </button>
+
+            <button [disabled]="currentPage === totalPages" (click)="nextPage()">Next</button>
+        </div>
+
+    </div>
+
+    <!-- ================= SELL FORM ================= -->
+    <div class="main" *ngIf="showOrderForm">
+
+        <div class="header">
+            <h2 class="page-title">Create Sale Order</h2>
+            <button class="add-btn" (click)="showOrderForm = false">← Back Orders</button>
+        </div>
+
+        <hr>
+
+        <!-- DATE + CUSTOMER -->
+        <div class="row row-3">
+
+            <div class="form-field">
+                <input type="date" placeholder=" " [(ngModel)]="dateValue">
+                <label>Order Date</label>
+            </div>
+
+            <div class="form-field custom-select" [class.filled]="selectedCustomer">
+                <div class="select-input" (click)="toggleCustomerDropdown()" [class.open]="customerOpen">
+                    {{ selectedCustomer?.username || selectedCustomer?.userName || ' ' }}
+                </div>
+                <label>Select Customer</label>
+
+                <div class="select-options" *ngIf="customerOpen">
+                    <div class="option" *ngFor="let c of customers" (click)="selectCustomer(c)">
+                        {{ c.username || c.userName }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <hr>
+
+        <!-- PRODUCT FORM -->
+        <form [formGroup]="cartForm">
+            <div class="row row-4">
+
+                <div class="form-field custom-select" [class.filled]="selectedProduct">
+                    <div class="select-input" (click)="toggleProductDropdown()" [class.open]="productOpen">
+                        {{ selectedProduct?.name || ' ' }}
+                    </div>
+                    <label>Product</label>
+
+                    <div class="select-options" *ngIf="productOpen">
+                        <div class="option" *ngFor="let pr of products" (click)="selectProduct(pr)">
+                            {{ pr.name }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-field">
+                    <input type="number" placeholder=" " [(ngModel)]="productPrice"
+                        [ngModelOptions]="{ standalone: true }">
+                    <label>Price</label>
+                </div>
+
+                <div class="form-field">
+                    <input type="number" placeholder=" " formControlName="quantity" min="1">
+                    <label>Quantity</label>
+                </div>
+
+                <div>
+                    <button class="add-btn" type="button" (click)="addToCart()" style="width:100%">
+                        Add to Cart
+                    </button>
+                </div>
+            </div>
+        </form>
+
+        <hr>
+
+        <!-- CART TABLE -->
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Product</th>
+                    <th>Price</th>
+                    <th>Qty</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let it of cartItems; let i = index">
+                    <td>{{ i + 1 }}</td>
+                    <td>{{ it.productName }}</td>
+                    <td>{{ it.price | currency:'INR' }}</td>
+                    <td>{{ it.quantity }}</td>
+                    <td>
+                        <button class="link-btn danger" (click)="removeItem(i)">Remove</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="actions" style="justify-content: space-between;">
+            <button class="add-btn" style="background: #16a34a;" (click)="placeOrder()">Place Sale Details</button>
+            <strong style="font-size:18px;">Total: {{ totalAmount | currency:'INR' }}</strong>
+        </div>
+    </div>
+
+    <!-- ================= ORDER DETAILS MODAL ================= -->
+    <div class="modal fade" id="orderDetailsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">Sale Details</h5>
+                    <button class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p><b>Customer ID:</b> {{ selectedOrder?.userId }}</p>
+                            <p><b>Customer Name:</b> {{ selectedOrder?.userName }}</p>
+                        </div>
+
+                        <div class="col-md-6 text-end">
+                            <p><b>Sale ID:</b> {{ selectedOrder?.id }}</p>
+                            <p><b>Date:</b> {{ selectedOrder?.date | date:'dd/MM/yyyy' }}</p>
+                        </div>
+                    </div>
+
+                    <table class="table table-bordered">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Product</th>
+                                <th class="text-end">Qty</th>
+                                <th class="text-end">Price</th>
+                                <th class="text-end">Amount</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            <tr *ngFor="let item of selectedOrder?.cartItems">
+                                <td>{{ item.productName }}</td>
+                                <td class="text-end">{{ item.quantity }}</td>
+                                <td class="text-end">{{ item.price | currency:'INR' }}</td>
+                                <td class="text-end">
+                                    {{ item.price * item.quantity | currency:'INR' }}
+                                </td>
+                            </tr>
+                        </tbody>
+
+                        <tfoot>
+                            <tr>
+                                <th colspan="3" class="text-end">Grand Total</th>
+                                <th class="text-end">
+                                    {{ calculateGrandTotal(selectedOrder?.cartItems) | currency:'INR' }}
+                                </th>
+                            </tr>
+                        </tfoot>
+                    </table>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>

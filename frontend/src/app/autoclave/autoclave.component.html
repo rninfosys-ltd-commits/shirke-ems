@@ -1,0 +1,250 @@
+<div class="container">
+
+    <!-- ================= LIST VIEW ================= -->
+    <div class="main" *ngIf="!showForm">
+
+        <div class="header">
+            <h2 class="page-title">Autoclave Cycle</h2>
+
+            <div>
+                <button class="add-btn" (click)="openForm()">+ Add Cycle</button>
+
+                <button class="dash-btn" (click)="goToDashboard()">
+                    Go To Dashboard
+                </button>
+            </div>
+        </div>
+
+
+        <div class="filters">
+
+            <div class="date-field">
+                <label>From Date</label>
+                <input type="date" [(ngModel)]="filterFromDate" (change)="onDateChange()" />
+            </div>
+
+            <div class="date-field">
+                <label>To Date</label>
+                <input type="date" [(ngModel)]="filterToDate" (change)="onDateChange()" />
+            </div>
+
+            <div class="filter-select">
+                <label>Plant Name</label>
+                <select [(ngModel)]="filterPlant" (change)="applyFilters()">
+                    <option value="Plant 1">Plant 1</option>
+                    <option value="Plant 2">Plant 2</option>
+                </select>
+            </div>
+
+            <div class="filter-select">
+                <label>Export</label>
+                <select (change)="onExportChange($event)">
+                    <option value="">Select Option</option>
+                    <option value="pdf">Export PDF</option>
+                    <option value="excel">Export Excel</option>
+                    <option value="horizontal">📊 Combined Horizontal</option>
+                </select>
+            </div>
+
+            <div class="filter-select">
+                <label>Import</label>
+                <select (change)="onImportSelect($event)">
+                    <option value="">Select Option</option>
+                    <option value="excel">Import Excel</option>
+                </select>
+            </div>
+
+            <button class="clear-btn" (click)="clearFilters()">Clear</button>
+        </div>
+
+        <!-- HIDDEN FILE INPUT -->
+        <input type="file" accept=".xlsx,.xls" hidden id="autoclaveExcelInput" (change)="onExcelSelect($event)" />
+
+        <!-- TABLE -->
+        <div class="table-scroll">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>Batch No</th>
+                        <th>Cycle No</th>
+                        <th>Date</th>
+                        <th>Start Time</th>
+                        <th>End Time</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <ng-container *ngFor="let r of pagedList">
+                        <tr *ngIf="canViewAutoclave(r)">
+                            <td class="clickable" (click)="openAutoclaveModal(r)">
+                                {{ r.batchNo }}
+                            </td>
+                            <td>{{ r.cycleNo }}</td>
+                            <td>{{ r.createdDate | date:'dd-MM-yyyy' }}</td>
+                            <td>{{ r.cycleStartTime }}</td>
+                            <td>{{ r.cycleEndTime }}</td>
+                            <td>
+                                <button class="link-btn" (click)="edit(r)">Edit</button>
+                                <button class="link-btn danger" (click)="delete(r.id)">Delete</button>
+                                <button class="link-btn info" (click)="selected = r; download('pdf')">PDF</button>
+                                <button class="link-btn success" (click)="selected = r; download('excel')">XLS</button>
+                            </td>
+                        </tr>
+                    </ng-container>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- ================= PAGINATION ================= -->
+        <div class="pagination" *ngIf="totalPages > 1">
+            <button (click)="prevPage()" [disabled]="currentPage === 1">⬅ Prev</button>
+            <button *ngFor="let p of [].constructor(totalPages); let i = index" (click)="goToPage(i + 1)"
+                [class.active]="currentPage === i + 1">
+                {{ i + 1 }}
+            </button>
+            <button (click)="nextPage()" [disabled]="currentPage === totalPages">Next ➡</button>
+        </div>
+
+    </div>
+
+    <!-- ================= FORM VIEW (MODERN RISING DESIGN) ================= -->
+    <div class="rising-form-card" *ngIf="showForm">
+        <div class="form-header">
+            <div class="indicator-bar"></div>
+            <h3>{{ editId ? 'Edit' : 'Add' }} Autoclave Cycle Run</h3>
+        </div>
+
+        <form [formGroup]="form" class="form-body">
+            
+            <!-- GENERAL INFORMATION -->
+            <h4 class="section-subtitle">GENERAL INFORMATION</h4>
+            <div class="form-grid header-grid">
+                <div class="form-group">
+                    <label>Run Number</label>
+                    <input type="text" formControlName="runNo">
+                </div>
+
+                <div class="form-group">
+                    <label>Shift</label>
+                    <select formControlName="shift">
+                        <option value="" disabled>Select Shift</option>
+                        <option *ngFor="let s of shifts" [value]="s">{{ s }}</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Plant</label>
+                    <select formControlName="plantName" (change)="onPlantChange()">
+                        <option value="" disabled>Select Plant</option>
+                        <option value="Plant 1">Plant 1</option>
+                        <option value="Plant 2">Plant 2</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Current Status</label>
+                    <input type="text" formControlName="currentStatus">
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- LIFECYCLE TRACKING -->
+            <h4 class="section-subtitle">LIFECYCLE TRACKING (TIMESTAMPS)</h4>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="label-blue">Cycle Start Time</label>
+                    <input type="datetime-local" formControlName="cycleStartTime">
+                </div>
+                <div class="form-group">
+                    <label class="label-blue">Hold Start Time</label>
+                    <input type="datetime-local" formControlName="holdStartTime">
+                </div>
+                <div class="form-group">
+                    <label class="label-blue">Hold End Time</label>
+                    <input type="datetime-local" formControlName="holdEndTime">
+                </div>
+                <div class="form-group">
+                    <label class="label-blue">Transfer Start Time</label>
+                    <input type="datetime-local" formControlName="transferStartTime">
+                </div>
+                <div class="form-group">
+                    <label class="label-blue">Transfer End Time</label>
+                    <input type="datetime-local" formControlName="transferEndTime">
+                </div>
+                <div class="form-group">
+                    <label class="label-blue">Release Start Time</label>
+                    <input type="datetime-local" formControlName="releaseStartTime">
+                </div>
+                <div class="form-group">
+                    <label class="label-blue">Release End Time</label>
+                    <input type="datetime-local" formControlName="releaseEndTime">
+                </div>
+                <div class="form-group">
+                    <label class="label-blue">Door Open Time</label>
+                    <input type="datetime-local" formControlName="doorOpenTime">
+                </div>
+                <div class="form-group">
+                    <label class="label-blue">Cycle End Time</label>
+                    <input type="datetime-local" formControlName="cycleEndTime">
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- PRESSURE READINGS -->
+            <h4 class="section-subtitle">PRESSURE READINGS (KG)</h4>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="label-blue">After 1 Hr</label>
+                    <input type="number" formControlName="pressure1Hr" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label class="label-blue">After 2 Hr</label>
+                    <input type="number" formControlName="pressure2Hr" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label class="label-blue">After 3 Hr</label>
+                    <input type="number" formControlName="pressure3Hr" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label class="label-blue">At Completion</label>
+                    <input type="number" formControlName="pressureCompletion" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label class="label-blue">At Release</label>
+                    <input type="number" formControlName="pressureRelease" step="0.01">
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- BATCH COUNTS -->
+            <h4 class="section-subtitle">BATCH COUNTS & NOTES</h4>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Plant 1 Batch Count</label>
+                    <input type="number" formControlName="plant1BatchCount">
+                </div>
+                <div class="form-group">
+                    <label>Plant 2 Batch Count</label>
+                    <input type="number" formControlName="plant2BatchCount">
+                </div>
+                <div class="form-group" style="grid-column: span 2;">
+                    <label>Remarks</label>
+                    <input type="text" formControlName="remarks" placeholder="Enter additional notes">
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="btn-submit" (click)="save()">
+                    {{ editId ? '💾 Update Cycle' : '✅ Save Cycle' }}
+                </button>
+                <button type="button" class="btn-cancel" (click)="back()">Cancel</button>
+            </div>
+        </form>
+    </div>
+
+
+</div>

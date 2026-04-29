@@ -1,0 +1,396 @@
+/* ================= THEME ================= */
+:root {
+    --primary: #2563eb;
+    --primary-dark: #1e40af;
+    --bg-main: #f1f5f9;
+    --card-bg: #ffffff;
+    --border: #e2e8f0;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --success-bg: #dcfce7;
+    --success-text: #166534;
+    --danger-bg: #fee2e2;
+    --danger-text: #991b1b;
+}
+
+/* ================= WRAPPER ================= */
+.project-wrapper {
+    background-color: white;
+    padding: 12px;
+    min-height: 100vh;
+    font-family: "Inter", "Segoe UI", sans-serif;
+}
+
+/* ================= CARD ================= */
+.project-card {
+    max-width: 1450px;
+    margin: auto;
+    background: var(--card-bg);
+    border-radius: 14px;
+    padding: 10px 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    background-color: #f1f4f8;
+}
+
+.title1 {
+    text-align: center;
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 5px;
+    background: linear-gradient(135deg, #7f46ff 0%, #9d6bff 100%);
+    padding: 8px 10px;
+    border-radius: 5px;
+    width: 200px;
+    color: white;
+}
+
+.project-card.mt {
+    margin-top: 8px;
+}
+
+/* ================= HEADER ================= */
+.header {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    margin-bottom: 10px;
+}
+
+.header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.form-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.header h2,
+.form-header h2 {
+    margin: 0;
+    font-weight: 600;
+    font-size: 20px;
+    color: white;
+}
+
+/* ================= BUTTONS ================= */
+.toggle-btn,
+.edit-btn,
+.actions button {
+    /* border-radius: 999px; */
+    border-radius: 12px;
+
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.25s ease;
+    background-color: #2563eb;
+    color: #e8e8f1;
+    font-size: 16px;
+}
+
+.toggle-btn,
+.edit-btn {
+    padding: 10px 14px;
+    white-space: nowrap;
+    font-size: 16px;
+}
+
+
+.project-table td:last-child {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    padding-right: 0;
+}
+
+
+.toggle-btn:hover,
+.edit-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(37, 99, 235, 0.35);
+}
+
+/* ================= GRID ================= */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 22px;
+}
+
+.field {
+    position: relative;
+}
+
+.field.full {
+    grid-column: span 4;
+}
+
+/* Remark should span remaining columns */
+.field.span-3 {
+    grid-column: span 3;
+}
+
+/* ================= INPUTS ================= */
+input,
+textarea,
+select {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1.5px solid var(--border);
+    font-size: 16px;
+    background: #f8fafc;
+    transition: 0.2s ease;
+    border: 1.5px solid #93c5fd;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+    outline: none;
+    background: #fff;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+/* ================= FLOATING LABEL ================= */
+/* ================= FLOATING LABEL (FINAL – FIXED) ================= */
+
+.field.floating {
+    position: relative;
+}
+
+.field.floating label {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #ffffff;
+    padding: 0 6px;
+
+    font-size: 19px;
+    font-weight: 500;
+    color: #64748b;
+
+    pointer-events: none;
+    transition: all 0.2s ease;
+}
+
+/* 👇 move label on focus OR value */
+.field.floating input:focus+label,
+.field.floating input:not(:placeholder-shown)+label,
+.field.floating textarea:focus+label,
+.field.floating textarea:not(:placeholder-shown)+label,
+.field.floating select:focus+label,
+.field.floating select.ng-valid+label {
+    top: -6px;
+    /* sits on border */
+    font-size: 19px;
+    /* smaller text */
+    color: #2563eb;
+    /* blue */
+}
+
+
+/* ================= ACTION ================= */
+.actions {
+    margin-top: 32px;
+    display: flex;
+    justify-content: center;
+}
+
+.actions button {
+    min-width: 240px;
+    height: 52px;
+    box-shadow: 0 10px 25px rgba(37, 99, 235, 0.35);
+}
+
+/* ================= TABLE ================= */
+.project-table {
+    width: 100%;
+    min-width: 720px;
+    border-collapse: collapse;
+    border: 1px solid #e5e7eb;
+}
+
+.project-table th {
+    background: blue;
+    font-size: 19px;
+    text-transform: uppercase;
+    color: white;
+}
+
+.project-table th,
+.project-table td {
+    padding: 10px;
+    border: 1px solid #e5e7eb;
+    font-size: 15px;
+    text-align: center;
+}
+
+.project-table tbody tr:hover {
+    background: #f1f5f9;
+}
+
+/* ================= BADGES ================= */
+.badge {
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.badge.active {
+    background: var(--success-bg);
+    color: var(--success-text);
+}
+
+.badge.inactive {
+    background: var(--danger-bg);
+    color: var(--danger-text);
+}
+
+/* ================= PAGINATION ================= */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+    margin-top: 24px;
+}
+
+.pagination button {
+    padding: 8px 18px;
+    border-radius: 999px;
+    border: none;
+    font-weight: 600;
+    color: white;
+    background-color: #1e40af;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.pagination button:disabled {
+    background: #94a3b8;
+    cursor: not-allowed;
+}
+
+/* ================= MOBILE FIXES ================= */
+@media (max-width: 768px) {
+    .project-wrapper {
+        padding: 10px;
+    }
+
+    .project-card {
+        padding: 15px;
+        margin: 0;
+    }
+
+    .title1 {
+        width: 100%;
+        margin-bottom: 15px;
+    }
+
+    .header-top,
+    .form-header {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 12px;
+    }
+
+    .grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .field.full,
+    .field.span-3 {
+        grid-column: span 1;
+    }
+
+    .field.floating label {
+        font-size: 14px;
+    }
+
+    .field.floating input:not(:placeholder-shown)+label,
+    .field.floating textarea:not(:placeholder-shown)+label {
+        font-size: 14px;
+    }
+
+    .filters {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 15px;
+        gap: 12px;
+        overflow-x: hidden;
+    }
+
+    .filters input[type="date"],
+    .filters select,
+    .clear-btn,
+    .date-field.top-label {
+        width: 100% !important;
+        min-width: 0 !important;
+        height: 42px;
+        font-size: 16px !important;
+    }
+
+    .date-field label,
+    .date-field.top-label label {
+        font-size: 14px !important;
+    }
+
+    .actions {
+        width: 100%;
+        margin-top: 20px;
+    }
+
+    .actions button {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .project-table {
+        display: block;
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    .project-table th {
+        font-size: 14px;
+    }
+
+    .pagination {
+        font-size: 16px;
+    }
+}
+
+/* ================= TABLE SCROLL ================= */
+.table-scroll {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.table-scroll::-webkit-scrollbar {
+    height: 6px;
+}
+
+.table-scroll::-webkit-scrollbar-thumb {
+    background: #cbd5f5;
+    border-radius: 6px;
+}
+
+/* ================= RESPONSIVE ================#endregion
+   text-align: center;
+    }
+}
+*/

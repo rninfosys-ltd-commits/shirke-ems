@@ -1,0 +1,390 @@
+<div class="container">
+
+    <!-- ================= LIST VIEW ================= -->
+    <div class="main" *ngIf="!showForm">
+
+        <div class="header">
+            <h2 class="page-title">Casting Hall Report</h2>
+
+            <div>
+                <button class="add-btn" (click)="openForm()">+ Add Casting</button>
+
+                <button class="dash-btn" (click)="goToDashboard()">
+                    Go To Dashboard
+                </button>
+            </div>
+        </div>
+
+
+        <!-- FILTER BAR -->
+        <div class="filters">
+
+            <div class="date-field">
+                <label>From Date</label>
+                <input type="date" [(ngModel)]="filterFromDate" (change)="onDateChange()" />
+            </div>
+
+            <div class="date-field">
+                <label>To Date</label>
+                <input type="date" [(ngModel)]="filterToDate" (change)="onDateChange()" />
+            </div>
+
+            <div class="filter-select">
+                <label>Plant Name</label>
+                <select [ngModel]="plantFilter" (change)="onFilterChange($event)">
+                    <option value="Plant 1">Plant 1</option>
+                    <option value="Plant 2">Plant 2</option>
+                </select>
+            </div>
+
+            <div class="filter-select">
+                <label>Export</label>
+                <select (change)="onExportChange($event)">
+                    <option value="">Select Option</option>
+                    <option value="pdf">Export PDF</option>
+                    <option value="excel">Export Excel</option>
+                    <option value="horizontal">📊 Combined Horizontal</option>
+                </select>
+            </div>
+
+            <div class="filter-select">
+                <label>Import</label>
+                <select (change)="onImportSelect($event)">
+                    <option value="">Select Option</option>
+                    <option value="excel">Import Excel</option>
+                </select>
+            </div>
+
+            <!-- HIDDEN FILE INPUT -->
+            <input type="file" accept=".xlsx,.xls" hidden id="castingExcelInput" (change)="onExcelSelect($event)" />
+
+            <button class="clear-btn" (click)="clearFilters()">Clear</button>
+        </div>
+
+        <!-- TABLE -->
+        <div class="table-scroll">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>Batch No</th>
+                        <th>Date</th>
+                        <th>Shift</th>
+                        <th>Height</th>
+                        <th>Mould No</th>
+                        <th>Flow (cm)</th>
+                        <th>Temp (°C)</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <ng-container *ngFor="let r of reportList">
+                        <tr *ngIf="canViewCasting(r)">
+                            <td class="clickable" (click)="openCastingModal(r)">
+                                {{ r.batchNo }}
+                            </td>
+                            <td>{{ r.createdDate | date:'dd-MM-yyyy' }}</td>
+                            <td>{{ r.shift }}</td>
+                            <td>{{ r.size }}</td>
+                            <td>{{ r.mouldNo }}</td>
+                            <td>{{ r.flowInCm }}</td>
+                            <td>{{ r.castingTempC }}</td>
+                            <td>
+                                <button class="link-btn" (click)="edit(r)">Edit</button>
+                                <button class="link-btn danger" (click)="delete(r.id)">Delete</button>
+                                <button class="link-btn info"
+                                    (click)="selectedCasting = r; downloadCasting('pdf')">PDF</button>
+                                <button class="link-btn success"
+                                    (click)="selectedCasting = r; downloadCasting('excel')">XLS</button>
+                            </td>
+                        </tr>
+                    </ng-container>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- ================= PAGINATION ================= -->
+        <div class="pagination" *ngIf="totalPages > 1">
+            <button (click)="prevPage()" [disabled]="currentPage === 1">⬅ Prev</button>
+            <span>Page {{currentPage}} of {{totalPages}}</span>
+            <button (click)="nextPage()" [disabled]="currentPage === totalPages">Next ➡</button>
+        </div>
+
+
+    </div>
+
+    <!-- ================= FORM VIEW ================= -->
+    <div class="rising-form-card" *ngIf="showForm">
+        <div class="form-header">
+            <div class="indicator-bar"></div>
+            <h3>{{ editId ? 'Edit' : 'Add' }} Casting Hall Report</h3>
+        </div>
+
+        <form [formGroup]="reportForm" (ngSubmit)="submit()" class="form-body">
+            
+            <!-- HEADER SECTION -->
+            <div class="form-grid header-grid">
+                <div class="form-group">
+                    <label>Date</label>
+                    <input type="date" formControlName="reportDate">
+                </div>
+
+                <div class="form-group">
+                    <label>Shift</label>
+                    <select formControlName="shift">
+                        <option value="" disabled>Select Shift</option>
+                        <option *ngFor="let s of shifts" [value]="s">{{ s }}</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Plant</label>
+                    <select formControlName="plantName" (change)="onPlantChange()">
+                        <option value="" disabled>Select Plant</option>
+                        <option value="Plant 1">Plant 1</option>
+                        <option value="Plant 2">Plant 2</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Batch No</label>
+                    <select formControlName="batchNo">
+                        <option value="" disabled>Select Batch</option>
+                        <option *ngFor="let p of productionList" [value]="p.batchNo">{{ p.batchNo }}</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="label-blue">Height</label>
+                    <input type="number" formControlName="size" placeholder="Height">
+                </div>
+
+                <div class="form-group">
+                    <label class="label-blue">Mould No</label>
+                    <input type="number" formControlName="mouldNo" placeholder="Mould No">
+                </div>
+
+                <div class="form-group">
+                    <label class="label-blue">Flow (cm)</label>
+                    <input type="number" formControlName="flowInCm" placeholder="Flow">
+                </div>
+
+                <div class="form-group">
+                    <label class="label-blue">Casting Temp °C</label>
+                    <input type="number" formControlName="castingTempC" placeholder="Temp">
+                </div>
+
+                <div class="form-group full-width">
+                    <label>Remark</label>
+                    <input type="text" formControlName="remark" placeholder="Remark">
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-submit">{{ editId ? 'Update' : 'Submit' }}</button>
+                <button type="button" class="btn-cancel" (click)="cancel()">Cancel</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- ================= CASTING IMPORT MODAL ================= -->
+    <ng-container *ngIf="showImportModal">
+
+        <div class="import-backdrop"></div>
+
+        <div class="import-modal">
+
+            <div class="modal-card">
+
+                <!-- HEADER -->
+                <div class="modal-header">
+                    <h3>Import Casting Excel</h3>
+                    <button class="btn btn-danger" (click)="closeImportModal()">X</button>
+                </div>
+
+                <!-- BODY -->
+                <div class="modal-body">
+
+                    <!-- <input type="file" accept=".xlsx,.xls" (change)="onExcelSelect($event)" /> -->
+
+                    <table class="table custom-table" *ngIf="importPreviewList.length">
+
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th *ngFor="let col of importPreviewFields">
+                                    {{ col.label }}
+                                </th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            <tr *ngFor="let row of pagedImportPreview; let i = index">
+                                <td>{{ (importCurrentPage - 1) * importPageSize + i + 1 }}</td>
+
+                                <td *ngFor="let col of importPreviewFields">
+                                    {{ row[col.key] }}
+                                </td>
+                            </tr>
+                        </tbody>
+
+                    </table>
+
+
+
+                    <!-- PAGINATION -->
+                    <div class="pagination-bar" *ngIf="importTotalPages > 1">
+                        <button (click)="prevImportPage()" [disabled]="importCurrentPage === 1">⬅</button>
+
+                        <button *ngFor="let p of [].constructor(importTotalPages); let i = index"
+                            (click)="goToImportPage(i+1)" [class.active]="importCurrentPage === i+1">
+                            {{ i+1 }}
+                        </button>
+
+                        <button (click)="nextImportPage()"
+                            [disabled]="importCurrentPage === importTotalPages">➡</button>
+                    </div>
+
+                </div>
+
+                <!-- FOOTER -->
+                <div class="modal-footer">
+                    <button class="btn btn-success" (click)="saveImportedCasting()">Save Imported Casting</button>
+                    <button class="btn btn-secondary" (click)="closeImportModal()">Cancel</button>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ================= FORM ================= -->
+
+
+
+
+        <!-- ================= CASTING VIEW MODAL ================= -->
+
+    </ng-container>
+    <div class="modal fade" id="castingModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+
+                <!-- HEADER -->
+                <div class="modal-header">
+
+                    <div class="d-flex align-items-center modal-header-big">
+
+                        <h4 class="modal-title mb-0">
+                            Batch No - {{ selectedCasting?.batchNo }}
+                        </h4>
+
+                        <div class="meta-text">
+                            <strong>Date:</strong>
+                            {{ selectedCasting?.createdDate | date:'longDate' }}
+                        </div>
+
+                        <div class="meta-text">
+                            <strong>Created By:</strong>
+                            {{ selectedCasting?.createdByName || 'Admin' }}
+                        </div>
+
+                    </div>
+
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <!-- BODY -->
+                <div class="modal-body">
+
+                    <table class="table custom-table">
+
+                        <thead>
+                            <tr>
+                                <th>Shift</th>
+                                <th>Height</th>
+                                <th>Mould No</th>
+                                <th>Flow (cm)</th>
+                                <th>Casting Temp</th>
+                                <th colspan="2">Remark</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            <tr>
+                                <td>{{ selectedCasting?.shift }}</td>
+                                <td>{{ selectedCasting?.size }}</td>
+                                <td>{{ selectedCasting?.mouldNo }}</td>
+                                <td>{{ selectedCasting?.flowInCm }}</td>
+                                <td>{{ selectedCasting?.castingTempC }}</td>
+                                <td colspan="2">{{ selectedCasting?.remark || '—' }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                </div>
+
+
+                <!-- ================= APPROVAL TABLE ================= -->
+                <table class="table1">
+                    <thead class="tablehead">
+                        <tr>
+                            <th style="padding:8px;color:white">CHECKED BY</th>
+                            <th style="padding:8px;color:white">REVIEWED BY</th>
+                            <th style="padding:8px;color:white">APPROVED BY</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        <tr>
+                            <td class="level-text">
+
+                                <div>{{ getCastingApprovalLevels(selectedCasting).checkedBy.name || '—' }}</div>
+                                <div>{{ getCastingApprovalLevels(selectedCasting).checkedBy.level || '' }}</div>
+                            </td>
+
+                            <td class="level-text">
+                                <div>{{ getCastingApprovalLevels(selectedCasting).reviewedBy.name || '—' }}</div>
+                                <div>{{ getCastingApprovalLevels(selectedCasting).reviewedBy.level || '' }}</div>
+                            </td>
+
+                            <td class="level-text">
+                                <div>{{ getCastingApprovalLevels(selectedCasting).approvedBy.name || '—' }}</div>
+                                <div>{{ getCastingApprovalLevels(selectedCasting).approvedBy.level || '' }}</div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+
+                <!-- FOOTER -->
+                <div class="modal-footer">
+
+                    <button class="btn btn-primary btn-sm" (click)="edit(selectedCasting); closeCastingModal()">
+                        Edit
+                    </button>
+
+                    <button class="link-btn info" (click)="downloadCasting('pdf')">PDF</button>
+                    <button class="link-btn success" (click)="downloadCasting('excel')">XLS</button>
+
+                    <button class="btn btn-success btn-sm" *ngIf="canApproveCasting(selectedCasting)"
+                        (click)="approveCasting()">
+                        Approve
+                    </button>
+
+                    <button class="btn btn-warning btn-sm" *ngIf="canRejectCasting(selectedCasting)"
+                        (click)="rejectCasting()">
+                        Reject
+                    </button>
+
+
+                    <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">
+                        Close
+                    </button>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>

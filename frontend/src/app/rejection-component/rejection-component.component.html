@@ -1,0 +1,262 @@
+<div class="lead-wrapper">
+
+    <div class="lead-card" *ngIf="showLeads">
+
+        <div class="header">
+            <h2 class="title">Rejection Data</h2>
+
+            <div>
+                <button class="add-btn" (click)="openCreate()">+ Add</button>
+
+                <button class="dash-btn" (click)="goToDashboard()">
+                    Go To Dashboard
+                </button>
+            </div>
+        </div>
+
+
+        <div class="filters">
+
+            <div class="date-field">
+                <label>From Date</label>
+                <input type="date" [(ngModel)]="filterFromDate" (change)="onDateChange()" />
+            </div>
+
+            <div class="date-field">
+                <label>To Date</label>
+                <input type="date" [(ngModel)]="filterToDate" (change)="onDateChange()" />
+            </div>
+
+            <div class="filter-select">
+                <label>Plant Name</label>
+                <select [(ngModel)]="filterPlant" (change)="applyFilters()">
+                    <option value="Plant 1">Plant 1</option>
+                    <option value="Plant 2">Plant 2</option>
+                </select>
+            </div>
+
+            <div class="filter-select">
+                <label>Shift</label>
+                <select [(ngModel)]="filterShift" (change)="applyFilters()">
+                    <option value="">All Shifts</option>
+                    <option value="Night (00:00 - 08:00)">Night</option>
+                    <option value="Morning (08:00 - 16:00)">Morning</option>
+                    <option value="Afternoon (16:00 - 00:00)">Afternoon</option>
+                </select>
+            </div>
+
+            <div class="filter-select">
+                <label>Export</label>
+                <select (change)="onExportChange($event)">
+                    <option value="">Select Option</option>
+                    <option value="pdf">Export PDF</option>
+                    <option value="excel">Export Excel</option>
+                    <option value="horizontal">📊 Combined Horizontal</option>
+                </select>
+            </div>
+
+            <div class="filter-select">
+                <label>Import</label>
+                <select (change)="onImportSelect($event)">
+                    <option value="">Select Option</option>
+                    <option value="excel">Import Excel</option>
+                </select>
+            </div>
+
+            <button class="clear-btn" (click)="clearFilters()">Clear</button>
+        </div>
+
+        <!-- HIDDEN FILE INPUT -->
+        <input type="file" accept=".xlsx,.xls" hidden id="rejectionExcelInput" (change)="onExcelSelect($event)" />
+
+        <div class="table-scroll">
+            <table class="lead-table">
+
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Date</th>
+                        <th>Batch</th>
+                        <th>Block Size</th>
+                        <th>Qty</th>
+                        <th>Shift</th>
+                        <th>topSideDamages</th>
+                        <th>Total Break</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <tr *ngFor="let r of paginated">
+                        <td>{{r.id}}</td>
+                        <td>{{r.date | date:'dd-MM-yyyy'}}</td>
+                        <td>{{r.batchNo}}</td>
+                        <td>{{r.blockSize}}</td>
+                        <td>{{r.qty}}</td>
+                        <td>{{ r.shift === 'G' ? 'General Shift' : r.shift ? 'Shift ' + r.shift : '—' }}</td>
+                        <td>{{r.topSideDamages}}</td>
+                        <td>{{r.totalBreakages}}</td>
+
+                        <td>
+                            <span class="badge" [ngClass]="r.isActive ? 'active':'inactive'">
+                                {{r.isActive?'Active':'Inactive'}}
+                            </span>
+                        </td>
+
+                        <td class="action-cell">
+                            <button class="link-btn" (click)="edit(r)">Edit</button>
+                            <button class="link-btn danger" (click)="delete(r.id)">Delete</button>
+                            <button class="link-btn info" (click)="downloadRejection(r, 'pdf')">PDF</button>
+                            <button class="link-btn success" (click)="downloadRejection(r, 'excel')">XLS</button>
+                            <button class="link-btn hz" (click)="downloadHorizontalReport(r)"
+                                title="Combined Horizontal">HZ</button>
+                        </td>
+                    </tr>
+                </tbody>
+
+            </table>
+        </div>
+
+        <div class="pagination">
+            <button (click)="prevPage()">Prev</button>
+            <span>{{currentPage}} / {{totalPages}}</span>
+            <button (click)="nextPage()">Next</button>
+        </div>
+
+    </div>
+
+    <!-- FORM -->
+
+    <!-- FORM -->
+
+    <!-- ================= FORM (MODERN RISING DESIGN) ================= -->
+    <div class="rising-form-card" *ngIf="!showLeads">
+        <div class="form-header">
+            <div class="indicator-bar"></div>
+            <h3>{{ editId ? 'Edit' : 'Add' }} Rejection Record</h3>
+        </div>
+
+        <form [formGroup]="form" (ngSubmit)="submit()" class="form-body">
+            
+            <!-- TOP ROW: SYSTEM FIELDS -->
+            <div class="form-grid header-grid">
+                <div class="form-group">
+                    <label>Report Date</label>
+                    <input type="date" formControlName="date">
+                </div>
+
+                <div class="form-group">
+                    <label>Shift</label>
+                    <select formControlName="shift">
+                        <option value="" disabled>Select Shift</option>
+                        <option *ngFor="let s of shifts" [value]="s">{{ s }}</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Plant</label>
+                    <select formControlName="plantName" (change)="onPlantChange()">
+                        <option value="" disabled>Select Plant</option>
+                        <option value="Plant 1">Plant 1</option>
+                        <option value="Plant 2">Plant 2</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="label-blue">Batch No</label>
+                    <select formControlName="batchNo" (change)="onBatchSelect($event)" [disabled]="noBatchAvailable">
+                        <option value="" disabled *ngIf="noBatchAvailable">No batch available</option>
+                        <option value="" disabled *ngIf="!noBatchAvailable">Select Batch</option>
+                        <option *ngFor="let b of cubeTests" [value]="b.batchNo">{{ b.batchNo }}</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="rejection-layout-container">
+                <!-- LEFT: DATA FIELDS -->
+                <div class="rejection-fields-area">
+                    
+                    <h4 class="section-subtitle">BASIC INFO</h4>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="label-blue">Block Size</label>
+                            <input type="text" formControlName="blockSize" placeholder="Enter size">
+                        </div>
+                        <div class="form-group">
+                            <label class="label-blue">Quantity (Qty)</label>
+                            <input type="number" formControlName="qty">
+                        </div>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <h4 class="section-subtitle">DAMAGE TYPES (QTY)</h4>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Corner Damage</label>
+                            <input type="number" formControlName="cornerDamage">
+                        </div>
+                        <div class="form-group">
+                            <label>Eruption Type</label>
+                            <input type="number" formControlName="eruptionType">
+                        </div>
+                        <div class="form-group">
+                            <label>Top Side Damage</label>
+                            <input type="number" formControlName="topSideDamages">
+                        </div>
+                        <div class="form-group">
+                            <label>Side/Thermal Crack</label>
+                            <input type="number" formControlName="sideCrackThermalCrack">
+                        </div>
+                        <div class="form-group">
+                            <label>Rising Crack</label>
+                            <input type="number" formControlName="risingCrack">
+                        </div>
+                        <div class="form-group">
+                            <label>Centre Crack</label>
+                            <input type="number" formControlName="centreCrack">
+                        </div>
+                        <div class="form-group">
+                            <label>Bottom Uncut</label>
+                            <input type="number" formControlName="bottomUncutBlocks">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RIGHT: CALCULATION PANEL -->
+                <div class="calc-panel-modern">
+                    <div class="calc-header">SUMMARY</div>
+                    
+                    <div class="calc-row">
+                        <span>Original Qty</span>
+                        <strong>{{ form.get('qty')?.value || 0 }}</strong>
+                    </div>
+                    <div class="calc-row">
+                        <span>Total Breakages</span>
+                        <strong>{{ totalBreakages }}</strong>
+                    </div>
+                    
+                    <div class="calc-footer-solid" [style.background]="isRemainingInvalid ? '#ef4444' : '#7f46ff'">
+                        <span>REMAINING QTY</span>
+                        <div class="solid-value">{{ remainingQty }}</div>
+                        <small *ngIf="isRemainingInvalid" style="display:block; margin-top:5px; font-weight:700;">
+                            INVALID: > QTY
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-submit" [disabled]="isRemainingInvalid">
+                    {{ editId ? '💾 Update Record' : '✅ Save Record' }}
+                </button>
+                <button type="button" class="btn-cancel" (click)="backToList()">Cancel</button>
+            </div>
+        </form>
+    </div>
+
+
+</div>

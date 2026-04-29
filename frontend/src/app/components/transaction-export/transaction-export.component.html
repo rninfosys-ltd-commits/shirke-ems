@@ -1,0 +1,78 @@
+<div class="container">
+    <div class="main">
+
+        <div class="header">
+            <h2 class="page-title">Transaction Export</h2>
+        </div>
+
+        <p style="color:#666; font-size:14px; margin-bottom:14px;">Filter and download your Sales / Purchase reports</p>
+
+        <!-- FILTERS ROW -->
+        <div class="filters">
+
+            <div class="filter-select">
+                <select [(ngModel)]="type">
+                    <option value="SALES">Sales Transactions</option>
+                    <option value="PURCHASE">Purchase Transactions</option>
+                </select>
+            </div>
+
+            <div class="date-field top-label">
+                <label>From Date</label>
+                <input type="date" [(ngModel)]="fromDate" />
+            </div>
+
+            <div class="date-field top-label">
+                <label>To Date</label>
+                <input type="date" [(ngModel)]="toDate" />
+            </div>
+
+            <div class="date-field top-label">
+                <label>Min Amount</label>
+                <input type="number" placeholder=" " [(ngModel)]="minAmount" />
+            </div>
+
+            <div class="date-field top-label">
+                <label>Max Amount</label>
+                <input type="number" placeholder=" " [(ngModel)]="maxAmount" />
+            </div>
+
+        </div>
+
+        <!-- PARTY SELECTOR -->
+        <div class="filters" style="margin-top:10px;">
+
+            <div class="form-field custom-select" style="flex:1; min-width:300px;" [class.filled]="partyName">
+                <div class="select-input" (click)="showPartyDropdown = !showPartyDropdown">
+                    {{ partyName || 'All Parties' }}
+                </div>
+                <label>Party Name (Customer/Supplier)</label>
+
+                <div class="select-options" *ngIf="showPartyDropdown">
+                    <input type="text" placeholder="Search Party..." [(ngModel)]="partyName" (keyup)="filterCustomers()"
+                        style="width:100%; padding:10px; border:1px solid #ccc; border-radius:8px; margin-bottom:8px; font-size:15px;">
+                    <div class="option" (click)="partyName = ''; showPartyDropdown = false">All Parties (Clear)</div>
+                    <div class="option" *ngFor="let c of filteredCustomers" (click)="selectParty(c)">
+                        {{ c.custName }} {{ c.ownerName ? '(' + c.ownerName + ')' : '' }}
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- EXPORT ACTIONS -->
+        <div class="actions" style="margin-top:20px;">
+            <button class="add-btn export-btn" [disabled]="loading" (click)="showFormats = !showFormats"
+                style="position:relative;">
+                <span *ngIf="!loading">Export Report ▾</span>
+                <span *ngIf="loading">Generating...</span>
+            </button>
+
+            <div class="export-dropdown" *ngIf="showFormats">
+                <div class="option" (click)="export('excel'); showFormats = false">📗 Export to Excel (.xlsx)</div>
+                <div class="option" (click)="export('pdf'); showFormats = false">📕 Export to PDF (.pdf)</div>
+            </div>
+        </div>
+
+    </div>
+</div>
