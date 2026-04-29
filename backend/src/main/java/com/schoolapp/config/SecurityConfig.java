@@ -120,7 +120,12 @@ public class SecurityConfig {
                 CorsConfiguration config = new CorsConfiguration();
                 
                 // Allow specific origins or use allowedOriginPatterns for flexibility with credentials
-                config.setAllowedOriginPatterns(List.of("http://localhost:4200", "http://103.168.19.63:84", "http://localhost:3000", "*"));
+                config.setAllowedOriginPatterns(List.of(
+                        "http://localhost:4200",
+                        "http://localhost:3000",
+                        "https://selfless-reverence-production.up.railway.app",
+                        "*"
+                ));
                 
                 config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
                 
