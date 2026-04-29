@@ -1,8 +1,8 @@
 // src/app/core/config/config.ts
 
 export const APP_CONFIG = {
-    //BASE_URL: 'http://103.168.19.63:8080/shirke-erp',
-    BASE_URL: 'http://localhost:8080',
+    BASE_URL: 'http://103.168.19.63:8080/shirke-erp',
+    // BASE_URL: 'http://localhost:8080',
 
     API: {
         AUTH: '/api/auth',
