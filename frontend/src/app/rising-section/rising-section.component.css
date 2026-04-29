@@ -314,8 +314,8 @@
 
 .form-group label {
     font-size: 12px;
-    font-weight: 600;
-    color: #666;
+    font-weight: 700;
+    color: #334155;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
@@ -326,11 +326,11 @@
 
 .form-group input, .form-group select {
     padding: 10px 12px;
-    border: 1px solid #e0e0e0;
+    border: 1px solid #cbd5e1;
     border-radius: 8px;
     font-size: 14px;
-    color: #333;
-    background: #f9f9f9;
+    color: #0f172a;
+    background: #ffffff;
     transition: all 0.2s;
 }
 
