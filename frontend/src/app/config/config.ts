@@ -1,7 +1,7 @@
-// src/app/core/config/config.ts
+import { environment } from 'src/environments/environment';
 
 export const APP_CONFIG = {
-    BASE_URL: 'http://103.168.19.63:8080/shirke-erp',
+    BASE_URL: environment.apiUrl,
     // BASE_URL: 'http://localhost:8080',
 
     API: {
