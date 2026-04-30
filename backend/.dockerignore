@@ -1,0 +1,12 @@
+target/
+.mvn/
+mvnw
+mvnw.cmd
+*.log
+*.txt
+*.xlsx
+.git
+.idea/
+.settings/
+.classpath
+.project
