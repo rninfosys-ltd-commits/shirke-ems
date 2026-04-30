@@ -32,6 +32,13 @@ public class DatabaseMigrationRunner implements CommandLineRunner {
             System.err.println("Note: 'casting_temp' column drop skipped: " + e.getMessage());
         }
 
+        try {
+            jdbcTemplate.execute("ALTER TABLE casting_hall_report DROP COLUMN height");
+            System.out.println("Dropped legacy 'height' column.");
+        } catch (Exception e) {
+            System.err.println("Note: 'height' column drop skipped: " + e.getMessage());
+        }
+
         // 2. Change size columns to VARCHAR
         try {
             jdbcTemplate.execute("ALTER TABLE casting_hall_report MODIFY COLUMN size VARCHAR(255)");
