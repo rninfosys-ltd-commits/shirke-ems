@@ -74,7 +74,7 @@ export class RisingSectionComponent implements OnInit {
 
   initForm(): void {
     this.form = this.fb.group({
-      plantNo: ['', Validators.required],
+      plantNo: [''],
       batchNo: ['', Validators.required],
       risingTime: [this.getCurrentTime()],
       risingTempC: [0],
