@@ -26,8 +26,12 @@ public class CastingHallReportServiceImpl implements CastingHallReportService {
 
     @Override
     public CastingHallReport save(CastingHallReportRequestDto dto) {
+        if (repository.existsByBatchNo(dto.getBatchNo())) {
+            throw new RuntimeException("Casting report already exists for batch: " + dto.getBatchNo());
+        }
         CastingHallReport report = new CastingHallReport();
         mapDtoToEntity(dto, report);
+        report.setApprovalStage("NONE");
         return repository.save(report);
     }
 

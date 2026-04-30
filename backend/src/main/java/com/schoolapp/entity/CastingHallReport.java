@@ -20,7 +20,7 @@ public class CastingHallReport {
 
     private String batchNo;
 
-    private int size;
+    private String size; // Changed to String for consistency with WireCutting
     private int mouldNo;
 
     private int flowInCm;
@@ -74,6 +74,9 @@ public class CastingHallReport {
     protected void onCreate() {
         this.createdDate = new Date(); // 🔥 auto insert date
         this.isActive = 1;
+        if (this.approvalStage == null) {
+            this.approvalStage = "NONE";
+        }
     }
 
     @PreUpdate

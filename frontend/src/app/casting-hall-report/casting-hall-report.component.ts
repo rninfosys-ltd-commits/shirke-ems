@@ -89,7 +89,7 @@ export class CastingHallReportComponent implements OnInit {
       shift: ['', Validators.required],
       plantName: ['Plant 1', Validators.required],
       batchNo: ['', Validators.required],
-      size: [0],
+      size: [''],
       mouldNo: [0],
       flowInCm: [0],
       castingTempC: [0],

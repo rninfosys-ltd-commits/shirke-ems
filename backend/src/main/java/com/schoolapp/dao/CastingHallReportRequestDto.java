@@ -25,32 +25,13 @@ public class CastingHallReportRequestDto {
     private String rejectionReason;
 
     // casting fields
-    private int size;
+    private String size;
     private int mouldNo;
     private int flowInCm;
     private int castingTempC;
     private String remark;
-    
- // 🔴 ADD BELOW remark
     private int userId;
-    public int getUserId() {
-		return userId;
-	}
-	public void setUserId(int userId) {
-		this.userId = userId;
-	}
-	public int getBranchId() {
-		return branchId;
-	}
-	public void setBranchId(int branchId) {
-		this.branchId = branchId;
-	}
-	public int getOrgId() {
-		return orgId;
-	}
-	public void setOrgId(int orgId) {
-		this.orgId = orgId;
-	}
+    
     private int branchId;
     private int orgId;
     private String plantName;
@@ -148,10 +129,10 @@ public class CastingHallReportRequestDto {
 	public void setRejectionReason(String rejectionReason) {
 		this.rejectionReason = rejectionReason;
 	}
-	public int getSize() {
+	public String getSize() {
 		return size;
 	}
-	public void setSize(int size) {
+	public void setSize(String size) {
 		this.size = size;
 	}
 	public int getMouldNo() {
@@ -179,5 +160,22 @@ public class CastingHallReportRequestDto {
 		this.remark = remark;
 	}
 
-    /* getters & setters */
+	public int getUserId() {
+		return userId;
+	}
+	public void setUserId(int userId) {
+		this.userId = userId;
+	}
+	public int getBranchId() {
+		return branchId;
+	}
+	public void setBranchId(int branchId) {
+		this.branchId = branchId;
+	}
+	public int getOrgId() {
+		return orgId;
+	}
+	public void setOrgId(int orgId) {
+		this.orgId = orgId;
+	}
 }
