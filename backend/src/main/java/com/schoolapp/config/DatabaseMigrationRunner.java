@@ -17,19 +17,19 @@ public class DatabaseMigrationRunner implements CommandLineRunner {
     public void run(String... args) throws Exception {
         System.out.println("Running Database Migrations (MySQL)...");
 
-        // 1. Fix old columns causing "Field doesn't have a default value" errors
+        // 1. Fix old columns causing "Field doesn't have a default value" errors by dropping them
         try {
-            jdbcTemplate.execute("ALTER TABLE casting_hall_report ALTER COLUMN flow SET DEFAULT 0");
-            System.out.println("Set default for legacy 'flow' column.");
+            jdbcTemplate.execute("ALTER TABLE casting_hall_report DROP COLUMN flow");
+            System.out.println("Dropped legacy 'flow' column.");
         } catch (Exception e) {
-            System.err.println("Note: 'flow' column fix skipped: " + e.getMessage());
+            System.err.println("Note: 'flow' column drop skipped: " + e.getMessage());
         }
 
         try {
-            jdbcTemplate.execute("ALTER TABLE casting_hall_report ALTER COLUMN casting_temp SET DEFAULT 0");
-            System.out.println("Set default for legacy 'casting_temp' column.");
+            jdbcTemplate.execute("ALTER TABLE casting_hall_report DROP COLUMN casting_temp");
+            System.out.println("Dropped legacy 'casting_temp' column.");
         } catch (Exception e) {
-            System.err.println("Note: 'casting_temp' column fix skipped: " + e.getMessage());
+            System.err.println("Note: 'casting_temp' column drop skipped: " + e.getMessage());
         }
 
         // 2. Change size columns to VARCHAR
