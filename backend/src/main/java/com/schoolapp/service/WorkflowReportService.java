@@ -313,17 +313,9 @@ public class WorkflowReportService {
         addRow(table, "Date", formatDate(c.getCreatedDate()));
         addRow(table, "Shift", c.getShift() != null ? c.getShift() : "—");
         addRow(table, "Size", String.valueOf(c.getSize()));
-        addRow(table, "Bed No", String.valueOf(c.getBedNo()));
         addRow(table, "Mould No", String.valueOf(c.getMouldNo()));
-        addRow(table, "Casting Time", c.getCastingTime() != null ? c.getCastingTime() : "—");
-        addRow(table, "Consistency", String.valueOf(c.getConsistency()));
         addRow(table, "Flow (cm)", String.valueOf(c.getFlowInCm()));
         addRow(table, "Temp (C)", String.valueOf(c.getCastingTempC()));
-        addRow(table, "VT", String.valueOf(c.getVt()));
-        addRow(table, "Mass Temp", String.valueOf(c.getMassTemp()));
-        addRow(table, "Falling Test (mm)", String.valueOf(c.getFallingTestMm()));
-        addRow(table, "Test Time", String.valueOf(c.getTestTime()));
-        addRow(table, "H Time", String.valueOf(c.getHTime()));
         addRow(table, "Remark", c.getRemark() != null ? c.getRemark() : "—");
     }
 
@@ -342,7 +334,12 @@ public class WorkflowReportService {
         addRow(table, "Mould No", String.valueOf(w.getMouldNo()));
         addRow(table, "Size", String.valueOf(w.getSize()));
         addRow(table, "Ball Test (mm)", String.valueOf(w.getBallTestMm()));
-        addRow(table, "Other Reason", w.getRemark() != null ? w.getRemark() : "—");
+        
+        addRow(table, "Qty 100", String.valueOf(w.getQty100()));
+        addRow(table, "Qty 150", String.valueOf(w.getQty150()));
+        addRow(table, "Total Item", String.valueOf(w.getTotalItem()));
+
+        addRow(table, "Remark", w.getRemark() != null ? w.getRemark() : "—");
         addRow(table, "Time", w.getTime() != null ? w.getTime() : "—");
     }
 
@@ -542,17 +539,9 @@ public class WorkflowReportService {
         m.put("date", formatDate(c.getCreatedDate()));
         m.put("shift", nvl(c.getShift()));
         m.put("size", nvl(c.getSize()));
-        m.put("bedNo", nvl(c.getBedNo()));
         m.put("mouldNo", nvl(c.getMouldNo()));
-        m.put("castingTime", nvl(c.getCastingTime()));
-        m.put("consistency", nvl(c.getConsistency()));
         m.put("flowInCm", nvl(c.getFlowInCm()));
         m.put("tempC", nvl(c.getCastingTempC()));
-        m.put("vt", nvl(c.getVt()));
-        m.put("massTemp", nvl(c.getMassTemp()));
-        m.put("fallingTestMm", nvl(c.getFallingTestMm()));
-        m.put("testTime", nvl(c.getTestTime()));
-        m.put("hTime", nvl(c.getHTime()));
         m.put("remark", nvl(c.getRemark()));
         return m;
     }
@@ -569,7 +558,10 @@ public class WorkflowReportService {
         m.put("mouldNo", nvl(w.getMouldNo()));
         m.put("size", nvl(w.getSize()));
         m.put("ballTestMm", nvl(w.getBallTestMm()));
-        m.put("otherReason", nvl(w.getRemark()));
+        m.put("qty100", nvl(w.getQty100()));
+        m.put("qty150", nvl(w.getQty150()));
+        m.put("totalItem", nvl(w.getTotalItem()));
+        m.put("remark", nvl(w.getRemark()));
         m.put("time", nvl(w.getTime()));
         return m;
     }
@@ -704,10 +696,10 @@ public class WorkflowReportService {
                     new String[] { "date", "shift", "siloNo1", "literWeight1", "faSolid1", "totalSolid", "waterLiter", "cementKg", "limeKg", "gypsumKg", "solOilKg",
                             "alPowerGm", "tempC", "productionTime", "remark" });
             stageFields.put("casting",
-                    new String[] { "date", "shift", "size", "bedNo", "mouldNo", "castingTime", "consistency",
-                            "flowInCm", "tempC", "vt", "massTemp", "fallingTestMm", "testTime", "hTime", "remark" });
-            stageFields.put("cutting", new String[] { "date", "shift", "cuttingDate", "mouldNo", "size", "ballTestMm",
-                    "otherReason", "time" });
+                    new String[] { "date", "shift", "size", "mouldNo",
+                            "flowInCm", "tempC", "remark" });
+            stageFields.put("cutting", new String[] { "date", "shift", "cuttingDate", "mouldNo", "size", "ballTestMm", "qty100", "qty150", "totalItem",
+                    "remark", "time" });
             stageFields.put("autoclave", new String[] { "autoclaveNo", "runNo", "shift", "startDate", "startedAt",
                     "compDate", "completedAt", "remarks" });
             stageFields.put("blockSeparating", new String[] { "date", "shift", "blockSize", "time" });

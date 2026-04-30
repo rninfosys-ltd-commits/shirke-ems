@@ -356,47 +356,53 @@
 }
 
 /* CUTTING DETAILS TABLE */
-.cutting-table-container {
-    margin: 20px 0;
-    overflow-x: auto;
-    border-radius: 8px;
-    border: 1px solid #f0f0f0;
-}
-
-.cutting-details-table {
-    width: 100%;
-    border-collapse: collapse;
+.table-container {
+    margin: 25px 0;
     background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    overflow: hidden;
 }
 
-.cutting-details-table th {
-    background: #f8fafc;
+.table {
+    margin-bottom: 0;
+}
+
+.table thead th {
+    background-color: #f8fafc;
+    color: #475569;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
     padding: 12px 15px;
-    text-align: left;
-    font-size: 13px;
-    color: #64748b;
-    border-bottom: 2px solid #f1f5f9;
+    border-bottom: 2px solid #e2e8f0;
 }
 
-.cutting-details-table td {
+.table tbody td {
     padding: 10px 15px;
-    border-bottom: 1px solid #f1f5f9;
+    color: #1e293b;
+    font-size: 14px;
+    vertical-align: middle;
 }
 
-.cutting-details-table input {
-    width: 100%;
-    padding: 8px 12px;
+.table .form-control {
+    height: 38px;
+    font-size: 14px;
     border: 1px solid #e2e8f0;
     border-radius: 6px;
-    font-size: 14px;
-    background: #fff;
+    background-color: #fcfcfc;
 }
 
-.cutting-details-table input[readonly] {
-    background: #f8fafc;
-    border-color: #f1f5f9;
-    font-weight: 700;
-    color: #1e293b;
+.table .form-control:focus {
+    border-color: #7f46ff;
+    box-shadow: 0 0 0 3px rgba(127, 70, 255, 0.1);
+}
+
+.table .form-control[readonly] {
+    background-color: #f8fafc;
+    color: #64748b;
+    font-weight: 600;
 }
 
 .form-actions {

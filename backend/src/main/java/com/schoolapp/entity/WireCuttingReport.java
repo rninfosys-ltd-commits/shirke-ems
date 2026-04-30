@@ -28,19 +28,20 @@ public class WireCuttingReport {
 	private String size; // Changed to String to support 650x240x100/150
 	private int ballTestMm;
 
-	// Length 100 fields
-	private Integer len100Qty;
-	private Integer len100TotalQty;
-	private Integer len100Breakage;
-	private Integer len100NetQty;
+	// Table Fields for Len 100
+	private int qty100;
+	private double quantityTotal100;
+	private int breakage100;
+	private double netQty100;
 
-	// Length 150 fields
-	private Integer len150Qty;
-	private Integer len150TotalQty;
-	private Integer len150Breakage;
-	private Integer len150NetQty;
+	// Table Fields for Len 150
+	private int qty150;
+	private double quantityTotal150;
+	private int breakage150;
+	private double netQty150;
 
-	private Integer totalItem;
+	private double totalItem;
+
 	private String remark;
 	private String time;
 

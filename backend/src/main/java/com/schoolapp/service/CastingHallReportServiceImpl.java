@@ -122,17 +122,9 @@ public class CastingHallReportServiceImpl implements CastingHallReportService {
     private void mapDtoToEntity(CastingHallReportRequestDto dto, CastingHallReport r) {
         r.setBatchNo(dto.getBatchNo());
         r.setSize(dto.getSize());
-        r.setBedNo(dto.getBedNo());
         r.setMouldNo(dto.getMouldNo());
-        r.setCastingTime(dto.getCastingTime());
-        r.setConsistency(dto.getConsistency());
         r.setFlowInCm(dto.getFlowInCm());
         r.setCastingTempC(dto.getCastingTempC());
-        r.setVt(dto.getVt());
-        r.setMassTemp(dto.getMassTemp());
-        r.setFallingTestMm(dto.getFallingTestMm());
-        r.setTestTime(dto.getTestTime());
-        r.setHTime(dto.getHTime());
         r.setRemark(dto.getRemark());
         r.setUserId(dto.getUserId());
         r.setBranchId(dto.getBranchId());

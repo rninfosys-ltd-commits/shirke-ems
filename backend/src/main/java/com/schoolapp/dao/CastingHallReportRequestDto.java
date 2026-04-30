@@ -26,17 +26,9 @@ public class CastingHallReportRequestDto {
 
     // casting fields
     private int size;
-    private int bedNo;
     private int mouldNo;
-    private String castingTime;
-    private int consistency;
     private int flowInCm;
     private int castingTempC;
-    private int vt;
-    private int massTemp;
-    private int fallingTestMm;
-    private int testTime;
-    private int hTime;
     private String remark;
     
  // 🔴 ADD BELOW remark
@@ -162,29 +154,11 @@ public class CastingHallReportRequestDto {
 	public void setSize(int size) {
 		this.size = size;
 	}
-	public int getBedNo() {
-		return bedNo;
-	}
-	public void setBedNo(int bedNo) {
-		this.bedNo = bedNo;
-	}
 	public int getMouldNo() {
 		return mouldNo;
 	}
 	public void setMouldNo(int mouldNo) {
 		this.mouldNo = mouldNo;
-	}
-	public String getCastingTime() {
-		return castingTime;
-	}
-	public void setCastingTime(String castingTime) {
-		this.castingTime = castingTime;
-	}
-	public int getConsistency() {
-		return consistency;
-	}
-	public void setConsistency(int consistency) {
-		this.consistency = consistency;
 	}
 	public int getFlowInCm() {
 		return flowInCm;
@@ -197,37 +171,6 @@ public class CastingHallReportRequestDto {
 	}
 	public void setCastingTempC(int castingTempC) {
 		this.castingTempC = castingTempC;
-	}
-	public int getVt() {
-		return vt;
-	}
-	public void setVt(int vt) {
-		this.vt = vt;
-	}
-	public int getMassTemp() {
-		return massTemp;
-	}
-	public void setMassTemp(int massTemp) {
-		this.massTemp = massTemp;
-	}
-	public int getFallingTestMm() {
-		return fallingTestMm;
-	}
-	public void setFallingTestMm(int fallingTestMm) {
-		this.fallingTestMm = fallingTestMm;
-	}
-	public int getTestTime() {
-		return testTime;
-	}
-	public void setTestTime(int testTime) {
-		this.testTime = testTime;
-	}
-	public int getHTime() {
-	    return hTime;
-	}
-
-	public void setHTime(int hTime) {
-	    this.hTime = hTime;
 	}
 	public String getRemark() {
 		return remark;

@@ -97,21 +97,20 @@ export class WireCuttingReportComponent implements OnInit {
       size: [''],
       ballTestMm: [0],
       time: [''],
-      remark: [''],
+      qty100: [0],
+      quantityTotal100: [0],
+      breakage100: [0],
+      netQty100: [0],
+      qty150: [0],
+      quantityTotal150: [0],
+      breakage150: [0],
+      netQty150: [0],
+      totalItem: [0],
+      remark: ['']
+    });
 
-      // Length 100
-      len100Qty: [0],
-      len100TotalQty: [0],
-      len100Breakage: [0],
-      len100NetQty: [{ value: 0, disabled: true }],
-
-      // Length 150
-      len150Qty: [0],
-      len150TotalQty: [0],
-      len150Breakage: [0],
-      len150NetQty: [{ value: 0, disabled: true }],
-
-      totalItem: [{ value: 0, disabled: true }]
+    this.form.valueChanges.subscribe(() => {
+      this.calculateTotals();
     });
 
     this.setShiftByTime();
@@ -317,15 +316,30 @@ export class WireCuttingReportComponent implements OnInit {
   }
 
   calculateTotals() {
-    const f = this.form.getRawValue();
+    const val = this.form.getRawValue();
 
-    const net100 = (f.len100TotalQty || 0) - (f.len100Breakage || 0);
-    const net150 = (f.len150TotalQty || 0) - (f.len150Breakage || 0);
-    const totalItem = (f.len100Qty || 0) + (f.len150Qty || 0);
+    const q100 = Number(val.qty100) || 0;
+    const q150 = Number(val.qty150) || 0;
+
+    // Based on size 650x240x100/150
+    // 0.65 * 0.24 * 0.100 = 0.0156
+    // 0.65 * 0.24 * 0.150 = 0.0234
+    const totalQ100 = q100 * 0.0156;
+    const totalQ150 = q150 * 0.0234;
+
+    const b100 = Number(val.breakage100) || 0;
+    const b150 = Number(val.breakage150) || 0;
+
+    const net100 = totalQ100 - b100;
+    const net150 = totalQ150 - b150;
+
+    const totalItem = q100 + q150;
 
     this.form.patchValue({
-      len100NetQty: net100,
-      len150NetQty: net150,
+      quantityTotal100: totalQ100.toFixed(4),
+      quantityTotal150: totalQ150.toFixed(4),
+      netQty100: net100.toFixed(4),
+      netQty150: net150.toFixed(4),
       totalItem: totalItem
     }, { emitEvent: false });
   }
@@ -502,16 +516,9 @@ export class WireCuttingReportComponent implements OnInit {
 
     // ===== CASTING =====
     { label: 'Size', key: 'size' },
-    { label: 'Bed No', key: 'bedNo' },
     { label: 'Mould No', key: 'mouldNo' },
-    { label: 'Consistency', key: 'consistency' },
     { label: 'Flow (cm)', key: 'flowInCm' },
     { label: 'Casting Temp (°C)', key: 'castingTempC' },
-    { label: 'V.T.', key: 'vt' },
-    { label: 'Mass Temp', key: 'massTemp' },
-    { label: 'Falling Test (mm)', key: 'fallingTestMm' },
-    { label: 'Test Time', key: 'testTime' },
-    { label: 'H Time', key: 'hTime' },
     { label: 'Casting Remark', key: 'remark' },
 
     // ===== WIRE CUTTING =====
@@ -672,6 +679,10 @@ export class WireCuttingReportComponent implements OnInit {
     'Size': 'size',
     'Ball Test (mm)': 'ballTestMm',
     'Cutting Time': 'time',
+    'Qty 100': 'qty100',
+    'Qty 150': 'qty150',
+    'Breakage 100': 'breakage100',
+    'Breakage 150': 'breakage150',
     'Remark': 'remark'
   };
 
@@ -692,6 +703,10 @@ export class WireCuttingReportComponent implements OnInit {
     'Size',
     'Ball Test (mm)',
     'Cutting Time',
+    'Qty 100',
+    'Qty 150',
+    'Breakage 100',
+    'Breakage 150',
     'Remark'
   ];
 
@@ -730,6 +745,10 @@ export class WireCuttingReportComponent implements OnInit {
           size: String(row['Size']),
           ballTestMm: Number(row['Ball Test (mm)']),
           time: row['Cutting Time'],
+          qty100: Number(row['Qty 100']) || 0,
+          qty150: Number(row['Qty 150']) || 0,
+          breakage100: Number(row['Breakage 100']) || 0,
+          breakage150: Number(row['Breakage 150']) || 0,
           remark: row['Remark'],
           userId: 1,
           branchId: 1,
@@ -754,6 +773,10 @@ export class WireCuttingReportComponent implements OnInit {
     'Size': 'size',
     'Ball Test (mm)': 'ballTestMm',
     'Cutting Time': 'time',
+    'Qty 100': 'qty100',
+    'Qty 150': 'qty150',
+    'Breakage 100': 'breakage100',
+    'Breakage 150': 'breakage150',
     'Remark': 'remark'
   };
 

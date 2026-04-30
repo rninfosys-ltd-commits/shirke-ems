@@ -10,17 +10,17 @@ export interface WireCuttingReport {
     size: string;
     ballTestMm: number;
 
-    // Length 100 fields
-    len100Qty?: number;
-    len100TotalQty?: number;
-    len100Breakage?: number;
-    len100NetQty?: number;
+    // Table Fields for Len 100
+    qty100?: number;
+    quantityTotal100?: number;
+    breakage100?: number;
+    netQty100?: number;
 
-    // Length 150 fields
-    len150Qty?: number;
-    len150TotalQty?: number;
-    len150Breakage?: number;
-    len150NetQty?: number;
+    // Table Fields for Len 150
+    qty150?: number;
+    quantityTotal150?: number;
+    breakage150?: number;
+    netQty150?: number;
 
     totalItem?: number;
     remark?: string;

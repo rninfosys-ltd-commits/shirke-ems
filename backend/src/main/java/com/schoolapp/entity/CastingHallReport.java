@@ -21,18 +21,10 @@ public class CastingHallReport {
     private String batchNo;
 
     private int size;
-    private int bedNo;
     private int mouldNo;
-    private String castingTime;
 
-    private int consistency;
     private int flowInCm;
     private int castingTempC;
-    private int vt;
-    private int massTemp;
-    private int fallingTestMm;
-    private int testTime;
-    private int hTime;
 
     private String remark;
 
@@ -43,13 +35,16 @@ public class CastingHallReport {
 
     // ================= APPROVAL FLOW =================
 
-    @Column(name = "approved_byl1")
+    @Column(name = "approval_stage")
+    private String approvalStage;
+
+    @Column(name = "approved_by_l1")
     private String approvedByL1;
 
-    @Column(name = "approved_byl2")
+    @Column(name = "approved_by_l2")
     private String approvedByL2;
 
-    @Column(name = "approved_byl3")
+    @Column(name = "approved_by_l3")
     private String approvedByL3;
 
     @Column(name = "rejected_by")
@@ -57,9 +52,6 @@ public class CastingHallReport {
 
     @Column(name = "rejection_reason")
     private String rejectionReason;
-
-    @Column(name = "approval_stage")
-    private String approvalStage;
 
     private int userId;
     private int branchId;

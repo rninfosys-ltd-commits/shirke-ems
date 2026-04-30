@@ -276,21 +276,9 @@ export class CastingHallReportComponent implements OnInit {
 
   submit() {
 
-    this.reportForm.patchValue({
-      testTime: this.getCurrentTime(),
-      hTime: this.getCurrentTime()
-    });
-
     const userId = this.auth.getLoggedInUserId();
 
     const currentTime = this.getCurrentTime();
-
-    if (!this.editId) {
-      this.reportForm.patchValue({
-        testTime: currentTime,
-        hTime: currentTime
-      });
-    }
 
     const payload = {
       ...this.reportForm.value,
@@ -400,16 +388,9 @@ export class CastingHallReportComponent implements OnInit {
 
     // ===== CASTING =====
     { label: 'Size', key: 'size' },
-    { label: 'Bed No', key: 'bedNo' },
     { label: 'Mould No', key: 'mouldNo' },
-    { label: 'Consistency', key: 'consistency' },
     { label: 'Flow (cm)', key: 'flowInCm' },
     { label: 'Casting Temp (°C)', key: 'castingTempC' },
-    { label: 'V.T.', key: 'vt' },
-    { label: 'Mass Temp', key: 'massTemp' },
-    { label: 'Falling Test (mm)', key: 'fallingTestMm' },
-    { label: 'Test Time', key: 'testTime' },
-    { label: 'H Time', key: 'hTime' },
     { label: 'Casting Remark', key: 'remark' },
 
     // ===== APPROVAL =====
@@ -593,19 +574,10 @@ export class CastingHallReportComponent implements OnInit {
     { label: 'Date', key: 'createdDate', format: 'date' },
 
     { label: 'Size', key: 'size' },
-    { label: 'Bed No', key: 'bedNo' },
     { label: 'Mould No', key: 'mouldNo' },
-    { label: 'Casting Time', key: 'castingTime' },
 
-    { label: 'Consistency', key: 'consistency' },
     { label: 'Flow (cm)', key: 'flowInCm' },
     { label: 'Casting Temp (°C)', key: 'castingTempC' },
-
-    { label: 'V.T.', key: 'vt' },
-    { label: 'Mass Temp', key: 'massTemp' },
-    { label: 'Falling Test (mm)', key: 'fallingTestMm' },
-    { label: 'Test Time', key: 'testTime' },
-    { label: 'H Time', key: 'hTime' },
 
     { label: 'Remark', key: 'remark' },
 
@@ -662,34 +634,17 @@ export class CastingHallReportComponent implements OnInit {
   private excelToDtoMap: Record<string, string> = {
     'Batch No': 'batchNo',
     'Size': 'size',
-    'Bed No': 'bedNo',
     'Mould No': 'mouldNo',
-    'Casting Time': 'castingTime',
-    'Consistency': 'consistency',
     'Flow (cm)': 'flowInCm',
     'Casting Temp (°C)': 'castingTempC',
-    'V.T.': 'vt',
-    'Mass Temp': 'massTemp',
-    'Falling Test (mm)': 'fallingTestMm',
-    'Test Time': 'testTime',
-    'H Time': 'hTime',
     'Casting Remark': 'remark'
   };
-  // Columns to show in Import Preview Modal
   importPreviewFields = [
     { label: 'Batch No', key: 'batchNo' },
     { label: 'Size', key: 'size' },
-    { label: 'Bed No', key: 'bedNo' },
     { label: 'Mould No', key: 'mouldNo' },
-    { label: 'Casting Time', key: 'castingTime' },
-    { label: 'Consistency', key: 'consistency' },
     { label: 'Flow (cm)', key: 'flowInCm' },
     { label: 'Casting Temp (°C)', key: 'castingTempC' },
-    { label: 'V.T.', key: 'vt' },
-    { label: 'Mass Temp', key: 'massTemp' },
-    { label: 'Falling Test (mm)', key: 'fallingTestMm' },
-    { label: 'Test Time', key: 'testTime' },
-    { label: 'H Time', key: 'hTime' },
     { label: 'Remark', key: 'remark' }
   ];
 

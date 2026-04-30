@@ -11,21 +11,45 @@ public class WireCuttingReportRequestDto {
     private String size;
     private int ballTestMm;
 
-    // Length 100 fields
-    private Integer len100Qty;
-    private Integer len100TotalQty;
-    private Integer len100Breakage;
-    private Integer len100NetQty;
 
-    // Length 150 fields
-    private Integer len150Qty;
-    private Integer len150TotalQty;
-    private Integer len150Breakage;
-    private Integer len150NetQty;
-
-    private Integer totalItem;
     private String remark;
     private String time;
+
+    // Table Fields for Len 100
+    private int qty100;
+    private double quantityTotal100;
+    private int breakage100;
+    private double netQty100;
+
+    // Table Fields for Len 150
+    private int qty150;
+    private double quantityTotal150;
+    private int breakage150;
+    private double netQty150;
+
+    private double totalItem;
+
+    // Getters and Setters for new fields
+    public int getQty100() { return qty100; }
+    public void setQty100(int qty100) { this.qty100 = qty100; }
+    public double getQuantityTotal100() { return quantityTotal100; }
+    public void setQuantityTotal100(double quantityTotal100) { this.quantityTotal100 = quantityTotal100; }
+    public int getBreakage100() { return breakage100; }
+    public void setBreakage100(int breakage100) { this.breakage100 = breakage100; }
+    public double getNetQty100() { return netQty100; }
+    public void setNetQty100(double netQty100) { this.netQty100 = netQty100; }
+
+    public int getQty150() { return qty150; }
+    public void setQty150(int qty150) { this.qty150 = qty150; }
+    public double getQuantityTotal150() { return quantityTotal150; }
+    public void setQuantityTotal150(double quantityTotal150) { this.quantityTotal150 = quantityTotal150; }
+    public int getBreakage150() { return breakage150; }
+    public void setBreakage150(int breakage150) { this.breakage150 = breakage150; }
+    public double getNetQty150() { return netQty150; }
+    public void setNetQty150(double netQty150) { this.netQty150 = netQty150; }
+
+    public double getTotalItem() { return totalItem; }
+    public void setTotalItem(double totalItem) { this.totalItem = totalItem; }
 
     private int userId;
     private int branchId;
@@ -112,60 +136,7 @@ public class WireCuttingReportRequestDto {
 	public void setUpdatedBy(int updatedBy) {
 		this.updatedBy = updatedBy;
 	}
-    public Integer getLen100Qty() {
-        return len100Qty;
-    }
-    public void setLen100Qty(Integer len100Qty) {
-        this.len100Qty = len100Qty;
-    }
-    public Integer getLen100TotalQty() {
-        return len100TotalQty;
-    }
-    public void setLen100TotalQty(Integer len100TotalQty) {
-        this.len100TotalQty = len100TotalQty;
-    }
-    public Integer getLen100Breakage() {
-        return len100Breakage;
-    }
-    public void setLen100Breakage(Integer len100Breakage) {
-        this.len100Breakage = len100Breakage;
-    }
-    public Integer getLen100NetQty() {
-        return len100NetQty;
-    }
-    public void setLen100NetQty(Integer len100NetQty) {
-        this.len100NetQty = len100NetQty;
-    }
-    public Integer getLen150Qty() {
-        return len150Qty;
-    }
-    public void setLen150Qty(Integer len150Qty) {
-        this.len150Qty = len150Qty;
-    }
-    public Integer getLen150TotalQty() {
-        return len150TotalQty;
-    }
-    public void setLen150TotalQty(Integer len150TotalQty) {
-        this.len150TotalQty = len150TotalQty;
-    }
-    public Integer getLen150Breakage() {
-        return len150Breakage;
-    }
-    public void setLen150Breakage(Integer len150Breakage) {
-        this.len150Breakage = len150Breakage;
-    }
-    public Integer getLen150NetQty() {
-        return len150NetQty;
-    }
-    public void setLen150NetQty(Integer len150NetQty) {
-        this.len150NetQty = len150NetQty;
-    }
-    public Integer getTotalItem() {
-        return totalItem;
-    }
-    public void setTotalItem(Integer totalItem) {
-        this.totalItem = totalItem;
-    }
+
 
     // 👉 Generate getters & setters
 }

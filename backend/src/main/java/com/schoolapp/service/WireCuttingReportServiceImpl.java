@@ -122,17 +122,18 @@ public class WireCuttingReportServiceImpl implements WireCuttingReportService {
         r.setSize(d.getSize());
         r.setBallTestMm(d.getBallTestMm());
 
-        r.setLen100Qty(d.getLen100Qty());
-        r.setLen100TotalQty(d.getLen100TotalQty());
-        r.setLen100Breakage(d.getLen100Breakage());
-        r.setLen100NetQty(d.getLen100NetQty());
+        r.setQty100(d.getQty100());
+        r.setQuantityTotal100(d.getQuantityTotal100());
+        r.setBreakage100(d.getBreakage100());
+        r.setNetQty100(d.getNetQty100());
 
-        r.setLen150Qty(d.getLen150Qty());
-        r.setLen150TotalQty(d.getLen150TotalQty());
-        r.setLen150Breakage(d.getLen150Breakage());
-        r.setLen150NetQty(d.getLen150NetQty());
+        r.setQty150(d.getQty150());
+        r.setQuantityTotal150(d.getQuantityTotal150());
+        r.setBreakage150(d.getBreakage150());
+        r.setNetQty150(d.getNetQty150());
 
         r.setTotalItem(d.getTotalItem());
+
         r.setRemark(d.getRemark());
         r.setTime(d.getTime());
         r.setUserId(d.getUserId());

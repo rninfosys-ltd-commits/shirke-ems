@@ -22,8 +22,8 @@ public class CastingExportServiceImpl implements StageReportService {
 
     @Override
     public String[] getHeaders() {
-        return new String[] { "Batch No", "Size", "Bed No", "Mould No", "Casting Time", "Consistency", "Flow (cm)",
-                "Temp (C)", "VT", "Mass Temp", "Falling Test", "Test Time", "H Time", "Shift", "Date" };
+        return new String[] { "Batch No", "Size", "Mould No", "Flow (cm)",
+                "Temp (C)", "Shift", "Date" };
     }
 
     @Override
@@ -33,17 +33,9 @@ public class CastingExportServiceImpl implements StageReportService {
             Map<String, Object> map = new LinkedHashMap<>();
             map.put("Batch No", r.getBatchNo());
             map.put("Size", r.getSize());
-            map.put("Bed No", r.getBedNo());
             map.put("Mould No", r.getMouldNo());
-            map.put("Casting Time", r.getCastingTime());
-            map.put("Consistency", r.getConsistency());
             map.put("Flow (cm)", r.getFlowInCm());
             map.put("Temp (C)", r.getCastingTempC());
-            map.put("VT", r.getVt());
-            map.put("Mass Temp", r.getMassTemp());
-            map.put("Falling Test", r.getFallingTestMm());
-            map.put("Test Time", r.getTestTime());
-            map.put("H Time", r.getHTime());
             map.put("Shift", r.getShift());
             map.put("Date", r.getCreatedDate());
             return map;
