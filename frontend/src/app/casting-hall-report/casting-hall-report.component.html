@@ -69,6 +69,7 @@
                         <th>Batch No</th>
                         <th>Date</th>
                         <th>Shift</th>
+                        <th>Plant</th>
                         <th>Height</th>
                         <th>Mould No</th>
                         <th>Flow (cm)</th>
@@ -85,7 +86,8 @@
                             </td>
                             <td>{{ r.createdDate | date:'dd-MM-yyyy' }}</td>
                             <td>{{ r.shift }}</td>
-                            <td>{{ r.size }}</td>
+                            <td>{{ r.plantName }}</td>
+                            <td>{{ r.height }}</td>
                             <td>{{ r.mouldNo }}</td>
                             <td>{{ r.flowInCm }}</td>
                             <td>{{ r.castingTempC }}</td>
@@ -157,8 +159,8 @@
 
             <div class="form-grid">
                 <div class="form-group">
-                    <label class="label-blue">Size</label>
-                    <input type="text" formControlName="size" placeholder="Size">
+                    <label class="label-blue">Height</label>
+                    <input type="text" formControlName="height" placeholder="Height">
                 </div>
 
                 <div class="form-group">
@@ -302,6 +304,7 @@
                         <thead>
                             <tr>
                                 <th>Shift</th>
+                                <th>Plant</th>
                                 <th>Height</th>
                                 <th>Mould No</th>
                                 <th>Flow (cm)</th>
@@ -313,7 +316,8 @@
                         <tbody>
                             <tr>
                                 <td>{{ selectedCasting?.shift }}</td>
-                                <td>{{ selectedCasting?.size }}</td>
+                                <td>{{ selectedCasting?.plantName }}</td>
+                                <td>{{ selectedCasting?.height }}</td>
                                 <td>{{ selectedCasting?.mouldNo }}</td>
                                 <td>{{ selectedCasting?.flowInCm }}</td>
                                 <td>{{ selectedCasting?.castingTempC }}</td>

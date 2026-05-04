@@ -25,7 +25,7 @@ public class CastingHallReportRequestDto {
     private String rejectionReason;
 
     // casting fields
-    private String size;
+    private String height;
     private int mouldNo;
     private int flowInCm;
     private int castingTempC;
@@ -129,11 +129,11 @@ public class CastingHallReportRequestDto {
 	public void setRejectionReason(String rejectionReason) {
 		this.rejectionReason = rejectionReason;
 	}
-	public String getSize() {
-		return size;
+	public String getHeight() {
+		return height;
 	}
-	public void setSize(String size) {
-		this.size = size;
+	public void setHeight(String height) {
+		this.height = height;
 	}
 	public int getMouldNo() {
 		return mouldNo;

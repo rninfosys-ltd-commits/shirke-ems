@@ -21,7 +21,7 @@ public class CastingHallReportResponseDto {
     private String approvedByL3Name;
 
     // casting fields
-    private int size;
+    private String height;
     private int mouldNo;
     private int flowInCm;
     private int castingTempC;
@@ -92,11 +92,11 @@ public class CastingHallReportResponseDto {
 	public void setApprovedByL3Name(String approvedByL3Name) {
 		this.approvedByL3Name = approvedByL3Name;
 	}
-	public int getSize() {
-		return size;
+	public String getHeight() {
+		return height;
 	}
-	public void setSize(int size) {
-		this.size = size;
+	public void setHeight(String height) {
+		this.height = height;
 	}
 	public int getMouldNo() {
 		return mouldNo;

@@ -50,6 +50,11 @@ public class ProductionEntry {
 	private Double faSolid2;
 
 	private Double totalSolid;
+	private Double faSlurryQty;
+	private Double excessSlurryQty;
+	private Double surfactant;
+	private Double dcChemical;
+	private Double dcmrt;
 
 	// ---------- LEGACY MATERIAL COLUMNS (kept for backward compatibility)
 	// ----------
@@ -60,6 +65,7 @@ public class ProductionEntry {
 	private Double solOilKg;
 	private Double aiPowerGm;
 	private Double tempC;
+	private Integer mixingTime;
 	private String approvalTimeL1;
 	private String approvalTimeL2;
 	private String approvalTimeL3;

@@ -89,7 +89,7 @@ export class CastingHallReportComponent implements OnInit {
       shift: ['', Validators.required],
       plantName: ['Plant 1', Validators.required],
       batchNo: ['', Validators.required],
-      size: [''],
+      height: [''],
       mouldNo: [0],
       flowInCm: [0],
       castingTempC: [0],
@@ -387,7 +387,7 @@ export class CastingHallReportComponent implements OnInit {
     { label: 'Production Remark', key: 'productionRemark' },
 
     // ===== CASTING =====
-    { label: 'Size', key: 'size' },
+    { label: 'Height', key: 'height' },
     { label: 'Mould No', key: 'mouldNo' },
     { label: 'Flow (cm)', key: 'flowInCm' },
     { label: 'Casting Temp (°C)', key: 'castingTempC' },
@@ -573,7 +573,7 @@ export class CastingHallReportComponent implements OnInit {
     { label: 'Batch No', key: 'batchNo' },
     { label: 'Date', key: 'createdDate', format: 'date' },
 
-    { label: 'Size', key: 'size' },
+    { label: 'Height', key: 'height' },
     { label: 'Mould No', key: 'mouldNo' },
 
     { label: 'Flow (cm)', key: 'flowInCm' },
@@ -633,7 +633,7 @@ export class CastingHallReportComponent implements OnInit {
   // 🔥 Excel → DTO field mapping
   private excelToDtoMap: Record<string, string> = {
     'Batch No': 'batchNo',
-    'Size': 'size',
+    'Size': 'height',
     'Mould No': 'mouldNo',
     'Flow (cm)': 'flowInCm',
     'Casting Temp (°C)': 'castingTempC',
@@ -641,7 +641,7 @@ export class CastingHallReportComponent implements OnInit {
   };
   importPreviewFields = [
     { label: 'Batch No', key: 'batchNo' },
-    { label: 'Size', key: 'size' },
+    { label: 'Height', key: 'height' },
     { label: 'Mould No', key: 'mouldNo' },
     { label: 'Flow (cm)', key: 'flowInCm' },
     { label: 'Casting Temp (°C)', key: 'castingTempC' },

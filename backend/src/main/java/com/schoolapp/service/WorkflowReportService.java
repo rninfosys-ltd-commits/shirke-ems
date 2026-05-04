@@ -282,12 +282,18 @@ public class WorkflowReportService {
         addRow(table, "Liter Wt", String.valueOf(p.getLiterWeight1()));
         addRow(table, "FA Solid", String.valueOf(p.getFaSolid1()));
         addRow(table, "Total Solid", String.valueOf(p.getTotalSolid()));
+        addRow(table, "FA Slurry (kg)", String.valueOf(p.getFaSlurryQty()));
+        addRow(table, "Excess Slurry (kg)", String.valueOf(p.getExcessSlurryQty()));
+        addRow(table, "Surfactant (kg)", String.valueOf(p.getSurfactant()));
         addRow(table, "Water (L)", String.valueOf(p.getWaterLiter()));
         addRow(table, "Cement (kg)", String.valueOf(p.getCementKg()));
         addRow(table, "Lime (kg)", String.valueOf(p.getLimeKg()));
         addRow(table, "Gypsum (kg)", String.valueOf(p.getGypsumKg()));
         addRow(table, "Sol Oil (kg)", String.valueOf(p.getSolOilKg()));
-        addRow(table, "Al Power (gm)", String.valueOf(p.getAiPowerGm()));
+        addRow(table, "AI Power (gm)", String.valueOf(p.getAiPowerGm()));
+        addRow(table, "DC Chemical (ml)", String.valueOf(p.getDcChemical()));
+        addRow(table, "DC MRT (ml)", String.valueOf(p.getDcmrt()));
+        addRow(table, "Mixing Time (s)", String.valueOf(p.getMixingTime()));
         addRow(table, "Temp (C)", String.valueOf(p.getTempC()));
 
         // Materials
@@ -312,7 +318,7 @@ public class WorkflowReportService {
         CastingHallReport c = entries.get(0);
         addRow(table, "Date", formatDate(c.getCreatedDate()));
         addRow(table, "Shift", c.getShift() != null ? c.getShift() : "—");
-        addRow(table, "Size", String.valueOf(c.getSize()));
+        addRow(table, "Height", String.valueOf(c.getHeight()));
         addRow(table, "Mould No", String.valueOf(c.getMouldNo()));
         addRow(table, "Flow (cm)", String.valueOf(c.getFlowInCm()));
         addRow(table, "Temp (C)", String.valueOf(c.getCastingTempC()));
@@ -334,7 +340,7 @@ public class WorkflowReportService {
         addRow(table, "Mould No", String.valueOf(w.getMouldNo()));
         addRow(table, "Size", String.valueOf(w.getSize()));
         addRow(table, "Ball Test (mm)", String.valueOf(w.getBallTestMm()));
-        
+
         addRow(table, "Qty 100", String.valueOf(w.getQty100()));
         addRow(table, "Qty 150", String.valueOf(w.getQty150()));
         addRow(table, "Total Item", String.valueOf(w.getTotalItem()));
@@ -461,7 +467,8 @@ public class WorkflowReportService {
             List<ProductionEntry> entries;
             if (plantName != null && !plantName.isBlank()) {
                 entries = (altPlantName != null)
-                        ? productionRepo.findByCreatedDateBetweenAndPlantNameIn(fromDate, toDate, List.of(plantName, altPlantName))
+                        ? productionRepo.findByCreatedDateBetweenAndPlantNameIn(fromDate, toDate,
+                                List.of(plantName, altPlantName))
                         : productionRepo.findByCreatedDateBetweenAndPlantName(fromDate, toDate, plantName);
             } else {
                 entries = productionRepo.findByCreatedDateBetween(fromDate, toDate);
@@ -518,12 +525,18 @@ public class WorkflowReportService {
         m.put("literWeight1", nvl(p.getLiterWeight1()));
         m.put("faSolid1", nvl(p.getFaSolid1()));
         m.put("totalSolid", nvl(p.getTotalSolid()));
+        m.put("faSlurryQty", nvl(p.getFaSlurryQty()));
+        m.put("excessSlurryQty", nvl(p.getExcessSlurryQty()));
+        m.put("surfactant", nvl(p.getSurfactant()));
+        m.put("dcChemical", nvl(p.getDcChemical()));
+        m.put("dcmrt", nvl(p.getDcmrt()));
+        m.put("mixingTime", nvl(p.getMixingTime()));
         m.put("waterLiter", nvl(p.getWaterLiter()));
         m.put("cementKg", nvl(p.getCementKg()));
         m.put("limeKg", nvl(p.getLimeKg()));
         m.put("gypsumKg", nvl(p.getGypsumKg()));
         m.put("solOilKg", nvl(p.getSolOilKg()));
-        m.put("alPowerGm", nvl(p.getAiPowerGm()));
+        m.put("aiPowerGm", nvl(p.getAiPowerGm()));
         m.put("tempC", nvl(p.getTempC()));
         m.put("remark", nvl(p.getProductionRemark()));
         m.put("productionTime", nvl(p.getProductionTime()));
@@ -538,7 +551,7 @@ public class WorkflowReportService {
         CastingHallReport c = list.get(0);
         m.put("date", formatDate(c.getCreatedDate()));
         m.put("shift", nvl(c.getShift()));
-        m.put("size", nvl(c.getSize()));
+        m.put("height", nvl(c.getHeight()));
         m.put("mouldNo", nvl(c.getMouldNo()));
         m.put("flowInCm", nvl(c.getFlowInCm()));
         m.put("tempC", nvl(c.getCastingTempC()));
@@ -693,13 +706,16 @@ public class WorkflowReportService {
             // ── Column order per stage ────────────────────────────────────────────
             LinkedHashMap<String, String[]> stageFields = new LinkedHashMap<>();
             stageFields.put("production",
-                    new String[] { "date", "shift", "siloNo1", "literWeight1", "faSolid1", "totalSolid", "waterLiter", "cementKg", "limeKg", "gypsumKg", "solOilKg",
-                            "alPowerGm", "tempC", "productionTime", "remark" });
+                    new String[] { "date", "shift", "siloNo1", "literWeight1", "faSolid1", "totalSolid", "faSlurryQty", "excessSlurryQty", "surfactant", "waterLiter",
+                            "cementKg", "limeKg", "gypsumKg", "solOilKg",
+                            "aiPowerGm", "dcChemical", "dcmrt", "mixingTime", "tempC", "productionTime", "remark" });
             stageFields.put("casting",
-                    new String[] { "date", "shift", "size", "mouldNo",
+                    new String[] { "date", "shift", "height", "mouldNo",
                             "flowInCm", "tempC", "remark" });
-            stageFields.put("cutting", new String[] { "date", "shift", "cuttingDate", "mouldNo", "size", "ballTestMm", "qty100", "qty150", "totalItem",
-                    "remark", "time" });
+            stageFields.put("cutting",
+                    new String[] { "date", "shift", "cuttingDate", "mouldNo", "size", "ballTestMm", "qty100", "qty150",
+                            "totalItem",
+                            "remark", "time" });
             stageFields.put("autoclave", new String[] { "autoclaveNo", "runNo", "shift", "startDate", "startedAt",
                     "compDate", "completedAt", "remarks" });
             stageFields.put("blockSeparating", new String[] { "date", "shift", "blockSize", "time" });

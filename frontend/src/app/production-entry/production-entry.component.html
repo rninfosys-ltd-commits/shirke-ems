@@ -189,7 +189,7 @@
         </div>
 
         <form [formGroup]="productionForm" (ngSubmit)="submit()" class="form-body">
-            
+
             <!-- HEADER SECTION -->
             <div class="form-grid header-grid">
                 <div class="form-group">
@@ -221,7 +221,7 @@
             <div class="batch-layout-container">
                 <!-- LEFT: FORM FIELDS -->
                 <div class="batch-fields-area">
-                    
+
                     <!-- PLANT / SILO SECTION -->
                     <div class="form-grid">
                         <div class="form-group">
@@ -275,41 +275,60 @@
 
                     <div class="divider"></div>
 
-                    <!-- INGREDIENTS SECTION -->
-                    <h4 class="section-subtitle">INGREDIENTS</h4>
+                    <h4 class="section-subtitle">BATCHING SECTION</h4>
                     <div class="form-grid">
+
                         <div class="form-group">
-                            <label class="label-blue">FA Slurry (kg)</label>
+                            <label class="label-blue">FA Slurry Quantity (kg)</label>
                             <input type="number" formControlName="faSlurryQty" (input)="recalculate()">
                         </div>
+
                         <div class="form-group">
-                            <label class="label-blue">Excess Slurry (kg)</label>
+                            <label class="label-blue">Excess Slurry Quantity (kg)</label>
                             <input type="number" formControlName="excessSlurryQty" (input)="recalculate()">
                         </div>
-                        <div class="form-group">
-                            <label class="label-blue">Water (L)</label>
-                            <input type="number" formControlName="waterLiter" (input)="recalculate()">
-                        </div>
+
                         <div class="form-group">
                             <label class="label-blue">Lime (kg)</label>
                             <input type="number" formControlName="limeKg" (input)="recalculate()">
                         </div>
+
                         <div class="form-group">
                             <label class="label-blue">Cement (kg)</label>
                             <input type="number" formControlName="cementKg" (input)="recalculate()">
                         </div>
+
                         <div class="form-group">
                             <label class="label-blue">Gypsum (kg)</label>
                             <input type="number" formControlName="gypsumKg" (input)="recalculate()">
                         </div>
+
                         <div class="form-group">
                             <label class="label-blue">Soluble Oil (L)</label>
                             <input type="number" formControlName="solOilKg" (input)="recalculate()">
                         </div>
+
                         <div class="form-group">
                             <label class="label-blue">Surfactant (kg)</label>
                             <input type="number" formControlName="surfactant" (input)="recalculate()">
                         </div>
+
+                        <div class="form-group">
+                            <label class="label-blue">Water (L)</label>
+                            <input type="number" formControlName="waterLiter" (input)="recalculate()">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="label-blue">DC Chemical (ml)</label>
+                            <input type="number" formControlName="dcChemical" (input)="recalculate()">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="label-blue">DC MRT (ml)</label>
+                            <input type="number" formControlName="dcmrt" (input)="recalculate()">
+                        </div>
+
+
 
                         <!-- Dynamic Materials -->
                         <ng-container *ngFor="let m of materialList">
@@ -349,7 +368,7 @@
                 <!-- RIGHT: CALCULATION PANEL -->
                 <div class="calc-panel-modern">
                     <div class="calc-header">LIVE CALCULATIONS</div>
-                    
+
                     <div class="calc-row">
                         <span>Total Solid</span>
                         <strong>{{ liveCalc.totalSolid | number:'1.2-2' }} kg</strong>
@@ -362,7 +381,7 @@
                         <span>Total Liquid</span>
                         <strong>{{ liveCalc.totalLiquid | number:'1.2-2' }} kg</strong>
                     </div>
-                    
+
                     <div class="calc-footer-solid">
                         <span>FINAL SOLID %</span>
                         <div class="solid-value">{{ liveCalc.finalSolidPercent | number:'1.2-2' }}%</div>
@@ -452,6 +471,23 @@
                                 <td>{{ selectedProduction?.totalSolid }}</td>
                                 <td>{{ selectedProduction?.productionTime }}</td>
                                 <td>{{ selectedProduction?.tempC }}</td>
+                            </tr>
+
+                            <tr class="section-header">
+                                <th colspan="2">FA Slurry Qty</th>
+                                <th colspan="2">Excess Slurry Qty</th>
+                                <th>Surfactant</th>
+                                <th>DC Chemical</th>
+                                <th>DC MRT</th>
+                                <th colspan="2">Mixing Time</th>
+                            </tr>
+                            <tr>
+                                <td colspan="2">{{ selectedProduction?.faSlurryQty || '0' }} kg</td>
+                                <td colspan="2">{{ selectedProduction?.excessSlurryQty || '0' }} kg</td>
+                                <td>{{ selectedProduction?.surfactant || '0' }} kg</td>
+                                <td>{{ selectedProduction?.dcChemical || '0' }} ml</td>
+                                <td>{{ selectedProduction?.dcmrt || '0' }} ml</td>
+                                <td colspan="2">{{ selectedProduction?.mixingTime || '0' }} s</td>
                             </tr>
 
                             <!-- ================= ROW 2 : DYNAMIC MATERIALS ================= -->

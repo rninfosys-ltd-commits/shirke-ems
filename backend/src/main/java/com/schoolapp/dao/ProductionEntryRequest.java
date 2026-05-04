@@ -23,6 +23,12 @@ public class ProductionEntryRequest {
 	public Double solOilKg;
 	public Double aiPowerGm;
 	public Double tempC;
+	public Double faSlurryQty;
+	public Double excessSlurryQty;
+	public Double surfactant;
+	public Double dcChemical;
+	public Double dcmrt;
+	public Integer mixingTime;
 
 	public String castingTime;
 	public String productionTime;
@@ -220,5 +226,53 @@ public class ProductionEntryRequest {
 
 	public void setMaterials(List<MaterialValueDTO> materials) {
 		this.materials = materials;
+	}
+
+	public Double getFaSlurryQty() {
+		return faSlurryQty;
+	}
+
+	public void setFaSlurryQty(Double faSlurryQty) {
+		this.faSlurryQty = faSlurryQty;
+	}
+
+	public Double getExcessSlurryQty() {
+		return excessSlurryQty;
+	}
+
+	public void setExcessSlurryQty(Double excessSlurryQty) {
+		this.excessSlurryQty = excessSlurryQty;
+	}
+
+	public Double getSurfactant() {
+		return surfactant;
+	}
+
+	public void setSurfactant(Double surfactant) {
+		this.surfactant = surfactant;
+	}
+
+	public Double getDcChemical() {
+		return dcChemical;
+	}
+
+	public void setDcChemical(Double dcChemical) {
+		this.dcChemical = dcChemical;
+	}
+
+	public Double getDcmrt() {
+		return dcmrt;
+	}
+
+	public void setDcmrt(Double dcmrt) {
+		this.dcmrt = dcmrt;
+	}
+
+	public Integer getMixingTime() {
+		return mixingTime;
+	}
+
+	public void setMixingTime(Integer mixingTime) {
+		this.mixingTime = mixingTime;
 	}
 }

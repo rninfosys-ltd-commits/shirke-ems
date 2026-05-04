@@ -125,7 +125,7 @@ public class CastingHallReportServiceImpl implements CastingHallReportService {
 
     private void mapDtoToEntity(CastingHallReportRequestDto dto, CastingHallReport r) {
         r.setBatchNo(dto.getBatchNo());
-        r.setSize(dto.getSize());
+        r.setHeight(dto.getHeight());
         r.setMouldNo(dto.getMouldNo());
         r.setFlowInCm(dto.getFlowInCm());
         r.setCastingTempC(dto.getCastingTempC());

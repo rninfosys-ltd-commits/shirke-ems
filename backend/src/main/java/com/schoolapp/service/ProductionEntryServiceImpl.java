@@ -113,6 +113,13 @@ public class ProductionEntryServiceImpl implements ProductionEntryService {
         e.setAiPowerGm(r.aiPowerGm);
         e.setTempC(r.tempC);
 
+        e.setFaSlurryQty(r.faSlurryQty);
+        e.setExcessSlurryQty(r.excessSlurryQty);
+        e.setSurfactant(r.surfactant);
+        e.setDcChemical(r.dcChemical);
+        e.setDcmrt(r.dcmrt);
+        e.setMixingTime(r.mixingTime);
+
         e.setCastingTime(r.castingTime);
         e.setProductionTime(r.productionTime);
         e.setProductionRemark(r.productionRemark);
@@ -288,6 +295,12 @@ public class ProductionEntryServiceImpl implements ProductionEntryService {
                 e.setSolOilKg(toDouble(row.get("Sol Oil Kg")));
                 e.setAiPowerGm(toDouble(row.get("AI Power gm")));
                 e.setTempC(toDouble(row.get("Temperature")));
+                e.setFaSlurryQty(toDouble(row.get("FA Slurry Qty")));
+                e.setExcessSlurryQty(toDouble(row.get("Excess Slurry Qty")));
+                e.setSurfactant(toDouble(row.get("Surfactant")));
+                e.setDcChemical(toDouble(row.get("DC Chemical")));
+                e.setDcmrt(toDouble(row.get("DC MRT")));
+                e.setMixingTime(toInt(row.get("Mixing Time")));
 
                 e.setCastingTime(get(row, "Casting Time"));
                 e.setProductionTime(get(row, "Production Time"));
@@ -322,6 +335,12 @@ public class ProductionEntryServiceImpl implements ProductionEntryService {
         if (v == null || v.toString().isEmpty())
             return null;
         return Double.parseDouble(v.toString());
+    }
+
+    private Integer toInt(Object v) {
+        if (v == null || v.toString().isEmpty())
+            return null;
+        return (int) Double.parseDouble(v.toString());
     }
 
     private String now() {

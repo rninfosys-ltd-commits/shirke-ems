@@ -22,7 +22,7 @@ public class CastingExportServiceImpl implements StageReportService {
 
     @Override
     public String[] getHeaders() {
-        return new String[] { "Batch No", "Size", "Mould No", "Flow (cm)",
+        return new String[] { "Batch No", "Height", "Mould No", "Flow (cm)",
                 "Temp (C)", "Shift", "Date" };
     }
 
@@ -32,7 +32,7 @@ public class CastingExportServiceImpl implements StageReportService {
         return reports.stream().map(r -> {
             Map<String, Object> map = new LinkedHashMap<>();
             map.put("Batch No", r.getBatchNo());
-            map.put("Size", r.getSize());
+            map.put("Height", r.getHeight());
             map.put("Mould No", r.getMouldNo());
             map.put("Flow (cm)", r.getFlowInCm());
             map.put("Temp (C)", r.getCastingTempC());

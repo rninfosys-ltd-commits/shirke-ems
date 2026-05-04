@@ -25,8 +25,8 @@ public class ProductionExportServiceImpl implements StageReportService {
         return new String[] {
                 "Batch No", "Shift", "Date", "Silo 1", "Liter Wt 1", "FA Solid 1",
                 "Silo 2", "Liter Wt 2", "FA Solid 2", "Total Solid",
-                "Water (L)", "Cement (kg)", "Lime (kg)", "Gypsum (kg)", "Sol Oil (kg)", "Al Power (gm)",
-                "Production Time", "Remark"
+                "FA Slurry Qty", "Excess Slurry Qty", "Surfactant", "Water (L)", "Cement (kg)", "Lime (kg)", "Gypsum (kg)", "Sol Oil (kg)", "AI Power (gm)",
+                "DC Chemical", "DC MRT", "Mixing Time", "Temperature", "Production Time", "Remark"
         };
     }
 
@@ -45,12 +45,19 @@ public class ProductionExportServiceImpl implements StageReportService {
             map.put("Liter Wt 2", e.getLiterWeight2());
             map.put("FA Solid 2", e.getFaSolid2());
             map.put("Total Solid", e.getTotalSolid());
+            map.put("FA Slurry Qty", e.getFaSlurryQty());
+            map.put("Excess Slurry Qty", e.getExcessSlurryQty());
+            map.put("Surfactant", e.getSurfactant());
             map.put("Water (L)", e.getWaterLiter());
             map.put("Cement (kg)", e.getCementKg());
             map.put("Lime (kg)", e.getLimeKg());
             map.put("Gypsum (kg)", e.getGypsumKg());
             map.put("Sol Oil (kg)", e.getSolOilKg());
-            map.put("Al Power (gm)", e.getAiPowerGm());
+            map.put("AI Power (gm)", e.getAiPowerGm());
+            map.put("DC Chemical", e.getDcChemical());
+            map.put("DC MRT", e.getDcmrt());
+            map.put("Mixing Time", e.getMixingTime());
+            map.put("Temperature", e.getTempC());
             map.put("Production Time", e.getProductionTime());
             map.put("Remark", e.getProductionRemark());
             return map;

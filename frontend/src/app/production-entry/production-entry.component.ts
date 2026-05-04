@@ -118,6 +118,7 @@ export class ProductionEntryComponent implements OnInit {
       solOilKg: [0],
       surfactant: [0],
       dcChemical: [0],
+      dcmrt: [0],
 
       // Process Parameters
       mixingTime: [180],
@@ -380,6 +381,7 @@ export class ProductionEntryComponent implements OnInit {
     const solOilKg = +v.solOilKg || 0;
     const surfactant = +v.surfactant || 0;
     const dcChemical = (+v.dcChemical || 0) / 1000; // ml -> kg
+    const dcmrt = (+v.dcmrt || 0) / 1000; // ml -> kg
 
     // Solid contributions
     const faSolidFromSlurry = faSlurryQty * (faSolid1 / 100);
@@ -394,7 +396,7 @@ export class ProductionEntryComponent implements OnInit {
     const totalLiquid = faLiquid + excessLiquid + waterLiter + solOilKg + surfactant;
 
     // Total batch weight
-    const totalBatchWeight = faSlurryQty + excessSlurryQty + waterLiter + limeKg + cementKg + gypsumKg + solOilKg + surfactant + dcChemical;
+    const totalBatchWeight = faSlurryQty + excessSlurryQty + waterLiter + limeKg + cementKg + gypsumKg + solOilKg + surfactant + dcChemical + dcmrt;
 
     // Final solid %
     const finalSolidPercent = totalBatchWeight > 0 ? (totalSolid / totalBatchWeight) * 100 : 0;
@@ -471,6 +473,7 @@ export class ProductionEntryComponent implements OnInit {
       solOilKg: 0,
       surfactant: 0,
       dcChemical: 0,
+      dcmrt: 0,
       tempC: 0
     });
     this.showSilo2 = false;
@@ -623,6 +626,12 @@ export class ProductionEntryComponent implements OnInit {
       { label: 'FA Solid 2', key: 'faSolid2' },
 
       { label: 'Total Solid', key: 'totalSolid' },
+      { label: 'FA Slurry Qty', key: 'faSlurryQty' },
+      { label: 'Excess Slurry Qty', key: 'excessSlurryQty' },
+      { label: 'Surfactant', key: 'surfactant' },
+      { label: 'DC Chemical', key: 'dcChemical' },
+      { label: 'DC MRT', key: 'dcmrt' },
+      { label: 'Mixing Time', key: 'mixingTime' },
     ];
 
     // Add dynamic material columns

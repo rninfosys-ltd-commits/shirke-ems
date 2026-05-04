@@ -20,7 +20,7 @@ public class CastingHallReport {
 
     private String batchNo;
 
-    private String size; // Changed to String for consistency with WireCutting
+    private String height; // Changed to String for consistency with WireCutting
     private int mouldNo;
 
     private int flowInCm;
