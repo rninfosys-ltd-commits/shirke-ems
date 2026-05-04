@@ -63,6 +63,8 @@ export class ProductionEntryComponent implements OnInit {
   };
 
   batchers: string[] = ['Rajesh Kumar', 'Sanjay Sharma', 'Amit Patel', 'Vijay Singh', 'Rahul Verma'];
+  filteredBatchers: string[] = [];
+  showBatcherDropdown = false;
   shifts: string[] = [
     'Night (00:00 - 08:00)',
     'Morning (08:00 - 16:00)',
@@ -137,6 +139,7 @@ export class ProductionEntryComponent implements OnInit {
     this.loadData();
     this.loadUsers();
     this.loadMaterials();
+    this.filteredBatchers = [...this.batchers];
   }
 
 
@@ -449,6 +452,41 @@ export class ProductionEntryComponent implements OnInit {
     else this.productionForm.patchValue({ shift: this.shifts[2] });
   }
 
+  // ================= SEARCHABLE DROPDOWN LOGIC =================
+  toggleBatcherDropdown(show: boolean) {
+    // Delay hiding to allow click event to register on items
+    if (!show) {
+      setTimeout(() => {
+        this.showBatcherDropdown = false;
+      }, 200);
+    } else {
+      this.showBatcherDropdown = true;
+      this.filterBatchers();
+    }
+  }
+
+  onBatcherInput() {
+    this.showBatcherDropdown = true;
+    this.filterBatchers();
+  }
+
+  filterBatchers() {
+    const val = this.productionForm.value.batcher || '';
+    this.filteredBatchers = this.batchers.filter(b =>
+      b.toLowerCase().includes(val.toLowerCase())
+    );
+  }
+
+  selectBatcher(name: string) {
+    this.productionForm.patchValue({ batcher: name });
+    this.showBatcherDropdown = false;
+  }
+
+  getInitials(name: string): string {
+    if (!name) return '??';
+    return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+  }
+
   openForm() {
     this.showForm = true;
     this.editId = null;
@@ -478,6 +516,7 @@ export class ProductionEntryComponent implements OnInit {
     });
     this.showSilo2 = false;
     this.liveCalc = { totalSolid: 0, totalBatchWeight: 0, totalLiquid: 0, finalSolidPercent: 0 };
+    this.filteredBatchers = [...this.batchers];
 
     // Reset dynamic material values
     this.materialList.forEach(m => {
@@ -568,6 +607,7 @@ export class ProductionEntryComponent implements OnInit {
     }
 
     this.showSilo2 = !!(row.siloNo2 || row.literWeight2 || row.faSolid2);
+    this.filteredBatchers = [...this.batchers];
   }
 
   delete(id: number) {

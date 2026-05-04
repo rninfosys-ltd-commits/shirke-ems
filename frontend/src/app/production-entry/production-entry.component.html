@@ -243,130 +243,144 @@
 
                         <div class="form-group">
                             <label class="label-blue">Batcher</label>
-                            <input list="batcherOptions" formControlName="batcher" placeholder="Select Batcher">
-                            <datalist id="batcherOptions">
-                                <option *ngFor="let b of batchers" [value]="b"></option>
-                            </datalist>
-                        </div>
-                    </div>
+                            <div class="searchable-dropdown">
+                                <input type="text" formControlName="batcher" placeholder="Search batcher..."
+                                    (focus)="toggleBatcherDropdown(true)" (blur)="toggleBatcherDropdown(false)"
+                                    (input)="onBatcherInput()" autocomplete="off">
 
-                    <div class="divider"></div>
-
-                    <!-- SLURRY SECTION -->
-                    <h4 class="section-subtitle">SLURRY PROPERTIES</h4>
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label>FA Density (L/W)</label>
-                            <input type="number" formControlName="faDensity" (input)="recalculate()">
-                        </div>
-                        <div class="form-group">
-                            <label>FA Solid %</label>
-                            <input type="number" formControlName="faSolid1" (input)="recalculate()">
-                        </div>
-                        <div class="form-group">
-                            <label>Excess Density</label>
-                            <input type="number" formControlName="excessDensity" (input)="recalculate()">
-                        </div>
-                        <div class="form-group">
-                            <label>Excess Solid %</label>
-                            <input type="number" formControlName="excessSolid" (input)="recalculate()">
-                        </div>
-                    </div>
-
-                    <div class="divider"></div>
-
-                    <h4 class="section-subtitle">BATCHING SECTION</h4>
-                    <div class="form-grid">
-
-                        <div class="form-group">
-                            <label class="label-blue">FA Slurry Quantity (kg)</label>
-                            <input type="number" formControlName="faSlurryQty" (input)="recalculate()">
-                        </div>
-
-                        <div class="form-group">
-                            <label class="label-blue">Excess Slurry Quantity (kg)</label>
-                            <input type="number" formControlName="excessSlurryQty" (input)="recalculate()">
-                        </div>
-
-                        <div class="form-group">
-                            <label class="label-blue">Lime (kg)</label>
-                            <input type="number" formControlName="limeKg" (input)="recalculate()">
-                        </div>
-
-                        <div class="form-group">
-                            <label class="label-blue">Cement (kg)</label>
-                            <input type="number" formControlName="cementKg" (input)="recalculate()">
-                        </div>
-
-                        <div class="form-group">
-                            <label class="label-blue">Gypsum (kg)</label>
-                            <input type="number" formControlName="gypsumKg" (input)="recalculate()">
-                        </div>
-
-                        <div class="form-group">
-                            <label class="label-blue">Soluble Oil (L)</label>
-                            <input type="number" formControlName="solOilKg" (input)="recalculate()">
-                        </div>
-
-                        <div class="form-group">
-                            <label class="label-blue">Surfactant (kg)</label>
-                            <input type="number" formControlName="surfactant" (input)="recalculate()">
-                        </div>
-
-                        <div class="form-group">
-                            <label class="label-blue">Water (L)</label>
-                            <input type="number" formControlName="waterLiter" (input)="recalculate()">
-                        </div>
-
-                        <div class="form-group">
-                            <label class="label-blue">DC Chemical (ml)</label>
-                            <input type="number" formControlName="dcChemical" (input)="recalculate()">
-                        </div>
-
-                        <div class="form-group">
-                            <label class="label-blue">DC MRT (ml)</label>
-                            <input type="number" formControlName="dcmrt" (input)="recalculate()">
-                        </div>
-
-
-
-                        <!-- Dynamic Materials -->
-                        <ng-container *ngFor="let m of materialList">
-                            <div class="form-group">
-                                <label class="label-blue">{{ m.materialName }}</label>
-                                <input type="number" [(ngModel)]="materialValues[m.id]"
-                                    [ngModelOptions]="{standalone: true}" (input)="recalculate()" />
+                                <div class="dropdown-list" *ngIf="showBatcherDropdown">
+                                    <div class="dropdown-item" *ngFor="let b of filteredBatchers"
+                                        (click)="selectBatcher(b)">
+                                        <div class="batcher-icon">{{ getInitials(b) }}</div>
+                                        <span>{{ b }}</span>
+                                    </div>
+                                    <div class="dropdown-item no-results" *ngIf="filteredBatchers.length === 0">
+                                        No batchers found
+                                    </div>
+                                </div>
                             </div>
-                        </ng-container>
-                    </div>
-
-                    <div class="divider"></div>
-
-                    <!-- PARAMETERS SECTION -->
-                    <h4 class="section-subtitle">PROCESS PARAMETERS</h4>
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label>Mixing Time (s)</label>
-                            <input type="number" formControlName="mixingTime">
-                        </div>
-                        <div class="form-group">
-                            <label>Temp (°C)</label>
-                            <input type="number" formControlName="tempC">
-                        </div>
-                        <div class="form-group">
-                            <label>Discharge Time</label>
-                            <input type="time" formControlName="castingTime">
-                        </div>
-                        <div class="form-group">
-                            <label>Remarks</label>
-                            <input type="text" formControlName="productionRemark">
                         </div>
                     </div>
+
+                    <div class="divider" *ngIf="productionForm.get('siloNo1')?.value || productionForm.get('siloNo2')?.value"></div>
+
+                    <ng-container *ngIf="productionForm.get('siloNo1')?.value || productionForm.get('siloNo2')?.value">
+                        <!-- SLURRY SECTION -->
+                        <h4 class="section-subtitle">SLURRY PROPERTIES</h4>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>FA Density (L/W)</label>
+                                <input type="number" formControlName="faDensity" (input)="recalculate()">
+                            </div>
+                            <div class="form-group">
+                                <label>FA Solid %</label>
+                                <input type="number" formControlName="faSolid1" (input)="recalculate()">
+                            </div>
+                            <div class="form-group">
+                                <label>Excess Density</label>
+                                <input type="number" formControlName="excessDensity" (input)="recalculate()">
+                            </div>
+                            <div class="form-group">
+                                <label>Excess Solid %</label>
+                                <input type="number" formControlName="excessSolid" (input)="recalculate()">
+                            </div>
+                        </div>
+
+                        <div class="divider"></div>
+
+                        <h4 class="section-subtitle">BATCHING SECTION</h4>
+                        <div class="form-grid">
+
+                            <div class="form-group">
+                                <label class="label-blue">FA Slurry Quantity (kg)</label>
+                                <input type="number" formControlName="faSlurryQty" (input)="recalculate()">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="label-blue">Excess Slurry Quantity (kg)</label>
+                                <input type="number" formControlName="excessSlurryQty" (input)="recalculate()">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="label-blue">Lime (kg)</label>
+                                <input type="number" formControlName="limeKg" (input)="recalculate()">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="label-blue">Cement (kg)</label>
+                                <input type="number" formControlName="cementKg" (input)="recalculate()">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="label-blue">Gypsum (kg)</label>
+                                <input type="number" formControlName="gypsumKg" (input)="recalculate()">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="label-blue">Soluble Oil (L)</label>
+                                <input type="number" formControlName="solOilKg" (input)="recalculate()">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="label-blue">Surfactant (kg)</label>
+                                <input type="number" formControlName="surfactant" (input)="recalculate()">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="label-blue">Water (L)</label>
+                                <input type="number" formControlName="waterLiter" (input)="recalculate()">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="label-blue">DC Chemical (ml)</label>
+                                <input type="number" formControlName="dcChemical" (input)="recalculate()">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="label-blue">DC MRT (ml)</label>
+                                <input type="number" formControlName="dcmrt" (input)="recalculate()">
+                            </div>
+
+
+
+                            <!-- Dynamic Materials -->
+                            <ng-container *ngFor="let m of materialList">
+                                <div class="form-group">
+                                    <label class="label-blue">{{ m.materialName }}</label>
+                                    <input type="number" [(ngModel)]="materialValues[m.id]"
+                                        [ngModelOptions]="{standalone: true}" (input)="recalculate()" />
+                                </div>
+                            </ng-container>
+                        </div>
+
+                        <div class="divider"></div>
+
+                        <!-- PARAMETERS SECTION -->
+                        <h4 class="section-subtitle">PROCESS PARAMETERS</h4>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Mixing Time (s)</label>
+                                <input type="number" formControlName="mixingTime">
+                            </div>
+                            <div class="form-group">
+                                <label>Temp (°C)</label>
+                                <input type="number" formControlName="tempC">
+                            </div>
+                            <div class="form-group">
+                                <label>Discharge Time</label>
+                                <input type="time" formControlName="castingTime">
+                            </div>
+                            <div class="form-group">
+                                <label>Remarks</label>
+                                <input type="text" formControlName="productionRemark">
+                            </div>
+                        </div>
+                    </ng-container>
 
                 </div>
 
                 <!-- RIGHT: CALCULATION PANEL -->
-                <div class="calc-panel-modern">
+                <div class="calc-panel-modern" *ngIf="productionForm.get('siloNo1')?.value || productionForm.get('siloNo2')?.value">
                     <div class="calc-header">LIVE CALCULATIONS</div>
 
                     <div class="calc-row">
