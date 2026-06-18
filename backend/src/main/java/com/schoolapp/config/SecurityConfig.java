@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -32,6 +33,9 @@ public class SecurityConfig {
         @Autowired
         private JwtAuthenticationFilter jwtAuthenticationFilter;
 
+        @Value("${app.cors.allowed-origins:http://localhost:4200}")
+        private String allowedOrigins;
+
         @Bean
 
         public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -50,6 +54,7 @@ public class SecurityConfig {
                                                 // Public endpoints
                                                 .requestMatchers(
                                                                 "/error",
+                                                                "/health",
                                                                 "/api/auth/**",
                                                                 "/api/public/**",
                                                                 "/api/production/**",
@@ -123,7 +128,8 @@ public class SecurityConfig {
                 UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
                 CorsConfiguration config = new CorsConfiguration();
                 config.setAllowCredentials(true);
-                config.setAllowedOriginPatterns(List.of("*"));
+                config.setAllowedOriginPatterns(
+                                List.of(allowedOrigins.split("\\s*,\\s*")));
                 config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
                 config.setAllowedHeaders(List.of("*"));
                 config.setExposedHeaders(List.of("Authorization"));
