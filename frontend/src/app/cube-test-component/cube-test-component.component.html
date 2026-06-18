@@ -1,9 +1,9 @@
-<div class="lead-wrapper">
+<div class="container">
 
-    <div class="lead-card" *ngIf="showLeads">
+    <div class="main" *ngIf="showLeads">
 
         <div class="header">
-            <h2 class="title">Cube Test List</h2>
+            <h2 class="page-title">Cube Test List</h2>
 
             <div>
                 <button class="add-btn" (click)="openCreate()">+ Add</button>
@@ -39,9 +39,9 @@
                 <label>Shift</label>
                 <select [(ngModel)]="filterShift" (change)="applyFilters()">
                     <option value="">All Shifts</option>
-                    <option value="Night (00:00 - 08:00)">Night</option>
-                    <option value="Morning (08:00 - 16:00)">Morning</option>
-                    <option value="Afternoon (16:00 - 00:00)">Afternoon</option>
+                    <option value="Night (00:00 - 08:00) [1st Shift]">Night</option>
+                    <option value="Morning (08:00 - 16:00) [2nd Shift]">Morning</option>
+                    <option value="Afternoon (16:00 - 00:00) [3rd Shift]">Afternoon</option>
                 </select>
             </div>
 
@@ -70,7 +70,7 @@
         <input type="file" accept=".xlsx,.xls" hidden id="cubeExcelInput" (change)="onExcelSelect($event)" />
 
         <div class="table-scroll">
-            <table class="lead-table">
+            <table class="custom-table">
 
                 <thead>
                     <tr>
@@ -142,12 +142,27 @@
         </div>
 
         <form [formGroup]="form" (ngSubmit)="submit()" class="form-body">
-            
+
             <!-- TOP ROW: SYSTEM FIELDS -->
             <div class="form-grid header-grid">
                 <div class="form-group">
-                    <label>Report Date</label>
-                    <input type="date" formControlName="reportDate">
+                    <label class="label-blue">Plant</label>
+                    <select formControlName="plantName" (change)="onPlantChange()">
+                        <option value="" disabled>Select Plant</option>
+                        <option value="Plant 1">Plant 1</option>
+                        <option value="Plant 2">Plant 2</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="label-blue">Select Batch (Batch No _ Cast Date)</label>
+                    <select formControlName="batchNo" (change)="onBatchSelect($event)" [disabled]="noBatchAvailable">
+                        <option value="" disabled *ngIf="noBatchAvailable">No batches available</option>
+                        <option value="" disabled *ngIf="!noBatchAvailable">Select Batch</option>
+                        <option *ngFor="let b of batches" [value]="b.batchNumber">
+                            {{ b.batchNumber }}_{{ b.castingDate | date:'dd-MM-yyyy' }}
+                        </option>
+                    </select>
                 </div>
 
                 <div class="form-group">
@@ -159,95 +174,108 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Plant</label>
-                    <select formControlName="plantName" (change)="onPlantChange()">
-                        <option value="" disabled>Select Plant</option>
-                        <option value="Plant 1">Plant 1</option>
-                        <option value="Plant 2">Plant 2</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label>Testing Date</label>
-                    <input type="date" formControlName="testingDate">
+                    <label>Report Date</label>
+                    <input type="date" formControlName="reportDate">
                 </div>
             </div>
 
-            <div class="divider"></div>
-
-            <!-- BATCH SELECTION -->
-            <div class="form-grid" style="margin-bottom: 25px;">
+            <div class="form-grid">
                 <div class="form-group">
-                    <label class="label-blue">Select Batch (Batch No _ Cast Date)</label>
-                    <select formControlName="batchNo" (change)="onBatchSelect($event)" [disabled]="noBatchAvailable">
-                        <option value="" disabled *ngIf="noBatchAvailable">No batches available</option>
-                        <option value="" disabled *ngIf="!noBatchAvailable">Select Batch</option>
-                        <option *ngFor="let b of batches" [value]="b.batchNumber">
-                            {{ b.batchNumber }}_{{ b.castingDate | date:'dd-MM-yyyy' }}
-                        </option>
-                    </select>
+                    <label>Testing Date</label>
+                    <input type="date" formControlName="testingDate">
                 </div>
                 <!-- hidden castDate -->
                 <input type="hidden" formControlName="castDate">
             </div>
 
             <!-- TECHNICAL PARAMETERS SECTION -->
-            <h4 class="section-subtitle">DIMENSIONS & WEIGHTS</h4>
             <div class="form-grid">
                 <div class="form-group">
-                    <label class="label-blue">Cube Immediate</label>
-                    <input type="text" formControlName="cubeDimensionImmediate" placeholder="Enter dimension">
-                </div>
-                <div class="form-group">
-                    <label class="label-blue">Cube Oven Dry 1</label>
-                    <input type="text" formControlName="cubeDimensionOvenDry1">
-                </div>
-                <div class="form-group">
-                    <label class="label-blue">Cube Oven Dry 2</label>
-                    <input type="text" formControlName="cubeDimensionOvenDry2">
-                </div>
-                <div class="form-group">
-                    <label class="label-blue">Cube Oven Dry 3</label>
-                    <input type="text" formControlName="cubeDimensionOvenDry3">
-                </div>
-                <div class="form-group">
-                    <label class="label-blue">Weight Immediate (kg)</label>
-                    <input type="number" formControlName="weightImmediateKg">
-                </div>
-                <div class="form-group">
-                    <label class="label-blue">Weight Oven Dry (kg)</label>
-                    <input type="number" formControlName="weightovenDryKg">
-                </div>
-                <div class="form-group">
-                    <label class="label-blue">Weight Moisture (kg)</label>
-                    <input type="number" formControlName="weightWithMoistureKg">
-                </div>
-                <div class="form-group">
-                    <label class="label-blue">Density (kg/m³)</label>
-                    <input type="number" formControlName="densityKgM3">
+                    <label class="label-blue">Cube Size</label>
+                    <select formControlName="cubeSize" (change)="recalculateDensities()">
+                        <option value="" disabled>Select Cube Size</option>
+                        <option value="150x150x150">150×150×150</option>
+                        <option value="100x100x100">100×100×100</option>
+                    </select>
                 </div>
             </div>
 
             <div class="divider"></div>
 
-            <h4 class="section-subtitle">LOAD & STRENGTH</h4>
-            <div class="form-grid">
-                <div class="form-group">
-                    <label class="label-blue">Load Oven Dry (Tonn)</label>
-                    <input type="number" formControlName="loadovenDryTonn">
-                </div>
-                <div class="form-group">
-                    <label class="label-blue">Load Moisture (Tonn)</label>
-                    <input type="number" formControlName="loadMoistureTonn">
-                </div>
-                <div class="form-group">
-                    <label class="label-blue">Strength Oven Dry</label>
-                    <input type="number" formControlName="compStrengthovenDry">
-                </div>
-                <div class="form-group">
-                    <label class="label-blue">Strength Moisture</label>
-                    <input type="number" formControlName="compStrengthMoisture">
-                </div>
+            <!-- POST CUTTING WET CUBE (disabled until cube size selected) -->
+            <h4 class="section-subtitle">POST CUTTING (WET CUBE)
+              <span *ngIf="!cubeSizeSelected" style="font-size:12px;color:#e74c3c;margin-left:8px;">⚠ Select Cube Size first</span>
+            </h4>
+            <div class="table-container mt-3" [class.section-disabled]="!cubeSizeSelected">
+                <table class="table table-bordered text-center align-middle custom-table">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>Position</th>
+                            <th>Weight (kg)</th>
+                            <th>Density (kg/m³)</th>
+                            <th>Strength</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="fw-bold">Top</td>
+                            <td><input type="number" class="form-control text-center" formControlName="wetWeightTop" [disabled]="!cubeSizeSelected"></td>
+                            <td><input type="number" class="form-control text-center bg-light" formControlName="wetDensityTop" readonly></td>
+                            <td><input type="number" class="form-control text-center" formControlName="wetStrengthTop" [disabled]="!cubeSizeSelected"></td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold">Middle</td>
+                            <td><input type="number" class="form-control text-center" formControlName="wetWeightMid" [disabled]="!cubeSizeSelected"></td>
+                            <td><input type="number" class="form-control text-center bg-light" formControlName="wetDensityMid" readonly></td>
+                            <td><input type="number" class="form-control text-center" formControlName="wetStrengthMid" [disabled]="!cubeSizeSelected"></td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold">Bottom</td>
+                            <td><input type="number" class="form-control text-center" formControlName="wetWeightBtm" [disabled]="!cubeSizeSelected"></td>
+                            <td><input type="number" class="form-control text-center bg-light" formControlName="wetDensityBtm" readonly></td>
+                            <td><input type="number" class="form-control text-center" formControlName="wetStrengthBtm" [disabled]="!cubeSizeSelected"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- DRY OVEN CUBE (disabled until at least one Wet row is complete) -->
+            <h4 class="section-subtitle">DRY OVEN CUBE
+              <span *ngIf="!anyWetComplete" style="font-size:12px;color:#e74c3c;margin-left:8px;">⚠ Complete at least one Wet Cube row first</span>
+            </h4>
+            <div class="table-container mt-3" [class.section-disabled]="!anyWetComplete">
+                <table class="table table-bordered text-center align-middle custom-table">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>Position</th>
+                            <th>Weight (kg)</th>
+                            <th>Density (kg/m³)</th>
+                            <th>Strength</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr [class.row-disabled]="!dryTopEnabled" [title]="!dryTopEnabled ? 'Complete Wet Top first' : ''">
+                            <td class="fw-bold">Top</td>
+                            <td><input type="number" class="form-control text-center" formControlName="dryWeightTop" [disabled]="!dryTopEnabled"></td>
+                            <td><input type="number" class="form-control text-center bg-light" formControlName="dryDensityTop" readonly></td>
+                            <td><input type="number" class="form-control text-center" formControlName="dryStrengthTop" [disabled]="!dryTopEnabled"></td>
+                        </tr>
+                        <tr [class.row-disabled]="!dryMidEnabled" [title]="!dryMidEnabled ? 'Complete Wet Mid first' : ''">
+                            <td class="fw-bold">Middle</td>
+                            <td><input type="number" class="form-control text-center" formControlName="dryWeightMid" [disabled]="!dryMidEnabled"></td>
+                            <td><input type="number" class="form-control text-center bg-light" formControlName="dryDensityMid" readonly></td>
+                            <td><input type="number" class="form-control text-center" formControlName="dryStrengthMid" [disabled]="!dryMidEnabled"></td>
+                        </tr>
+                        <tr [class.row-disabled]="!dryBtmEnabled" [title]="!dryBtmEnabled ? 'Complete Wet Bottom first' : ''">
+                            <td class="fw-bold">Bottom</td>
+                            <td><input type="number" class="form-control text-center" formControlName="dryWeightBtm" [disabled]="!dryBtmEnabled"></td>
+                            <td><input type="number" class="form-control text-center bg-light" formControlName="dryDensityBtm" readonly></td>
+                            <td><input type="number" class="form-control text-center" formControlName="dryStrengthBtm" [disabled]="!dryBtmEnabled"></td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
 
             <div class="form-actions">
@@ -282,7 +310,8 @@
 
                     <div class="meta-text">
                         <strong>Shift:</strong>
-                        {{ selectedCube?.shift === 'G' ? 'General Shift' : selectedCube?.shift ? 'Shift ' + selectedCube?.shift : '—' }}
+                        {{ selectedCube?.shift === 'G' ? 'General Shift' : selectedCube?.shift ? 'Shift ' +
+                        selectedCube?.shift : '—' }}
                     </div>
 
                 </div>

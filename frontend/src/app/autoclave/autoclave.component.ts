@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
@@ -27,6 +27,22 @@ export class AutoclaveComponent implements OnInit {
   // ================= UI STATE =================
   showForm = false;
 
+  // ================= REMARKS MULTI-SELECT UI =================
+  remarksDropdownOpen = false;
+  selectedRemarks: string[] = [];
+
+  remarksOptions: { value: string; label: string }[] = [
+    { value: 'Main mixer discharge valve not opened.', label: 'Main mixer discharge valve not opened. / मुख्य मिक्सर डिस्चार्ज व्हॉल्व्ह उघडलेला नाही.' },
+    { value: 'Aluminium mixer valve not opened.', label: 'Aluminium mixer valve not opened. / अॅल्युमिनियम मिक्सर व्हॉल्व्ह उघडलेला नाही.' },
+    { value: 'Double aluminium powder added.', label: 'Double aluminium powder added. / दुहेरी प्रमाणात अॅल्युमिनियम पावडर टाकण्यात आली.' },
+    { value: 'Soluble oil not added.', label: 'Soluble oil not added. / सोल्युबल ऑइल टाकलेले नाही.' },
+    { value: 'Ferry carriage stuck.', label: 'Ferry carriage stuck. / फेरी कॅरेज अडकले आहे.' },
+    { value: 'Mixer agitator jammed.', label: 'Mixer agitator jammed. / मिक्सर अॅजिटेटर जॅम झाला आहे.' },
+    { value: 'Cement and lime powder screw jammed.', label: 'Cement and lime powder screw jammed. / सिमेंट आणि लाईम पावडर स्क्रू जॅम झाला आहे.' },
+    { value: 'Temperature increased due to ferry carriage under maintenance.', label: 'Temperature increased due to ferry carriage under maintenance. / फेरी कॅरेज देखभालीखाली असल्यामुळे तापमान वाढले.' },
+    { value: 'Mould derailed on ferry carriage.', label: 'Mould derailed on ferry carriage. / फेरी कॅरेजवर साचा (मोल्ड) रुळावरून घसरला.' }
+  ];
+
   // ================= MAIN FORM =================
   form!: FormGroup;
 
@@ -39,12 +55,72 @@ export class AutoclaveComponent implements OnInit {
   pagedList: any[] = [];
 
   availableBatches: string[] = [];
+  dropdownOpen = false;
+  plant1AutoclaveNumbers = [1, 2, 3, 4, 5, 6];
+  plant2AutoclaveNumbers = [1, 2, 3, 4, 5];
+  totalProcessTimeDisplay = '';
+
+  toggleDropdown(event: Event): void {
+    event.stopPropagation();
+    this.dropdownOpen = !this.dropdownOpen;
+  }
+
+  getSelectedBatchesArray(): string[] {
+    const val = this.form?.get('batchNo')?.value;
+    if (!val) return [];
+    return val.split(',').map((s: string) => s.trim()).filter((s: string) => s.length > 0);
+  }
+
+  isBatchSelected(batch: string): boolean {
+    return this.getSelectedBatchesArray().includes(batch);
+  }
+
+  toggleBatchSelection(batch: string): void {
+    const selected = this.getSelectedBatchesArray();
+    const plant = this.form?.get('plantName')?.value;
+    const maxLimit = plant === 'Plant 2' ? 14 : 18;
+
+    const index = selected.indexOf(batch);
+    if (index > -1) {
+      selected.splice(index, 1);
+    } else {
+      if (selected.length >= maxLimit) {
+        alert(`Maximum limit of ${maxLimit} batches reached for ${plant}.`);
+        return;
+      }
+      selected.push(batch);
+    }
+
+    const batchNoStr = selected.join(', ');
+    this.form.patchValue({
+      batchNo: batchNoStr,
+      plant1BatchCount: plant === 'Plant 1' ? selected.length : '',
+      plant2BatchCount: plant === 'Plant 2' ? selected.length : ''
+    });
+  }
+
+  getSelectedBatchesPlaceholder(): string {
+    const selected = this.getSelectedBatchesArray();
+    if (selected.length === 0) {
+      return 'Select Batches';
+    }
+    return `${selected.length} Batches Selected`;
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.custom-multiselect')) {
+      this.dropdownOpen = false;
+    }
+  }
 
 
   // ================= FILTER =================
   filterFromDate = '';
   filterToDate = '';
   filterPlant = 'Plant 1';
+  filterShift = '';
   // ================= PAGINATION =================
   pageSize = 5;
   currentPage = 1;
@@ -56,9 +132,9 @@ export class AutoclaveComponent implements OnInit {
   editId: number | null = null;
 
   shifts: string[] = [
-    'Night (00:00 - 08:00)',
-    'Morning (08:00 - 16:00)',
-    'Afternoon (16:00 - 00:00)'
+    'Night (00:00 - 08:00) [1st Shift]',
+    'Morning (08:00 - 16:00) [2nd Shift]',
+    'Afternoon (16:00 - 00:00) [3rd Shift]'
   ];
 
   constructor(
@@ -80,7 +156,7 @@ export class AutoclaveComponent implements OnInit {
     // Main Autoclave Form
     this.form = this.fb.group({
       // General Information
-      runNo: [''],
+      autoclaveCycleNumber: [{value: '', disabled: true}],
       shift: ['', Validators.required],
       plantName: ['Plant 1', Validators.required],
       currentStatus: ['STARTED'],
@@ -88,24 +164,39 @@ export class AutoclaveComponent implements OnInit {
       startedDate: [today],
       completedAt: [''],
       completedDate: [''],
+      batchNo: [''],
+
+      // New
+      autoclaveNumber: ['', Validators.required],
 
       // Lifecycle Tracking
-      cycleStartTime: [''],
-      holdStartTime: [''],
-      holdEndTime: [''],
+      doorCloseTime: [''],
+      vacuumStartTime: [''],
+      autoclaveRisingStartTime: [''],
+      autoclaveRisingCloseTime: [''],
+      totalPressureAfterRisingClose: [''],
+      pressureAfterDoorOpen: [''],
+
+      // Transfer / Release
       transferStartTime: [''],
+      transferredToAutoclaveNo: ['', Validators.required],
       transferEndTime: [''],
       releaseStartTime: [''],
       releaseEndTime: [''],
+
+      // Timing
       doorOpenTime: [''],
-      cycleEndTime: [''],
+
+      // (Removed fields per change request)
+      // cycleStartTime, cycleEndTime, holdStartTime, holdEndTime
+
 
       // Pressure Readings
       pressure1Hr: [''],
       pressure2Hr: [''],
       pressure3Hr: [''],
-      pressureCompletion: [''],
       pressureRelease: [''],
+      totalProcessTime: [''],
 
       // Batch Counts
       plant1BatchCount: [''],
@@ -135,6 +226,7 @@ export class AutoclaveComponent implements OnInit {
         });
       }
     });
+    this.form.get('doorCloseTime')?.valueChanges.subscribe(() => this.calcTotalProcessTime());
     this.setShiftByTime();
     this.loadCuttingBatches();
     this.loadList();
@@ -161,6 +253,26 @@ export class AutoclaveComponent implements OnInit {
     const mm = String(now.getMinutes()).padStart(2, '0');
     const ss = String(now.getSeconds()).padStart(2, '0');
     return `${hh}:${mm}:${ss}`;
+  }
+
+  calcTotalProcessTime(): void {
+    const start = this.form.get('doorCloseTime')?.value;
+    const end = this.form.get('releaseEndTime')?.value;
+    if (!start || !end) {
+      this.totalProcessTimeDisplay = '';
+      return;
+    }
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    const diffMs = endDate.getTime() - startDate.getTime();
+    if (Number.isNaN(diffMs) || diffMs < 0) {
+      this.totalProcessTimeDisplay = '';
+      return;
+    }
+    const totalMinutes = Math.floor(diffMs / 60000);
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    this.totalProcessTimeDisplay = `${hours} Hours ${minutes} Minutes`;
   }
   // ================= WAGONS =================
   get wagons(): FormArray {
@@ -190,9 +302,31 @@ export class AutoclaveComponent implements OnInit {
     this.availableBatches = [...new Set(filtered.map(r => r.batchNo))];
   }
 
+  getAvailableTransferAutoclaves(): number[] {
+    const plant = this.form?.get('plantName')?.value;
+    const current = Number(this.form?.get('autoclaveNumber')?.value);
+    const base = plant === 'Plant 2' ? this.plant2AutoclaveNumbers : this.plant1AutoclaveNumbers;
+    return base.filter(no => no !== current);
+  }
+
+  onAutoclaveNumberChange(): void {
+    const current = Number(this.form?.get('autoclaveNumber')?.value);
+    const transferred = Number(this.form?.get('transferredToAutoclaveNo')?.value);
+    if (transferred && transferred === current) {
+      this.form.patchValue({ transferredToAutoclaveNo: '' });
+    }
+  }
+
   onPlantChange(): void {
     this.wagons.clear();
     this.filterBatchesByPlant();
+    this.form.patchValue({
+      batchNo: '',
+      autoclaveNumber: '',
+      transferredToAutoclaveNo: '',
+      plant1BatchCount: '',
+      plant2BatchCount: ''
+    });
   }
 
   addWagon(): void {
@@ -200,11 +334,11 @@ export class AutoclaveComponent implements OnInit {
 
     const wagon = this.fb.group({
       mBatch: [this.wagonForm.value.mBatch],
-      mSize:  [this.wagonForm.value.mSize],
+      mSize: [this.wagonForm.value.mSize],
       eBatch: [this.wagonForm.value.eBatch],
-      eSize:  [this.wagonForm.value.eSize],
+      eSize: [this.wagonForm.value.eSize],
       wBatch: [this.wagonForm.value.wBatch],
-      wSize:  [this.wagonForm.value.wSize]
+      wSize: [this.wagonForm.value.wSize]
     });
 
     this.wagons.push(wagon);
@@ -263,6 +397,9 @@ export class AutoclaveComponent implements OnInit {
         if (r.plantName !== this.filterPlant && r.plantName !== plantId) return false;
       }
 
+      // ✅ SHIFT FILTER
+      if (this.filterShift && !(r.shift || '').toLowerCase().includes(this.filterShift.toLowerCase())) return false;
+
       const d = new Date(r.startedDate).getTime();
       return (!from || d >= from) && (!to || d <= to);
     });
@@ -271,6 +408,10 @@ export class AutoclaveComponent implements OnInit {
 
     this.currentPage = 1;
     this.updatePagination();
+  }
+
+  onShiftChange(): void {
+    this.applyFilters();
   }
 
 
@@ -283,6 +424,7 @@ export class AutoclaveComponent implements OnInit {
     this.filterFromDate = '';
     this.filterToDate = '';
     this.filterPlant = 'Plant 1';
+    this.filterShift = '';
     this.onDateChange();
   }
 
@@ -313,6 +455,7 @@ export class AutoclaveComponent implements OnInit {
   }
 
   openForm(): void {
+
     this.isEditMode = false;
     this.showForm = true;
     this.editId = null;
@@ -328,25 +471,30 @@ export class AutoclaveComponent implements OnInit {
       startedAt: now,
       completedDate: '',
       completedAt: '',
-      runNo: '',
+      autoclaveCycleNumber: '',
+      autoclaveNumber: '',
+      transferredToAutoclaveNo: '',
       currentStatus: 'STARTED',
-      cycleStartTime: '',
-      holdStartTime: '',
-      holdEndTime: '',
+      doorCloseTime: '',
+      vacuumStartTime: '',
+      autoclaveRisingStartTime: '',
+      autoclaveRisingCloseTime: '',
       transferStartTime: '',
       transferEndTime: '',
       releaseStartTime: '',
       releaseEndTime: '',
       doorOpenTime: '',
-      cycleEndTime: '',
       pressure1Hr: '',
       pressure2Hr: '',
       pressure3Hr: '',
-      pressureCompletion: '',
       pressureRelease: '',
+      totalPressureAfterRisingClose: '',
+      pressureAfterDoorOpen: '',
+      totalProcessTime: '',
       plant1BatchCount: '',
       plant2BatchCount: '',
-      remarks: ''
+      remarks: '',
+      batchNo: ''
     });
 
     this.wagonForm.reset();
@@ -403,6 +551,29 @@ export class AutoclaveComponent implements OnInit {
       orgId: 1
     };
 
+    const batchCount = this.getSelectedBatchesArray().length;
+    if (this.form.value.plantName === 'Plant 1' && (batchCount < 15 || batchCount > 18)) {
+      alert('Plant 1 batch count must be between 15 and 18.');
+      return;
+    }
+    if (this.form.value.plantName === 'Plant 2' && (batchCount < 1 || batchCount > 14)) {
+      alert('Plant 2 batch count must be between 1 and 14.');
+      return;
+    }
+
+    if (payload.shift) {
+      payload.shift = payload.shift.split(' ')[0];
+    }
+
+    if (payload.autoclaveNumber !== undefined && payload.autoclaveNumber !== null && payload.transferredToAutoclaveNo !== undefined) {
+      const current = Number(payload.autoclaveNumber);
+      const transferred = Number(payload.transferredToAutoclaveNo);
+      if (transferred && transferred === current) {
+        alert('Transferred To Autoclave No cannot match the current autoclave number.');
+        return;
+      }
+    }
+
     console.log('AUTOCLAVE PAYLOAD', payload);
 
     const req$ = this.editId
@@ -419,8 +590,18 @@ export class AutoclaveComponent implements OnInit {
   }
 
   delete(id: number): void {
+    if (!id) {
+      alert('Unable to delete: missing record id.');
+      return;
+    }
     if (confirm('Delete this autoclave cycle?')) {
-      this.service.delete(id).subscribe(() => this.loadList());
+      this.service.delete(id).subscribe({
+        next: () => this.loadList(),
+        error: (err) => {
+          console.error('Autoclave delete failed', err);
+          alert('Delete failed. Please check the backend response or record id.');
+        }
+      });
     }
   }
 
@@ -444,21 +625,49 @@ export class AutoclaveComponent implements OnInit {
   }
 
   exportExcel(): void {
-    if (!this.filterFromDate || !this.filterToDate) {
-      alert('Please select date range');
-      return;
-    }
-    this.workflowService.exportReport('AUTOCLAVE', this.filterFromDate, this.filterToDate, 'excel').subscribe({
-      next: (blob) => {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `Autoclave_Report_${this.filterFromDate}_to_${this.filterToDate}.xlsx`;
-        a.click();
-        URL.revokeObjectURL(url);
-      },
-      error: () => alert('Failed to export Excel')
-    });
+    const data = this.filteredList.map(r => ({
+      PlantName: r.plantName ?? '',
+      AutoclaveCycleNumber: r.autoclaveCycleNumber ?? '',
+      Shift: r.shift ?? '',
+      StartedAt: r.startedAt ?? '',
+      StartedDate: r.startedDate ?? '',
+      CompletedAt: r.completedAt ?? '',
+      CompletedDate: r.completedDate ?? '',
+      BatchNo: r.batchNo ?? '',
+      AutoclaveNumber: r.autoclaveNumber ?? '',
+      CurrentStatus: r.currentStatus ?? '',
+      DoorCloseTime: r.doorCloseTime ?? '',
+      VacuumStartTime: r.vacuumStartTime ?? '',
+      AutoclaveRisingStartTime: r.autoclaveRisingStartTime ?? '',
+      AutoclaveRisingCloseTime: r.autoclaveRisingCloseTime ?? '',
+      TransferStartTime: r.transferStartTime ?? '',
+      TransferredToAutoclaveNo: r.transferredToAutoclaveNo ?? '',
+      TransferEndTime: r.transferEndTime ?? '',
+      ReleaseStartTime: r.releaseStartTime ?? '',
+      ReleaseEndTime: r.releaseEndTime ?? '',
+      DoorOpenTime: r.doorOpenTime ?? '',
+      Pressure1Hr: r.pressure1Hr ?? '',
+      Pressure2Hr: r.pressure2Hr ?? '',
+      Pressure3Hr: r.pressure3Hr ?? '',
+      PressureRelease: r.pressureRelease ?? '',
+      TotalPressureAfterRisingClose: r.totalPressureAfterRisingClose ?? '',
+      PressureAfterDoorOpen: r.pressureAfterDoorOpen ?? '',
+      Plant1BatchCount: r.plant1BatchCount ?? '',
+      Plant2BatchCount: r.plant2BatchCount ?? '',
+      Remarks: r.remarks ?? ''
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Autoclave');
+    const buffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Autoclave_Report_${this.filterFromDate || 'all'}_to_${this.filterToDate || 'all'}.xlsx`;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
 
@@ -485,7 +694,10 @@ export class AutoclaveComponent implements OnInit {
   downloadAutoclave(r: any, format: string = 'pdf') {
     if (!r) return;
     let batchNo = '';
-    if (r.wagons && r.wagons.length > 0) {
+    if (r.batchNo) {
+      batchNo = String(r.batchNo).split(',')[0].trim();
+    }
+    if (!batchNo && r.wagons && r.wagons.length > 0) {
       batchNo = r.wagons[0].mBatch || r.wagons[0].eBatch || r.wagons[0].wBatch || '';
     }
     if (!batchNo) { alert('No batch number found in this autoclave cycle.'); return; }
@@ -520,7 +732,10 @@ export class AutoclaveComponent implements OnInit {
   /** Download combined horizontal Excel for one batch from this autoclave cycle */
   downloadHorizontalReport(r: any) {
     let batchNo = '';
-    if (r?.wagons?.length > 0) {
+    if (r.batchNo) {
+      batchNo = String(r.batchNo).split(',')[0].trim();
+    }
+    if (!batchNo && r?.wagons?.length > 0) {
       batchNo = r.wagons[0].mBatch || r.wagons[0].eBatch || r.wagons[0].wBatch || '';
     }
     if (!batchNo) { alert('No batch number found.'); return; }
@@ -540,7 +755,7 @@ export class AutoclaveComponent implements OnInit {
   /** Export horizontal report for the selected date range */
   exportHorizontalReport() {
     if (!this.filterFromDate || !this.filterToDate) { alert('Please select a date range first'); return; }
-    this.horizontalReportService.downloadExcel(this.filterFromDate, this.filterToDate, undefined, 'AUTOCLAVE').subscribe({
+    this.horizontalReportService.downloadExcel(this.filterFromDate, this.filterToDate, undefined, 'AUTOCLAVE', this.filterPlant, this.filterShift).subscribe({
       next: (blob) => {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');

@@ -31,6 +31,16 @@
             </div>
 
             <div class="filter-select">
+                <label>Shift</label>
+                <select [(ngModel)]="filterShift" (change)="onFilterChange()">
+                    <option value="">All Shifts</option>
+                    <option value="Night">Shift 1 – Night</option>
+                    <option value="Morning">Shift 2 – Morning</option>
+                    <option value="Afternoon">Shift 3 – Afternoon</option>
+                </select>
+            </div>
+
+            <div class="filter-select">
                 <label>Export</label>
                 <select (change)="onExportChange($event)">
                     <option value="">Select Option</option>
@@ -62,8 +72,9 @@
                         <th>Plant Name</th>
                         <th>Rising Time</th>
                         <th>Rising Temp (°C)</th>
-                        <th>Mold Penetration</th>
-                        <th>Ball Test</th>
+                        <th>Mould No</th>
+                        <th>Mould Height</th>
+                        <th>Mould Flow</th>
                         <th>Shift</th>
                         <th>Action</th>
                     </tr>
@@ -74,12 +85,17 @@
                         <td>{{ row.plantName }}</td>
                         <td>{{ row.risingTime }}</td>
                         <td>{{ row.risingTempC }}</td>
-                        <td>{{ row.moldPenetration }}</td>
-                        <td>{{ row.ballTest }}</td>
+                        <td>{{ row.mouldNo || '—' }}</td>
+                        <td>{{ row.mouldHeight }}</td>
+                        <td>{{ row.mouldFlow }}</td>
                         <td>{{ row.shift }}</td>
-                        <td>
+                        <td class="action-cell">
                             <button class="link-btn" (click)="edit(row)">Edit</button>
                             <button class="link-btn danger" (click)="delete(row.id)">Delete</button>
+                            <button class="link-btn info" (click)="downloadRising(row, 'pdf')">PDF</button>
+                            <button class="link-btn success" (click)="downloadRising(row, 'excel')">XLS</button>
+                            <button class="link-btn hz" (click)="downloadHorizontalReport(row)"
+                                title="Combined Horizontal">HZ</button>
                         </td>
                     </tr>
                     <tr *ngIf="list.length === 0">
@@ -104,14 +120,15 @@
     <div class="rising-form-card" *ngIf="showForm">
         <div class="form-header">
             <div class="indicator-bar"></div>
-            <h3>Add Rising Section</h3>
+            <h3>{{ editId ? 'Edit' : 'Add' }} Rising Section</h3>
         </div>
 
         <form [formGroup]="form" (ngSubmit)="submit()" class="form-body">
-            <div class="form-grid">
+            <!-- HEADER SECTION -->
+            <div class="form-grid header-grid">
                 <!-- Plant Name -->
                 <div class="form-group">
-                    <label>Plant Name</label>
+                    <label class="label-blue">Plant</label>
                     <select formControlName="plantName">
                         <option value="Plant 1">Plant 1</option>
                         <option value="Plant 2">Plant 2</option>
@@ -121,34 +138,10 @@
                 <!-- Batch No -->
                 <div class="form-group">
                     <label>Batch No</label>
-                    <select formControlName="batchNo">
+                    <select formControlName="batchNo" (change)="onBatchChange($event)">
                         <option value="" disabled>Select Batch</option>
                         <option *ngFor="let p of productionList" [value]="p.batchNo">{{ p.batchNo }}</option>
                     </select>
-                </div>
-
-                <!-- Rising Time -->
-                <div class="form-group">
-                    <label class="label-blue">Rising Time</label>
-                    <input type="text" formControlName="risingTime" placeholder="10:46 PM">
-                </div>
-
-                <!-- Rising Temp -->
-                <div class="form-group">
-                    <label class="label-blue">Rising Temp (°C)</label>
-                    <input type="number" formControlName="risingTempC" placeholder="0">
-                </div>
-
-                <!-- Mold Penetration -->
-                <div class="form-group">
-                    <label class="label-blue">Mold Penetration</label>
-                    <input type="number" formControlName="moldPenetration" placeholder="0">
-                </div>
-
-                <!-- Ball Test -->
-                <div class="form-group">
-                    <label>Ball Test</label>
-                    <input type="text" formControlName="ballTest" placeholder="Ball Test">
                 </div>
 
                 <!-- Shift -->
@@ -159,11 +152,83 @@
                         <option *ngFor="let s of shifts" [value]="s">{{ s }}</option>
                     </select>
                 </div>
+            </div>
 
-                <!-- Remark -->
+            <div class="divider"></div>
+
+            <div class="form-grid">
+
+                <!-- Rising Start Time -->
+                <div class="form-group">
+                    <label class="label-blue">Rising Start Time</label>
+                    <div style="display:flex;gap:6px;">
+                        <input type="time" formControlName="risingStartTime" step="60">
+                        <button type="button" class="btn-now" (click)="useCurrentTimeForRisingStart()">Now</button>
+                    </div>
+                </div>
+
+                <!-- Discharge Time -->
+                <div class="form-group">
+                    <label class="label-blue">Discharge Time</label>
+                    <div style="display:flex;gap:6px;">
+                        <input type="time" formControlName="dischargeTime" step="60">
+                        <button type="button" class="btn-now" (click)="useCurrentTimeForDischarge()">Now</button>
+                    </div>
+                </div>
+
+                <!-- Total Rising Time (auto-calculated, shown before Rising Temp) -->
+                <div class="form-group">
+                    <label class="label-blue">Total Rising Time</label>
+                    <input type="text" [value]="totalRisingTimeDisplay" readonly
+                        style="background:#f1f5f9;cursor:not-allowed;font-weight:600;color:#1e3a5f;">
+                </div>
+
+                <!-- Rising Temp -->
+                <div class="form-group">
+                    <label class="label-blue">Rising Temp (°C)</label>
+                    <input type="number" formControlName="risingTempC" placeholder="0">
+                </div>
+
+                <!-- Mould No -->
+                <div class="form-group">
+                    <label class="label-blue">Mould No</label>
+                    <input type="number" formControlName="mouldNo" placeholder="Mould No">
+                </div>
+
+                <!-- Mould Height -->
+                <div class="form-group">
+                    <label class="label-blue">Mould Height</label>
+                    <input type="number" formControlName="mouldHeight" placeholder="0">
+                </div>
+
+                <!-- Mould Flow -->
+                <div class="form-group">
+                    <label>Mould Flow</label>
+                    <input type="number" formControlName="mouldFlow" placeholder="0">
+                </div>
+
+
+
+                <!-- Rising Remarks (dropdown multi-select) -->
                 <div class="form-group full-width">
-                    <label>Remark</label>
-                    <input type="text" formControlName="remark" placeholder="Remark">
+                    <label>Rising Section Remarks</label>
+                    <div class="remarks-multiselect">
+                        <button type="button" class="remarks-select-box" (click)="toggleRemarksDropdown($event)">
+                            <span>{{ getSelectedRemarksPlaceholder() }}</span>
+                            <span class="arrow" [class.open]="remarksDropdownOpen">▼</span>
+                        </button>
+
+                        <div class="remarks-dropdown-list" *ngIf="remarksDropdownOpen" (click)="$event.stopPropagation()">
+                            <label class="remarks-dropdown-item" *ngFor="let opt of risingRemarkOptions">
+                                <input
+                                    type="checkbox"
+                                    [checked]="isRemarkSelected(opt.value)"
+                                    (change)="toggleRemark(opt.value, $event)"
+                                />
+                                <span>{{ opt.english }} / {{ opt.marathi }}</span>
+                            </label>
+                        </div>
+                    </div>
                 </div>
             </div>
 

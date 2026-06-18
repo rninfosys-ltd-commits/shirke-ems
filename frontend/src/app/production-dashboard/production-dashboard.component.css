@@ -253,3 +253,41 @@
 r {
     background: #dbeafe;
 }
+
+/* Filter bar aligned with Rising Section style */
+.filters {
+    gap: 16px;
+    padding: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    margin-bottom: 25px;
+}
+
+.date-field.top-label {
+    min-width: 160px;
+}
+
+.date-field.top-label label {
+    top: -8px;
+    left: 12px;
+    background: #ffffff;
+    padding: 0 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #666;
+}
+
+.filters input[type="date"],
+.filters select {
+    height: 42px;
+    padding: 0 14px;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    background: #f9f9f9;
+    color: #333;
+}
+
+.filters input:focus,
+.filters select:focus {
+    border-color: #7f46ff;
+    box-shadow: 0 0 0 4px rgba(127, 70, 255, 0.1);
+}

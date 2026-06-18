@@ -8,12 +8,7 @@ public class ProductionEntryRequest {
 	public String plantName;
 
 	public String siloNo1;
-	public Double literWeight1;
 	public Double faSolid1;
-
-	public String siloNo2;
-	public Double literWeight2;
-	public Double faSolid2;
 
 	// Legacy material fields (kept for backward compatibility)
 	public Double waterLiter;
@@ -21,19 +16,24 @@ public class ProductionEntryRequest {
 	public Double limeKg;
 	public Double gypsumKg;
 	public Double solOilKg;
-	public Double aiPowerGm;
 	public Double tempC;
+	public Double faDensity;
+	public Double excessDensity;
+	public Double excessSolid;
+	public Double cbmVolume;
 	public Double faSlurryQty;
 	public Double excessSlurryQty;
 	public Double surfactant;
-	public Double dcChemical;
+	public Double aluminumPowderKg;
 	public Double dcmrt;
 	public Integer mixingTime;
 
 	public String castingTime;
 	public String productionTime;
 	public String productionRemark;
-	public String remark;
+
+	public Long batcherId;
+	public String batcherName;
 
 	public int userId;
 	public int branchId;
@@ -68,44 +68,12 @@ public class ProductionEntryRequest {
 		this.siloNo1 = siloNo1;
 	}
 
-	public Double getLiterWeight1() {
-		return literWeight1;
-	}
-
-	public void setLiterWeight1(Double literWeight1) {
-		this.literWeight1 = literWeight1;
-	}
-
 	public Double getFaSolid1() {
 		return faSolid1;
 	}
 
 	public void setFaSolid1(Double faSolid1) {
 		this.faSolid1 = faSolid1;
-	}
-
-	public String getSiloNo2() {
-		return siloNo2;
-	}
-
-	public void setSiloNo2(String siloNo2) {
-		this.siloNo2 = siloNo2;
-	}
-
-	public Double getLiterWeight2() {
-		return literWeight2;
-	}
-
-	public void setLiterWeight2(Double literWeight2) {
-		this.literWeight2 = literWeight2;
-	}
-
-	public Double getFaSolid2() {
-		return faSolid2;
-	}
-
-	public void setFaSolid2(Double faSolid2) {
-		this.faSolid2 = faSolid2;
 	}
 
 	public Double getWaterLiter() {
@@ -148,12 +116,36 @@ public class ProductionEntryRequest {
 		this.solOilKg = solOilKg;
 	}
 
-	public Double getAiPowerGm() {
-		return aiPowerGm;
+	public Double getFaDensity() {
+		return faDensity;
 	}
 
-	public void setAiPowerGm(Double aiPowerGm) {
-		this.aiPowerGm = aiPowerGm;
+	public void setFaDensity(Double faDensity) {
+		this.faDensity = faDensity;
+	}
+
+	public Double getExcessDensity() {
+		return excessDensity;
+	}
+
+	public void setExcessDensity(Double excessDensity) {
+		this.excessDensity = excessDensity;
+	}
+
+	public Double getExcessSolid() {
+		return excessSolid;
+	}
+
+	public void setExcessSolid(Double excessSolid) {
+		this.excessSolid = excessSolid;
+	}
+
+	public Double getCbmVolume() {
+		return cbmVolume;
+	}
+
+	public void setCbmVolume(Double cbmVolume) {
+		this.cbmVolume = cbmVolume;
 	}
 
 	public Double getTempC() {
@@ -186,14 +178,6 @@ public class ProductionEntryRequest {
 
 	public void setProductionRemark(String productionRemark) {
 		this.productionRemark = productionRemark;
-	}
-
-	public String getRemark() {
-		return remark;
-	}
-
-	public void setRemark(String remark) {
-		this.remark = remark;
 	}
 
 	public int getUserId() {
@@ -252,12 +236,28 @@ public class ProductionEntryRequest {
 		this.surfactant = surfactant;
 	}
 
-	public Double getDcChemical() {
-		return dcChemical;
+	public Double getAluminumPowderKg() {
+		return aluminumPowderKg;
 	}
 
-	public void setDcChemical(Double dcChemical) {
-		this.dcChemical = dcChemical;
+	public void setAluminumPowderKg(Double aluminumPowderKg) {
+		this.aluminumPowderKg = aluminumPowderKg;
+	}
+
+	public Long getBatcherId() {
+		return batcherId;
+	}
+
+	public void setBatcherId(Long batcherId) {
+		this.batcherId = batcherId;
+	}
+
+	public String getBatcherName() {
+		return batcherName;
+	}
+
+	public void setBatcherName(String batcherName) {
+		this.batcherName = batcherName;
 	}
 
 	public Double getDcmrt() {

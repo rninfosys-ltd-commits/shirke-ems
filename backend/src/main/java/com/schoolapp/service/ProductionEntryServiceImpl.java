@@ -10,6 +10,7 @@ import com.schoolapp.dao.ProductionImportResponse;
 import com.schoolapp.dao.ProductionImportResult;
 import com.schoolapp.entity.ProductionEntry;
 import com.schoolapp.entity.ProductionMaterial;
+import com.schoolapp.repository.CastingHallReportRepository;
 import com.schoolapp.repository.ProductionEntryRepository;
 
 import java.time.LocalTime;
@@ -22,10 +23,13 @@ import java.util.Map;
 public class ProductionEntryServiceImpl implements ProductionEntryService {
 
     private final ProductionEntryRepository repository;
+    private final CastingHallReportRepository castingHallReportRepository;
 
     public ProductionEntryServiceImpl(
-            ProductionEntryRepository repository) {
+            ProductionEntryRepository repository,
+            CastingHallReportRepository castingHallReportRepository) {
         this.repository = repository;
+        this.castingHallReportRepository = castingHallReportRepository;
     }
 
     @Override
@@ -92,16 +96,10 @@ public class ProductionEntryServiceImpl implements ProductionEntryService {
         e.setPlantName(r.plantName);
 
         e.setSiloNo1(r.siloNo1);
-        e.setLiterWeight1(r.literWeight1);
         e.setFaSolid1(r.faSolid1);
 
-        e.setSiloNo2(r.siloNo2);
-        e.setLiterWeight2(r.literWeight2);
-        e.setFaSolid2(r.faSolid2);
-
         // 🔥 AUTO TOTAL SOLID
-        double totalSolid = (r.faSolid1 != null ? r.faSolid1 : 0) +
-                (r.faSolid2 != null ? r.faSolid2 : 0);
+        double totalSolid = (r.faSolid1 != null ? r.faSolid1 : 0);
         e.setTotalSolid(totalSolid);
 
         // Legacy material fields — still mapped
@@ -110,24 +108,54 @@ public class ProductionEntryServiceImpl implements ProductionEntryService {
         e.setLimeKg(r.limeKg);
         e.setGypsumKg(r.gypsumKg);
         e.setSolOilKg(r.solOilKg);
-        e.setAiPowerGm(r.aiPowerGm);
         e.setTempC(r.tempC);
+
+        e.setFaDensity(r.faDensity);
+        e.setExcessDensity(r.excessDensity);
+        e.setExcessSolid(r.excessSolid);
+        e.setCbmVolume(r.cbmVolume);
 
         e.setFaSlurryQty(r.faSlurryQty);
         e.setExcessSlurryQty(r.excessSlurryQty);
         e.setSurfactant(r.surfactant);
-        e.setDcChemical(r.dcChemical);
+        e.setAluminumPowderKg(r.aluminumPowderKg);
         e.setDcmrt(r.dcmrt);
         e.setMixingTime(r.mixingTime);
 
         e.setCastingTime(r.castingTime);
         e.setProductionTime(r.productionTime);
         e.setProductionRemark(r.productionRemark);
-        e.setRemark(r.remark);
 
         e.setUserId(r.userId);
         e.setBranchId(r.branchId);
         e.setOrgId(r.orgId);
+
+        // Map Batcher
+        e.setBatcherId(r.batcherId);
+        e.setBatcherName(r.batcherName);
+
+        // Perform Advanced Calculations
+        double flyAshVal = totalSolid;
+        double cementVal = r.cementKg != null ? r.cementKg : 0.0;
+        double limeVal = r.limeKg != null ? r.limeKg : 0.0;
+        double gypsumVal = r.gypsumKg != null ? r.gypsumKg : 0.0;
+        double alumVal = r.aluminumPowderKg != null ? r.aluminumPowderKg : 0.0;
+        double calcTotalSolids = flyAshVal + cementVal + limeVal + gypsumVal + alumVal;
+        
+        double batchVolume = r.cbmVolume != null && r.cbmVolume > 0 ? r.cbmVolume : ("Plant 1".equalsIgnoreCase(r.plantName) ? 3.744 : 1.0);
+        
+        double solidsPerCbm = calcTotalSolids / batchVolume;
+        e.setTotalSolidsPerCbm(Math.round(solidsPerCbm * 100.0) / 100.0);
+        
+        double bindersPerCbm = (cementVal + limeVal + gypsumVal) / batchVolume;
+        e.setTotalBindersPerCbm(Math.round(bindersPerCbm * 100.0) / 100.0);
+        
+        double waterVal = r.waterLiter != null ? r.waterLiter : 0.0;
+        double waterPerCbm = waterVal / batchVolume;
+        e.setTotalWaterPerCbm(Math.round(waterPerCbm * 100.0) / 100.0);
+        
+        double wsRatio = calcTotalSolids > 0 ? (waterVal / calcTotalSolids) : 0.0;
+        e.setWaterSolidRatio(Math.round(wsRatio * 10000.0) / 10000.0);
     }
 
     @Override
@@ -142,7 +170,9 @@ public class ProductionEntryServiceImpl implements ProductionEntryService {
     }
 
     @Override
+    @Transactional
     public void delete(Long id) {
+        castingHallReportRepository.deleteByProductionEntry_Id(id);
         repository.deleteById(id);
     }
 
@@ -276,36 +306,69 @@ public class ProductionEntryServiceImpl implements ProductionEntryService {
         for (Map<String, Object> row : rows) {
             try {
                 ProductionEntry e = new ProductionEntry();
-
                 e.setShift(get(row, "Shift"));
                 e.setBatchNo(get(row, "Batch No"));
 
-                e.setSiloNo1(get(row, "Silo No 1"));
-                e.setLiterWeight1(toDouble(row.get("Liter Weight 1")));
-                e.setFaSolid1(toDouble(row.get("FA Solid 1")));
-
-                e.setSiloNo2(get(row, "Silo No 2"));
-                e.setLiterWeight2(toDouble(row.get("Liter Weight 2")));
-                e.setFaSolid2(toDouble(row.get("FA Solid 2")));
-
-                e.setWaterLiter(toDouble(row.get("Water Liter")));
-                e.setCementKg(toDouble(row.get("Cement Kg")));
-                e.setLimeKg(toDouble(row.get("Lime Kg")));
-                e.setGypsumKg(toDouble(row.get("Gypsum Kg")));
+                Double faSolid1Import = toDouble(row.get("FA Solid 1"));
+                double totalSolid = (faSolid1Import != null ? faSolid1Import : 0);
+                e.setFaSolid1(faSolid1Import);
+                e.setTotalSolid(totalSolid);
+ 
+                Double waterLit = toDouble(row.get("Water Liter"));
+                e.setWaterLiter(waterLit);
+                Double cementKgVal = toDouble(row.get("Cement Kg"));
+                e.setCementKg(cementKgVal);
+                Double limeKgVal = toDouble(row.get("Lime Kg"));
+                e.setLimeKg(limeKgVal);
+                Double gypsumKgVal = toDouble(row.get("Gypsum Kg"));
+                e.setGypsumKg(gypsumKgVal);
                 e.setSolOilKg(toDouble(row.get("Sol Oil Kg")));
-                e.setAiPowerGm(toDouble(row.get("AI Power gm")));
                 e.setTempC(toDouble(row.get("Temperature")));
                 e.setFaSlurryQty(toDouble(row.get("FA Slurry Qty")));
                 e.setExcessSlurryQty(toDouble(row.get("Excess Slurry Qty")));
                 e.setSurfactant(toDouble(row.get("Surfactant")));
-                e.setDcChemical(toDouble(row.get("DC Chemical")));
+                e.setFaDensity(toDouble(row.get("FA Density")));
+                e.setExcessDensity(toDouble(row.get("Excess Density")));
+                e.setExcessSolid(toDouble(row.get("Excess Solid")));
+                
+                Double cbmVolVal = toDouble(row.get("Cbm Volume"));
+                if (cbmVolVal == null) {
+                    cbmVolVal = toDouble(row.get("CBM Volume"));
+                }
+                e.setCbmVolume(cbmVolVal);
+                
+                Double alumVal = toDouble(row.get("Aluminum Powder (kg)")) != null ? toDouble(row.get("Aluminum Powder (kg)")) : toDouble(row.get("DC Chemical"));
+                e.setAluminumPowderKg(alumVal);
                 e.setDcmrt(toDouble(row.get("DC MRT")));
                 e.setMixingTime(toInt(row.get("Mixing Time")));
+
+                e.setBatcherName(get(row, "Batcher"));
+
+                // Advanced calculations
+                double cementVal = cementKgVal != null ? cementKgVal : 0.0;
+                double limeVal = limeKgVal != null ? limeKgVal : 0.0;
+                double gypsumVal = gypsumKgVal != null ? gypsumKgVal : 0.0;
+                double alumP = alumVal != null ? alumVal : 0.0;
+                double calcTotalSolids = totalSolid + cementVal + limeVal + gypsumVal + alumP;
+                
+                double batchVol = e.getCbmVolume() != null && e.getCbmVolume() > 0 ? e.getCbmVolume() : ("Plant 1".equalsIgnoreCase(e.getPlantName()) ? 3.744 : 1.0);
+                
+                double solidsPerCbm = calcTotalSolids / batchVol;
+                e.setTotalSolidsPerCbm(Math.round(solidsPerCbm * 100.0) / 100.0);
+                
+                double bindersPerCbm = (cementVal + limeVal + gypsumVal) / batchVol;
+                e.setTotalBindersPerCbm(Math.round(bindersPerCbm * 100.0) / 100.0);
+                
+                double waterVal = waterLit != null ? waterLit : 0.0;
+                double waterPerCbm = waterVal / batchVol;
+                e.setTotalWaterPerCbm(Math.round(waterPerCbm * 100.0) / 100.0);
+                
+                double wsRatio = calcTotalSolids > 0 ? (waterVal / calcTotalSolids) : 0.0;
+                e.setWaterSolidRatio(Math.round(wsRatio * 10000.0) / 10000.0);
 
                 e.setCastingTime(get(row, "Casting Time"));
                 e.setProductionTime(get(row, "Production Time"));
                 e.setProductionRemark(get(row, "Production Remark"));
-                e.setRemark(get(row, "Remark"));
 
                 repository.save(e);
                 saved++;

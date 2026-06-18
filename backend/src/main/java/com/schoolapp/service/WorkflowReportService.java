@@ -32,6 +32,8 @@ public class WorkflowReportService {
     @Autowired
     private CastingHallReportRepository castingRepo;
     @Autowired
+    private RisingSectionRepository risingRepo;
+    @Autowired
     private WireCuttingReportRepository cuttingRepo;
     @Autowired
     private BlockSeparatingRepository blockRepo;
@@ -46,7 +48,7 @@ public class WorkflowReportService {
     private JdbcTemplate jdbcTemplate;
 
     private static final List<String> STAGES = Arrays.asList(
-            "PRODUCTION", "CASTING", "CUTTING", "AUTOCLAVE",
+            "PRODUCTION", "CASTING", "RISING", "CUTTING", "AUTOCLAVE",
             "BLOCK_SEPARATING", "CUBE_TEST", "REJECTION");
 
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
@@ -88,23 +90,188 @@ public class WorkflowReportService {
         return baos.toByteArray();
     }
 
-    /**
-     * Generate flat EXCEL for all stages of a batch
-     */
     public byte[] generateExcelReport(String batchNo, String upToStage) throws IOException {
         return generateHorizontalExcel(null, null, batchNo, upToStage);
+    }
+
+    /**
+     * Generate a stage-wise Excel for a single batch where each row represents
+     * a single stage record. Columns: Batch No, Stage, DateTime, Quantity,
+     * Status, Operator, Parameters, Remarks
+     */
+    public byte[] generateStagewiseExcel(String batchNo, String upToStage) throws IOException {
+        int targetIdx = STAGES.indexOf(upToStage != null ? upToStage.toUpperCase().replace(" ", "_") : "");
+        if (targetIdx < 0)
+            targetIdx = STAGES.size() - 1;
+
+        try (XSSFWorkbook wb = new XSSFWorkbook()) {
+            Sheet sheet = wb.createSheet("Stagewise - " + batchNo);
+
+            // Header style
+            CellStyle hStyle = wb.createCellStyle();
+            hStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
+            hStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+            org.apache.poi.ss.usermodel.Font hFont = wb.createFont();
+            hFont.setBold(true);
+            hStyle.setFont(hFont);
+
+            String[] headers = { "Batch No", "Stage", "DateTime", "Quantity", "Status", "Operator/User", "Parameters",
+                    "Remarks" };
+            Row headerRow = sheet.createRow(0);
+            for (int i = 0; i < headers.length; i++) {
+                Cell c = headerRow.createCell(i);
+                c.setCellValue(headers[i]);
+                c.setCellStyle(hStyle);
+            }
+
+            int rowIdx = 1;
+
+            for (int i = 0; i <= targetIdx; i++) {
+                String stage = STAGES.get(i);
+                switch (stage) {
+                    case "PRODUCTION": {
+                        List<ProductionEntry> list = productionRepo.findByBatchNo(batchNo);
+                        for (ProductionEntry p : list) {
+                            Row r = sheet.createRow(rowIdx++);
+                            r.createCell(0).setCellValue(nvl(batchNo));
+                            r.createCell(1).setCellValue("Production");
+                            r.createCell(2).setCellValue(formatDate(p.getCreatedDate()));
+                            r.createCell(3).setCellValue(nvl(p.getTotalSolid()));
+                            r.createCell(4).setCellValue(nvl(p.getApprovalStage()));
+                            r.createCell(5).setCellValue(String.valueOf(p.getUserId()));
+                            String params = "siloNo1=" + nvl(p.getSiloNo1());
+                            r.createCell(6).setCellValue(params);
+                            r.createCell(7).setCellValue(nvl(p.getProductionRemark()));
+                        }
+                        break;
+                    }
+                    case "CASTING": {
+                        List<CastingHallReport> list = castingRepo.findByBatchNo(batchNo);
+                        for (CastingHallReport c : list) {
+                            Row r = sheet.createRow(rowIdx++);
+                            r.createCell(0).setCellValue(nvl(batchNo));
+                            r.createCell(1).setCellValue("Casting");
+                            r.createCell(2).setCellValue(formatDate(c.getCreatedDate()));
+                            r.createCell(3).setCellValue(nvl(c.getMouldFlow()));
+                            r.createCell(4).setCellValue(nvl(c.getApprovalStage()));
+                            r.createCell(5).setCellValue(String.valueOf(c.getUserId()));
+                            String params = "mouldNo=" + nvl(c.getMouldNo()) + ", height=" + nvl(c.getHeight());
+                            r.createCell(6).setCellValue(params);
+                            r.createCell(7).setCellValue(nvl(c.getRemark()));
+                        }
+                        break;
+                    }
+                    case "CUTTING": {
+                        List<WireCuttingReport> list = cuttingRepo.findByBatchNo(batchNo);
+                        for (WireCuttingReport w : list) {
+                            Row r = sheet.createRow(rowIdx++);
+                            r.createCell(0).setCellValue(nvl(batchNo));
+                            r.createCell(1).setCellValue("Cutting");
+                            r.createCell(2).setCellValue(formatDate(w.getCreatedDate()));
+                            r.createCell(3).setCellValue(nvl(w.getTotalItem()));
+                            r.createCell(4).setCellValue(nvl(w.getApprovalStage()));
+                            r.createCell(5).setCellValue(String.valueOf(w.getUserId()));
+                            String params = "size=" + nvl(w.getSize()) + ", mouldNo=" + nvl(w.getMouldNo());
+                            r.createCell(6).setCellValue(params);
+                            r.createCell(7).setCellValue(nvl(w.getRemark()));
+                        }
+                        break;
+                    }
+                    case "AUTOCLAVE": {
+                        List<AutoclaveCycle> list = autoclaveRepo.findByBatchNo(batchNo);
+                        for (AutoclaveCycle a : list) {
+                            Row r = sheet.createRow(rowIdx++);
+                            r.createCell(0).setCellValue(nvl(batchNo));
+                            r.createCell(1).setCellValue("Autoclave");
+                            r.createCell(2).setCellValue(formatDate(a.getStartedDate()));
+                            // Quantity: use total selected batch counts
+                            Integer qty = (a.getPlant1BatchCount() != null ? a.getPlant1BatchCount() : 0)
+                                    + (a.getPlant2BatchCount() != null ? a.getPlant2BatchCount() : 0);
+                            r.createCell(3).setCellValue(nvl(qty));
+                            r.createCell(4).setCellValue(nvl(a.getCurrentStatus()));
+                            r.createCell(5).setCellValue(String.valueOf(a.getUserId()));
+                            String params = "autoclaveNo=" + nvl(a.getAutoclaveNo()) + ", runNo="
+                                    + nvl(a.getAutoclaveCycleNumber());
+                            r.createCell(6).setCellValue(params);
+                            r.createCell(7).setCellValue(nvl(a.getRemarks()));
+                        }
+                        break;
+                    }
+                    case "BLOCK_SEPARATING": {
+                        List<BlockSeparating> list = blockRepo.findByBatchNumber(batchNo);
+                        for (BlockSeparating b : list) {
+                            Row r = sheet.createRow(rowIdx++);
+                            r.createCell(0).setCellValue(nvl(batchNo));
+                            r.createCell(1).setCellValue("Block Separating");
+                            r.createCell(2).setCellValue(formatDate(b.getReportDate()));
+                            r.createCell(3).setCellValue(nvl(b.getBlockSize()));
+                            r.createCell(4).setCellValue(nvl(b.getShift()));
+                            r.createCell(5).setCellValue(String.valueOf(b.getUserId()));
+                            r.createCell(6).setCellValue("time=" + nvl(b.getTime()));
+                            r.createCell(7).setCellValue("-");
+                        }
+                        break;
+                    }
+                    case "CUBE_TEST": {
+                        List<CubeTestEntity> list = cubeRepo.findByBatchNo(batchNo);
+                        for (CubeTestEntity c : list) {
+                            Row r = sheet.createRow(rowIdx++);
+                            r.createCell(0).setCellValue(nvl(batchNo));
+                            r.createCell(1).setCellValue("Cube Test");
+                            r.createCell(2).setCellValue(formatDate(c.getTestingDate()));
+                            r.createCell(3).setCellValue(nvl(c.getDensityKgM3()));
+                            r.createCell(4).setCellValue(nvl(c.getShift()));
+                            r.createCell(5).setCellValue(String.valueOf(c.getUserId()));
+                            String params = "cubeDimension=" + nvl(c.getCubeDimensionImmediate())
+                                    + ", dryStrength=" + nvl(c.getDryStrength())
+                                    + ", wetStrength=" + nvl(c.getWetStrength())
+                                    + ", dryDensity=" + nvl(c.getDryDensity())
+                                    + ", wetDensity=" + nvl(c.getWetDensity())
+                                    + ", demouldDensity=" + nvl(c.getDemouldDensity())
+                                    + ", compStrengthOverDry=" + nvl(c.getCompStrengthOverDry());
+                            r.createCell(6).setCellValue(params);
+                            r.createCell(7).setCellValue("-");
+                        }
+                        break;
+                    }
+                    case "REJECTION": {
+                        List<RejectionDataEntity> list = rejectionRepo.findByBatchNo(batchNo);
+                        for (RejectionDataEntity rej : list) {
+                            Row r = sheet.createRow(rowIdx++);
+                            r.createCell(0).setCellValue(nvl(batchNo));
+                            r.createCell(1).setCellValue("Rejection");
+                            r.createCell(2).setCellValue(formatDate(rej.getDate()));
+                            r.createCell(3).setCellValue(nvl(rej.getQty()));
+                            r.createCell(4).setCellValue(nvl(rej.getShift()));
+                            r.createCell(5).setCellValue(String.valueOf(rej.getUserId()));
+                            r.createCell(6).setCellValue("blockSize=" + nvl(rej.getBlockSize()));
+                            r.createCell(7).setCellValue(nvl(rej.getRemarks()));
+                        }
+                        break;
+                    }
+                }
+            }
+
+            // Auto-size first 16 columns
+            for (int i = 0; i < headers.length; i++)
+                sheet.autoSizeColumn(i);
+
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            wb.write(baos);
+            return baos.toByteArray();
+        }
     }
 
     /**
      * Generate flat EXCEL for all batches in a date range
      */
     public byte[] generateFlatWorkflowExcelReport(Date fromDate, Date toDate, String upToStage) throws IOException {
-        return generateHorizontalExcel(fromDate, toDate, null, upToStage, null);
+        return generateHorizontalExcel(fromDate, toDate, null, upToStage, null, null);
     }
 
     public byte[] generateFlatWorkflowExcelReport(Date fromDate, Date toDate, String upToStage, String plantName)
             throws IOException {
-        return generateHorizontalExcel(fromDate, toDate, null, upToStage, plantName);
+        return generateHorizontalExcel(fromDate, toDate, null, upToStage, plantName, null);
     }
 
     private List<String> getBatchesForStageInRange(Date from, Date to, String stage, String plantName) {
@@ -131,17 +298,13 @@ public class WorkflowReportService {
                 List<AutoclaveCycle> autoclaveEntries = (plantName != null && !plantName.isBlank())
                         ? autoclaveRepo.findByStartedDateBetweenAndPlantName(from, to, plantName)
                         : autoclaveRepo.findByStartedDateBetween(from, to);
-                // Autoclave batches are stored in wagons, we need a special way to extract them
-                // if possible
-                // For now, let's use the batchNo field we added to AutoclaveCycle if it exists,
-                // or extract from wagons
-                // Wait, I added batchNo to AutoclaveCycle entity? No, it has wagons.
-                // But generates reports based on batchNo passed in.
-                // For this filtering, we return all batches that had a cycle in this range.
                 return autoclaveEntries.stream()
-                        .flatMap(ac -> ac.getWagons().stream())
-                        .map(aw -> String.valueOf(aw.getBatchNo()))
-                        .filter(Objects::nonNull).distinct().sorted().toList();
+                        .map(AutoclaveCycle::getBatchNo)
+                        .filter(Objects::nonNull)
+                        .map(String::valueOf)
+                        .distinct()
+                        .sorted()
+                        .toList();
             case "BLOCK_SEPARATING":
                 List<BlockSeparating> blockEntries = (plantName != null && !plantName.isBlank())
                         ? blockRepo.findByReportDateBetweenAndPlantName(from, to, plantName)
@@ -241,6 +404,9 @@ public class WorkflowReportService {
             case "CASTING":
                 addCastingData(table, batchNo);
                 break;
+            case "RISING":
+                addRisingData(table, batchNo);
+                break;
             case "CUTTING":
                 addCuttingData(table, batchNo);
                 break;
@@ -279,7 +445,6 @@ public class WorkflowReportService {
         addRow(table, "Date", formatDate(p.getCreatedDate()));
         addRow(table, "Shift", p.getShift() != null ? p.getShift() : "—");
         addRow(table, "Silo", p.getSiloNo1() != null ? p.getSiloNo1() : "—");
-        addRow(table, "Liter Wt", String.valueOf(p.getLiterWeight1()));
         addRow(table, "FA Solid", String.valueOf(p.getFaSolid1()));
         addRow(table, "Total Solid", String.valueOf(p.getTotalSolid()));
         addRow(table, "FA Slurry (kg)", String.valueOf(p.getFaSlurryQty()));
@@ -290,8 +455,7 @@ public class WorkflowReportService {
         addRow(table, "Lime (kg)", String.valueOf(p.getLimeKg()));
         addRow(table, "Gypsum (kg)", String.valueOf(p.getGypsumKg()));
         addRow(table, "Sol Oil (kg)", String.valueOf(p.getSolOilKg()));
-        addRow(table, "AI Power (gm)", String.valueOf(p.getAiPowerGm()));
-        addRow(table, "DC Chemical (ml)", String.valueOf(p.getDcChemical()));
+        addRow(table, "Aluminum Powder (kg)", String.valueOf(p.getAluminumPowderKg()));
         addRow(table, "DC MRT (ml)", String.valueOf(p.getDcmrt()));
         addRow(table, "Mixing Time (s)", String.valueOf(p.getMixingTime()));
         addRow(table, "Temp (C)", String.valueOf(p.getTempC()));
@@ -318,11 +482,29 @@ public class WorkflowReportService {
         CastingHallReport c = entries.get(0);
         addRow(table, "Date", formatDate(c.getCreatedDate()));
         addRow(table, "Shift", c.getShift() != null ? c.getShift() : "—");
-        addRow(table, "Height", String.valueOf(c.getHeight()));
+        addRow(table, "Mould Height", String.valueOf(c.getMouldHeight()));
         addRow(table, "Mould No", String.valueOf(c.getMouldNo()));
-        addRow(table, "Flow (cm)", String.valueOf(c.getFlowInCm()));
+        addRow(table, "Flow (cm)", String.valueOf(c.getMouldFlow()));
         addRow(table, "Temp (C)", String.valueOf(c.getCastingTempC()));
         addRow(table, "Remark", c.getRemark() != null ? c.getRemark() : "—");
+    }
+
+    private void addRisingData(PdfPTable table, String batchNo) {
+        List<RisingSection> entries = risingRepo.findByBatchNo(batchNo);
+
+        if (entries.isEmpty()) {
+            addRow(table, "Status", "Not completed");
+            return;
+        }
+
+        RisingSection r = entries.get(0);
+        addRow(table, "Date", formatDate(r.getCreatedDate()));
+        addRow(table, "Shift", r.getShift() != null ? r.getShift() : "—");
+        addRow(table, "Rising Time", r.getRisingTime() != null ? r.getRisingTime() : "—");
+        addRow(table, "Rising Temp (C)", String.valueOf(r.getRisingTempC()));
+        addRow(table, "Mould No", String.valueOf(r.getMouldNo()));
+        addRow(table, "Mould Height", String.valueOf(r.getMouldHeight()));
+        addRow(table, "Mould Flow", String.valueOf(r.getMouldFlow()));
     }
 
     private void addCuttingData(PdfPTable table, String batchNo) {
@@ -341,8 +523,12 @@ public class WorkflowReportService {
         addRow(table, "Size", String.valueOf(w.getSize()));
         addRow(table, "Ball Test (mm)", String.valueOf(w.getBallTestMm()));
 
-        addRow(table, "Qty 100", String.valueOf(w.getQty100()));
-        addRow(table, "Qty 150", String.valueOf(w.getQty150()));
+        if (w.getSizeDetails() != null && !w.getSizeDetails().isEmpty()) {
+            for (com.schoolapp.entity.CuttingSizeDetail sd : w.getSizeDetails()) {
+                addRow(table, "Thickness " + sd.getHeight() + "mm",
+                    "Qty: " + sd.getQuantity() + " | Breakage: " + sd.getBreakage() + " | Net: " + sd.getNetQuantity());
+            }
+        }
         addRow(table, "Total Item", String.valueOf(w.getTotalItem()));
 
         addRow(table, "Remark", w.getRemark() != null ? w.getRemark() : "—");
@@ -359,7 +545,7 @@ public class WorkflowReportService {
 
         AutoclaveCycle c = cycles.get(0);
         addRow(table, "Autoclave No", c.getAutoclaveNo() != null ? c.getAutoclaveNo() : "—");
-        addRow(table, "Run No", c.getRunNo() != null ? c.getRunNo() : "—");
+        addRow(table, "Run No", c.getAutoclaveCycleNumber() != null ? c.getAutoclaveCycleNumber() : "—");
         addRow(table, "Shift", c.getShift() != null ? c.getShift() : "—");
         addRow(table, "Plant", c.getPlantName() != null ? c.getPlantName() : "—");
         addRow(table, "Start Date", formatDate(c.getStartedDate()));
@@ -392,7 +578,6 @@ public class WorkflowReportService {
             addRow(table, "Status", "Not completed");
             return;
         }
-
         CubeTestEntity c = entries.get(0);
         addRow(table, "Cast Date", formatDate(c.getCastDate()));
         addRow(table, "Testing Date", formatDate(c.getTestingDate()));
@@ -400,6 +585,16 @@ public class WorkflowReportService {
         addRow(table, "Operator (User ID)", String.valueOf(c.getUserId()));
         addRow(table, "Cube Dimension", c.getCubeDimensionImmediate() != null ? c.getCubeDimensionImmediate() : "—");
         addRow(table, "Density (kg/m³)", c.getDensityKgM3() != null ? String.valueOf(c.getDensityKgM3()) : "—");
+        // Additional cube-test fields (ensure saved strengths/densities are visible in
+        // PDF)
+        addRow(table, "Wet Strength (MPa)", c.getWetStrength() != null ? String.valueOf(c.getWetStrength()) : "—");
+        addRow(table, "Dry Strength (MPa)", c.getDryStrength() != null ? String.valueOf(c.getDryStrength()) : "—");
+        addRow(table, "Wet Density (kg/m³)", c.getWetDensity() != null ? String.valueOf(c.getWetDensity()) : "—");
+        addRow(table, "Dry Density (kg/m³)", c.getDryDensity() != null ? String.valueOf(c.getDryDensity()) : "—");
+        addRow(table, "Demould Density (kg/m³)",
+                c.getDemouldDensity() != null ? String.valueOf(c.getDemouldDensity()) : "—");
+        addRow(table, "Comp Strength Over Dry (MPa)",
+                c.getCompStrengthOverDry() != null ? String.valueOf(c.getCompStrengthOverDry()) : "—");
     }
 
     private void addRejectionData(PdfPTable table, String batchNo) {
@@ -447,10 +642,10 @@ public class WorkflowReportService {
      * Each row is a Map<String, Object> with nested maps per stage.
      */
     public List<Map<String, Object>> getHorizontalReport(Date fromDate, Date toDate, String batchNo) {
-        return getHorizontalReport(fromDate, toDate, batchNo, null);
+        return getHorizontalReport(fromDate, toDate, batchNo, null, null);
     }
 
-    public List<Map<String, Object>> getHorizontalReport(Date fromDate, Date toDate, String batchNo, String plantName) {
+    public List<Map<String, Object>> getHorizontalReport(Date fromDate, Date toDate, String batchNo, String plantName, String shift) {
         List<String> batches;
 
         // Normalize plantName (handle both 'Plant 1' and '1')
@@ -496,17 +691,65 @@ public class WorkflowReportService {
                     .collect(java.util.stream.Collectors.toList());
         }
 
+        // Only enrich batches from other stages when doing a ranged export.
+        // For single-batch downloads, keep the workbook locked to the requested batch
+        // only.
+        Set<String> batchSet = new LinkedHashSet<>(batches);
+        if (batchNo == null || batchNo.isBlank()) {
+            List<CastingHallReport> castingList;
+            if (fromDate != null && toDate != null) {
+                castingList = castingRepo.findByCreatedDateBetween(fromDate, toDate);
+            } else if (plantName != null && !plantName.isBlank()) {
+                castingList = castingRepo.findByPlantName(plantName);
+            } else {
+                castingList = castingRepo.findAll();
+            }
+            for (CastingHallReport c : castingList) {
+                if (c.getBatchNo() != null && !c.getBatchNo().isBlank())
+                    batchSet.add(c.getBatchNo());
+            }
+            List<RisingSection> risingList;
+            if (fromDate != null && toDate != null) {
+                risingList = risingRepo.findByCreatedDateBetween(fromDate, toDate);
+            } else if (plantName != null && !plantName.isBlank()) {
+                risingList = risingRepo.findByPlantName(plantName);
+            } else {
+                risingList = risingRepo.findAll();
+            }
+            for (RisingSection r : risingList) {
+                if (r.getBatchNo() != null && !r.getBatchNo().isBlank())
+                    batchSet.add(r.getBatchNo());
+            }
+        }
+
         List<Map<String, Object>> result = new ArrayList<>();
-        for (String bn : batches) {
+        for (String bn : batchSet) {
             Map<String, Object> row = new LinkedHashMap<>();
             row.put("batchNo", bn);
             row.put("production", buildProductionMap(bn));
             row.put("casting", buildCastingMap(bn));
+            row.put("rising", buildRisingMap(bn));
             row.put("cutting", buildCuttingMap(bn));
             row.put("autoclave", buildAutoclaveMap(bn));
             row.put("blockSeparating", buildBlockSeparatingMap(bn));
             row.put("cubeTest", buildCubeTestMap(bn));
             row.put("rejection", buildRejectionMap(bn));
+
+            if (shift != null && !shift.isBlank()) {
+                boolean match = false;
+                for (Object stageObj : row.values()) {
+                    if (stageObj instanceof Map) {
+                        Map<String, Object> stageMap = (Map<String, Object>) stageObj;
+                        String stageShift = (String) stageMap.get("shift");
+                        if (stageShift != null && stageShift.contains(shift)) {
+                            match = true;
+                            break;
+                        }
+                    }
+                }
+                if (!match) continue;
+            }
+
             result.add(row);
         }
         return result;
@@ -522,13 +765,12 @@ public class WorkflowReportService {
         m.put("plantName", nvl(p.getPlantName()));
         m.put("shift", nvl(p.getShift()));
         m.put("siloNo1", nvl(p.getSiloNo1()));
-        m.put("literWeight1", nvl(p.getLiterWeight1()));
         m.put("faSolid1", nvl(p.getFaSolid1()));
         m.put("totalSolid", nvl(p.getTotalSolid()));
         m.put("faSlurryQty", nvl(p.getFaSlurryQty()));
         m.put("excessSlurryQty", nvl(p.getExcessSlurryQty()));
         m.put("surfactant", nvl(p.getSurfactant()));
-        m.put("dcChemical", nvl(p.getDcChemical()));
+        m.put("aluminumPowderKg", nvl(p.getAluminumPowderKg()));
         m.put("dcmrt", nvl(p.getDcmrt()));
         m.put("mixingTime", nvl(p.getMixingTime()));
         m.put("waterLiter", nvl(p.getWaterLiter()));
@@ -536,8 +778,15 @@ public class WorkflowReportService {
         m.put("limeKg", nvl(p.getLimeKg()));
         m.put("gypsumKg", nvl(p.getGypsumKg()));
         m.put("solOilKg", nvl(p.getSolOilKg()));
-        m.put("aiPowerGm", nvl(p.getAiPowerGm()));
         m.put("tempC", nvl(p.getTempC()));
+        m.put("faDensity", nvl(p.getFaDensity()));
+        m.put("excessDensity", nvl(p.getExcessDensity()));
+        m.put("excessSolid", nvl(p.getExcessSolid()));
+        m.put("cbmVolume", nvl(p.getCbmVolume()));
+        m.put("totalSolidsPerCbm", nvl(p.getTotalSolidsPerCbm()));
+        m.put("totalBindersPerCbm", nvl(p.getTotalBindersPerCbm()));
+        m.put("totalWaterPerCbm", nvl(p.getTotalWaterPerCbm()));
+        m.put("waterSolidRatio", nvl(p.getWaterSolidRatio()));
         m.put("remark", nvl(p.getProductionRemark()));
         m.put("productionTime", nvl(p.getProductionTime()));
         return m;
@@ -551,9 +800,10 @@ public class WorkflowReportService {
         CastingHallReport c = list.get(0);
         m.put("date", formatDate(c.getCreatedDate()));
         m.put("shift", nvl(c.getShift()));
-        m.put("height", nvl(c.getHeight()));
+        m.put("plantName", nvl(c.getPlantName()));
+        m.put("mouldHeight", nvl(c.getMouldHeight()));
         m.put("mouldNo", nvl(c.getMouldNo()));
-        m.put("flowInCm", nvl(c.getFlowInCm()));
+        m.put("flowInCm", nvl(c.getMouldFlow()));
         m.put("tempC", nvl(c.getCastingTempC()));
         m.put("remark", nvl(c.getRemark()));
         return m;
@@ -567,13 +817,23 @@ public class WorkflowReportService {
         WireCuttingReport w = list.get(0);
         m.put("date", formatDate(w.getCreatedDate()));
         m.put("shift", nvl(w.getShift()));
+        m.put("plantName", nvl(w.getPlantName()));
         m.put("cuttingDate", formatDate(w.getCuttingDate()));
         m.put("mouldNo", nvl(w.getMouldNo()));
         m.put("size", nvl(w.getSize()));
         m.put("ballTestMm", nvl(w.getBallTestMm()));
-        m.put("qty100", nvl(w.getQty100()));
-        m.put("qty150", nvl(w.getQty150()));
+        if (w.getSizeDetails() != null && !w.getSizeDetails().isEmpty()) {
+            StringBuilder sb = new StringBuilder();
+            for (com.schoolapp.entity.CuttingSizeDetail sd : w.getSizeDetails()) {
+                sb.append(String.format("H:%s Q:%s B:%s N:%s | ", sd.getHeight(), sd.getQuantity(), sd.getBreakage(), sd.getNetQuantity()));
+            }
+            m.put("sizeDetails", sb.toString());
+        } else {
+            m.put("sizeDetails", "");
+        }
         m.put("totalItem", nvl(w.getTotalItem()));
+        m.put("cuttingTempC", nvl(w.getCuttingTempC()));
+        m.put("cuttingHours", nvl(w.getCuttingHours()));
         m.put("remark", nvl(w.getRemark()));
         m.put("time", nvl(w.getTime()));
         return m;
@@ -586,13 +846,30 @@ public class WorkflowReportService {
             return m;
         AutoclaveCycle a = list.get(0);
         m.put("autoclaveNo", nvl(a.getAutoclaveNo()));
-        m.put("runNo", nvl(a.getRunNo()));
+        m.put("runNo", nvl(a.getAutoclaveCycleNumber()));
         m.put("shift", nvl(a.getShift()));
         m.put("plantName", nvl(a.getPlantName()));
+        m.put("currentStatus", nvl(a.getCurrentStatus()));
+        m.put("batchNo", nvl(a.getBatchNo()));
         m.put("startDate", formatDate(a.getStartedDate()));
+        m.put("startedDate", formatDate(a.getStartedDate()));
         m.put("startedAt", nvl(a.getStartedAt()));
         m.put("compDate", formatDate(a.getCompletedDate()));
+        m.put("completedDate", formatDate(a.getCompletedDate()));
         m.put("completedAt", nvl(a.getCompletedAt()));
+        m.put("transferStartTime", nvl(a.getTransferStartTime()));
+        m.put("transferredToAutoclaveNo", nvl(a.getTransferredToAutoclaveNo()));
+        m.put("transferEndTime", nvl(a.getTransferEndTime()));
+        m.put("releaseStartTime", nvl(a.getReleaseStartTime()));
+        m.put("releaseEndTime", nvl(a.getReleaseEndTime()));
+        m.put("doorOpenTime", nvl(a.getDoorOpenTime()));
+        m.put("pressure1Hr", nvl(a.getPressure1Hr()));
+        m.put("pressure2Hr", nvl(a.getPressure2Hr()));
+        m.put("pressure3Hr", nvl(a.getPressure3Hr()));
+        m.put("pressureCompletion", nvl(a.getPressureAfterDoorOpen()));
+        m.put("pressureRelease", nvl(a.getPressureRelease()));
+        m.put("plant1BatchCount", nvl(a.getPlant1BatchCount()));
+        m.put("plant2BatchCount", nvl(a.getPlant2BatchCount()));
         m.put("remarks", nvl(a.getRemarks()));
         return m;
     }
@@ -605,8 +882,32 @@ public class WorkflowReportService {
         BlockSeparating b = list.get(0);
         m.put("date", formatDate(b.getReportDate()));
         m.put("shift", nvl(b.getShift()));
+        m.put("plantName", nvl(b.getPlantName()));
+        m.put("batchNumber", nvl(b.getBatchNumber()));
+        m.put("castingDate", formatDate(b.getCastingDate()));
         m.put("blockSize", nvl(b.getBlockSize()));
         m.put("time", nvl(b.getTime()));
+        m.put("startTime", nvl(b.getStartTime()));
+        m.put("endTime", nvl(b.getEndTime()));
+        m.put("duration", nvl(b.getDuration()));
+        m.put("operator", nvl(b.getOperator()));
+        m.put("reportDate", formatDate(b.getReportDate()));
+        m.put("middleCrack", nvl(b.getMiddleCrack()));
+        m.put("risingCrack", nvl(b.getRisingCrack()));
+        m.put("cornerDamage", nvl(b.getCornerDamage()));
+        m.put("bottomLineMiddleCrack", nvl(b.getBottomLineMiddleCrack()));
+        m.put("upperLineCrack", nvl(b.getUpperLineCrack()));
+        m.put("autoclaveDamage", nvl(b.getAutoclaveDamage()));
+        m.put("sideCrack", nvl(b.getSideCrack()));
+        m.put("chipping", nvl(b.getChipping()));
+        m.put("craneDamage", nvl(b.getCraneDamage()));
+        m.put("unrise", nvl(b.getUnrise()));
+        m.put("unsize", nvl(b.getUnsize()));
+        m.put("uncut", nvl(b.getUncut()));
+        m.put("collapse", nvl(b.getCollapse()));
+        m.put("totalBreakage", nvl(b.getTotalBreakage()));
+        m.put("totalPcs", nvl(b.getTotalPcs()));
+        m.put("breakagePercent", nvl(b.getBreakagePercent()));
         return m;
     }
 
@@ -616,11 +917,57 @@ public class WorkflowReportService {
         if (list.isEmpty())
             return m;
         CubeTestEntity c = list.get(0);
+        m.put("batchNo", nvl(c.getBatchNo()));
+        m.put("plantName", nvl(c.getPlantName()));
+        m.put("reportDate", formatDate(c.getCreatedDate()));
         m.put("castDate", formatDate(c.getCastDate()));
         m.put("testingDate", formatDate(c.getTestingDate()));
         m.put("shift", nvl(c.getShift()));
-        m.put("cubeDimension", nvl(c.getCubeDimensionImmediate()));
+        m.put("cubeDimensionImmediate", nvl(c.getCubeDimensionImmediate()));
+        m.put("cubeDimensionOverDry", nvl(c.getCubeDimensionOverDry()));
+        m.put("weightImmediateKg", nvl(c.getWeightImmediateKg()));
+        m.put("weightOverDryKg", nvl(c.getWeightOverDryKg()));
+        m.put("weightWithMoistureKg", nvl(c.getWeightWithMoistureKg()));
+        m.put("loadOverDryTonn", nvl(c.getLoadOverDryTonn()));
+        m.put("loadMoistureTonn", nvl(c.getLoadMoistureTonn()));
+        m.put("compStrengthOverDry", nvl(c.getCompStrengthOverDry()));
+        m.put("compStrengthMoisture", nvl(c.getCompStrengthMoisture()));
         m.put("densityKgM3", nvl(c.getDensityKgM3()));
+        // Additional cube test fields
+        m.put("reportDate", formatDate(c.getCreatedDate()));
+        m.put("wetStrength", nvl(c.getWetStrength()));
+        m.put("dryStrength", nvl(c.getDryStrength()));
+        m.put("wetDensity", nvl(c.getWetDensity()));
+        m.put("dryDensity", nvl(c.getDryDensity()));
+        m.put("demouldDensity", nvl(c.getDemouldDensity()));
+        return m;
+    }
+
+    private Map<String, Object> buildRisingMap(String batchNo) {
+        Map<String, Object> m = new LinkedHashMap<>();
+        List<RisingSection> list = risingRepo.findByBatchNo(batchNo);
+        if (list.isEmpty())
+            return m;
+        RisingSection r = list.get(0);
+        m.put("date", formatDate(r.getCreatedDate()));
+        m.put("shift", nvl(r.getShift()));
+        m.put("plantName", nvl(r.getPlantName()));
+        m.put("plantNo", nvl(r.getPlantNo()));
+        m.put("batchNo", nvl(r.getBatchNo()));
+        m.put("risingStartTime", nvl(r.getRisingStartTime()));
+        m.put("risingEndTime", nvl(r.getRisingEndTime()));
+        m.put("risingTime", nvl(r.getRisingTime()));
+        m.put("risingTempC", nvl(r.getRisingTempC()));
+        m.put("risingTemperature", nvl(r.getRisingTemperature()));
+        m.put("mouldNo", nvl(r.getMouldNo()));
+        m.put("mouldHeight", nvl(r.getMouldHeight()));
+        m.put("mouldFlow", nvl(r.getMouldFlow()));
+        m.put("remark", nvl(r.getRemark()));
+        m.put("remarks", nvl(r.getRemarks()));
+        m.put("risingTempC", nvl(r.getRisingTempC()));
+        m.put("mouldNo", nvl(r.getMouldNo()));
+        m.put("mouldHeight", nvl(r.getMouldHeight()));
+        m.put("mouldFlow", nvl(r.getMouldFlow()));
         return m;
     }
 
@@ -632,9 +979,31 @@ public class WorkflowReportService {
         RejectionDataEntity r = list.get(0);
         m.put("date", formatDate(r.getDate()));
         m.put("shift", nvl(r.getShift()));
+        m.put("plantName", nvl(r.getPlantName()));
         m.put("blockSize", nvl(r.getBlockSize()));
         m.put("qty", nvl(r.getQty()));
+        m.put("cornerDamage", nvl(r.getCornerDamage()));
+        m.put("eruptionType", nvl(r.getEruptionType()));
+        m.put("topSideDamages", nvl(r.getTopSideDamages()));
+        m.put("sideCrackThermalCrack", nvl(r.getSideCrackThermalCrack()));
+        m.put("risingCrack", nvl(r.getRisingCrack()));
+        m.put("centreCrack", nvl(r.getCentreCrack()));
+        m.put("bottomUncutBlocks", nvl(r.getBottomUncutBlocks()));
+        m.put("autoclaveDamage", nvl(r.getAutoclaveDamage()));
+        m.put("craneDamage", nvl(r.getCraneDamage()));
+        m.put("collapse", nvl(r.getCollapse()));
+        m.put("unrise", nvl(r.getUnrise()));
+        m.put("unsize", nvl(r.getUnsize()));
+        m.put("uncut", nvl(r.getUncut()));
+        m.put("chipping", nvl(r.getChipping()));
         m.put("totalBreakages", nvl(r.getTotalBreakages()));
+        m.put("crackRejection", nvl(r.getCrackRejection()));
+        m.put("dimensionFailure", nvl(r.getDimensionFailure()));
+        m.put("densityFailure", nvl(r.getDensityFailure()));
+        m.put("strengthFailure", nvl(r.getStrengthFailure()));
+        m.put("otherRejection", nvl(r.getOtherRejection()));
+        m.put("totalRejection", nvl(r.getTotalRejection()));
+        m.put("remarks", nvl(r.getRemarks()));
         return m;
     }
 
@@ -652,13 +1021,12 @@ public class WorkflowReportService {
      */
     public byte[] generateHorizontalExcel(Date fromDate, Date toDate, String batchNo, String upToStage)
             throws IOException {
-        return generateHorizontalExcel(fromDate, toDate, batchNo, upToStage, null);
+        return generateHorizontalExcel(fromDate, toDate, batchNo, upToStage, null, null);
     }
 
-    public byte[] generateHorizontalExcel(Date fromDate, Date toDate, String batchNo, String upToStage,
-            String plantName)
+    public byte[] generateHorizontalExcel(Date fromDate, Date toDate, String batchNo, String upToStage, String plantName, String shift)
             throws IOException {
-        List<Map<String, Object>> rows = getHorizontalReport(fromDate, toDate, batchNo, plantName);
+        List<Map<String, Object>> rows = getHorizontalReport(fromDate, toDate, batchNo, plantName, shift);
 
         try (XSSFWorkbook wb = new XSSFWorkbook()) {
             org.apache.poi.xssf.usermodel.XSSFSheet sheet = wb.createSheet("Horizontal Report");
@@ -700,28 +1068,48 @@ public class WorkflowReportService {
                 }
             }
 
-            String[][] stages = new String[maxCompletedStageIdx + 1][];
-            System.arraycopy(allStages, 0, stages, 0, maxCompletedStageIdx + 1);
+            int stageCount = Math.min(maxCompletedStageIdx + 1, allStages.length);
+            String[][] stages = new String[stageCount][];
+            System.arraycopy(allStages, 0, stages, 0, stageCount);
 
             // ── Column order per stage ────────────────────────────────────────────
             LinkedHashMap<String, String[]> stageFields = new LinkedHashMap<>();
             stageFields.put("production",
-                    new String[] { "date", "shift", "siloNo1", "literWeight1", "faSolid1", "totalSolid", "faSlurryQty", "excessSlurryQty", "surfactant", "waterLiter",
-                            "cementKg", "limeKg", "gypsumKg", "solOilKg",
-                            "aiPowerGm", "dcChemical", "dcmrt", "mixingTime", "tempC", "productionTime", "remark" });
+                    new String[] { "date", "shift", "plantName", "siloNo1", "faDensity", "faSolid1",
+                            "excessDensity", "excessSolid", "faSlurryQty", "excessSlurryQty", "waterLiter",
+                            "limeKg", "cementKg", "gypsumKg", "solOilKg", "surfactant",
+                            "aluminumPowderKg", "dcmrt", "mixingTime", "tempC", "cbmVolume",
+                            "totalSolid", "totalSolidsPerCbm", "totalBindersPerCbm",
+                            "totalWaterPerCbm", "waterSolidRatio", "castingTime", "productionTime",
+                            "remark" });
             stageFields.put("casting",
-                    new String[] { "date", "shift", "height", "mouldNo",
-                            "flowInCm", "tempC", "remark" });
+                    new String[] { "date", "shift", "plantName", "mouldHeight", "mouldNo", "flowInCm", "tempC",
+                            "remark" });
             stageFields.put("cutting",
-                    new String[] { "date", "shift", "cuttingDate", "mouldNo", "size", "ballTestMm", "qty100", "qty150",
-                            "totalItem",
-                            "remark", "time" });
-            stageFields.put("autoclave", new String[] { "autoclaveNo", "runNo", "shift", "startDate", "startedAt",
-                    "compDate", "completedAt", "remarks" });
-            stageFields.put("blockSeparating", new String[] { "date", "shift", "blockSize", "time" });
+                    new String[] { "date", "shift", "plantName", "cuttingDate", "mouldNo", "size", "ballTestMm",
+                            "sizeDetails", "totalItem", "cuttingTempC", "cuttingHours", "time", "remark" });
+            stageFields.put("autoclave", new String[] { "autoclaveNo", "runNo", "shift", "plantName", "currentStatus",
+                    "batchNo", "startDate", "startedAt", "compDate", "completedAt",
+                    "cycleStartTime", "transferStartTime", "transferredToAutoclaveNo",
+                    "transferEndTime", "releaseStartTime", "releaseEndTime", "doorOpenTime",
+                    "pressure1Hr", "pressure2Hr", "pressure3Hr",
+                    "pressureCompletion", "pressureRelease", "plant1BatchCount", "plant2BatchCount",
+                    "remarks" });
+            stageFields.put("blockSeparating", new String[] { "date", "shift", "plantName", "batchNumber",
+                    "castingDate", "blockSize", "time", "reportDate", "remark" });
+            stageFields.put("rising", new String[] { "date", "shift", "plantName", "plantNo", "batchNo",
+                    "risingStartTime", "risingEndTime", "risingTime", "risingTempC", "risingTemperature",
+                    "mouldNo", "mouldHeight", "mouldFlow", "remark", "remarks" });
             stageFields.put("cubeTest",
-                    new String[] { "castDate", "testingDate", "shift", "cubeDimension", "densityKgM3" });
-            stageFields.put("rejection", new String[] { "date", "shift", "blockSize", "qty", "totalBreakages" });
+                    new String[] { "batchNo", "reportDate", "castDate", "testingDate", "shift", "plantName",
+                            "cubeDimensionImmediate", "cubeDimensionOverDry", "weightImmediateKg", "weightOverDryKg",
+                            "weightWithMoistureKg", "loadOverDryTonn", "loadMoistureTonn",
+                            "compStrengthOverDry", "compStrengthMoisture", "densityKgM3", "demouldDensity",
+                            "wetDensity", "wetStrength", "dryDensity", "dryStrength" });
+            stageFields.put("rejection", new String[] { "date", "shift", "plantName", "blockSize", "qty",
+                    "cornerDamage", "eruptionType", "topSideDamages", "sideCrackThermalCrack", "risingCrack",
+                    "centreCrack", "bottomUncutBlocks", "autoclaveDamage", "craneDamage", "collapse", "unrise",
+                    "unsize", "uncut", "chipping", "totalBreakages", "remarks" });
 
             // ── Build CellStyles per stage (header + body) ────────────────────────
             java.util.Map<String, CellStyle> headerStyles = new HashMap<>();
@@ -859,8 +1247,58 @@ public class WorkflowReportService {
         return new org.apache.poi.xssf.usermodel.XSSFColor(new byte[] { r, g, b }, null);
     }
 
+    private static final Map<String, String> HEADER_MAP = new HashMap<>();
+    static {
+        HEADER_MAP.put("batchNo", "Batch No");
+        HEADER_MAP.put("date", "Date");
+        HEADER_MAP.put("shift", "Shift");
+        HEADER_MAP.put("siloNo1", "Silo No.");
+        HEADER_MAP.put("faSolid1", "Fa Solid");
+        HEADER_MAP.put("totalSolid", "Total Solid");
+        HEADER_MAP.put("waterLiter", "Water Lite");
+        HEADER_MAP.put("cementKg", "Cement Kg");
+        HEADER_MAP.put("limeKg", "Lime Kg");
+        HEADER_MAP.put("gypsumKg", "Gypsum K");
+        HEADER_MAP.put("solOilKg", "Dol Oil K");
+        HEADER_MAP.put("aluminumPowderKg", "Al Power");
+        HEADER_MAP.put("tempC", "CnTemp");
+        HEADER_MAP.put("productionTime", "Production Tim");
+        HEADER_MAP.put("remark", "Remark");
+        HEADER_MAP.put("height", "Size");
+        HEADER_MAP.put("bedNo", "Bed No");
+        HEADER_MAP.put("mouldNo", "Mould No");
+        HEADER_MAP.put("castingTime", "Casting Tim");
+        HEADER_MAP.put("consistency", "Consistency");
+        HEADER_MAP.put("flowInCm", "Flow In C");
+        HEADER_MAP.put("vt", "Wt");
+        HEADER_MAP.put("massTemp", "Mass Temp");
+        HEADER_MAP.put("fallingTestMm", "alling Test M");
+        HEADER_MAP.put("testTime", "lfezt Tim");
+        HEADER_MAP.put("hTime", "H Time");
+        HEADER_MAP.put("cuttingDate", "Cutting Date");
+        HEADER_MAP.put("ballTestMm", "Ball Test M");
+        HEADER_MAP.put("otherReason", "Other Reason");
+        HEADER_MAP.put("time", "Time");
+        HEADER_MAP.put("autoclaveNo", "Autoclave N");
+        HEADER_MAP.put("runNo", "Run No");
+        HEADER_MAP.put("startDate", "Start Date");
+        HEADER_MAP.put("startedAt", "Started A");
+        HEADER_MAP.put("compDate", "Comp Date");
+        HEADER_MAP.put("completedAt", "Completed A");
+        HEADER_MAP.put("remarks", "Remarks");
+        HEADER_MAP.put("blockSize", "Block Size");
+        HEADER_MAP.put("castDate", "Cast Date");
+        HEADER_MAP.put("testingDate", "Testing Date");
+        HEADER_MAP.put("cubeDimension", "Cube Dimensio");
+        HEADER_MAP.put("densityKgM3", "Density Kg M");
+        HEADER_MAP.put("qty", "Qty");
+        HEADER_MAP.put("totalBreakages", "al Breaka");
+    }
+
     private String humanize(String camelCase) {
-        // "fallingTestMm" -> "Falling Test Mm"
+        if (HEADER_MAP.containsKey(camelCase)) {
+            return HEADER_MAP.get(camelCase);
+        }
         String spaced = camelCase.replaceAll("([A-Z])", " $1");
         return spaced.substring(0, 1).toUpperCase() + spaced.substring(1);
     }

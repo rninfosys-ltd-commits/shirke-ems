@@ -1,6 +1,7 @@
 package com.schoolapp.dao;
 
 import java.util.Date;
+import java.util.List;
 
 public class WireCuttingReportRequestDto {
 
@@ -9,44 +10,26 @@ public class WireCuttingReportRequestDto {
 
     private int mouldNo;
     private String size;
+    private int cuttingLength;
     private int ballTestMm;
 
 
     private String remark;
     private String time;
+    private String cycleTime;
 
-    // Table Fields for Len 100
-    private int qty100;
-    private double quantityTotal100;
-    private int breakage100;
-    private double netQty100;
+    // ===== NEW Cutting fields =====
+    private Double cuttingHours;
+    private Double cuttingTempC;
+    private String cuttingTime;
 
-    // Table Fields for Len 150
-    private int qty150;
-    private double quantityTotal150;
-    private int breakage150;
-    private double netQty150;
+    // ===== Workflow FK to Rising =====
+    private Long risingId;
+
+    // ===== Dynamic block size details =====
+    private List<CuttingSizeDetailDto> sizeDetails;
 
     private double totalItem;
-
-    // Getters and Setters for new fields
-    public int getQty100() { return qty100; }
-    public void setQty100(int qty100) { this.qty100 = qty100; }
-    public double getQuantityTotal100() { return quantityTotal100; }
-    public void setQuantityTotal100(double quantityTotal100) { this.quantityTotal100 = quantityTotal100; }
-    public int getBreakage100() { return breakage100; }
-    public void setBreakage100(int breakage100) { this.breakage100 = breakage100; }
-    public double getNetQty100() { return netQty100; }
-    public void setNetQty100(double netQty100) { this.netQty100 = netQty100; }
-
-    public int getQty150() { return qty150; }
-    public void setQty150(int qty150) { this.qty150 = qty150; }
-    public double getQuantityTotal150() { return quantityTotal150; }
-    public void setQuantityTotal150(double quantityTotal150) { this.quantityTotal150 = quantityTotal150; }
-    public int getBreakage150() { return breakage150; }
-    public void setBreakage150(int breakage150) { this.breakage150 = breakage150; }
-    public double getNetQty150() { return netQty150; }
-    public void setNetQty150(double netQty150) { this.netQty150 = netQty150; }
 
     public double getTotalItem() { return totalItem; }
     public void setTotalItem(double totalItem) { this.totalItem = totalItem; }
@@ -94,6 +77,12 @@ public class WireCuttingReportRequestDto {
 	public void setSize(String size) {
 		this.size = size;
 	}
+	public int getCuttingLength() {
+		return cuttingLength;
+	}
+	public void setCuttingLength(int cuttingLength) {
+		this.cuttingLength = cuttingLength;
+	}
 	public int getBallTestMm() {
 		return ballTestMm;
 	}
@@ -111,6 +100,12 @@ public class WireCuttingReportRequestDto {
 	}
 	public void setTime(String time) {
 		this.time = time;
+	}
+	public String getCycleTime() {
+		return cycleTime;
+	}
+	public void setCycleTime(String cycleTime) {
+		this.cycleTime = cycleTime;
 	}
 	public int getUserId() {
 		return userId;
@@ -137,6 +132,18 @@ public class WireCuttingReportRequestDto {
 		this.updatedBy = updatedBy;
 	}
 
+    public Double getCuttingHours() { return cuttingHours; }
+    public void setCuttingHours(Double cuttingHours) { this.cuttingHours = cuttingHours; }
 
-    // 👉 Generate getters & setters
+    public Double getCuttingTempC() { return cuttingTempC; }
+    public void setCuttingTempC(Double cuttingTempC) { this.cuttingTempC = cuttingTempC; }
+
+    public String getCuttingTime() { return cuttingTime; }
+    public void setCuttingTime(String cuttingTime) { this.cuttingTime = cuttingTime; }
+
+    public Long getRisingId() { return risingId; }
+    public void setRisingId(Long risingId) { this.risingId = risingId; }
+
+    public List<CuttingSizeDetailDto> getSizeDetails() { return sizeDetails; }
+    public void setSizeDetails(List<CuttingSizeDetailDto> sizeDetails) { this.sizeDetails = sizeDetails; }
 }

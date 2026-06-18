@@ -19,17 +19,17 @@
         <div class="filters">
 
             <div class="date-field">
-                <label>From Date</label>
+                <label class="field-label-bottom">From Date</label>
                 <input type="date" [(ngModel)]="filterFromDate" (change)="onDateChange()" />
             </div>
 
             <div class="date-field">
-                <label>To Date</label>
+                <label class="field-label-bottom">To Date</label>
                 <input type="date" [(ngModel)]="filterToDate" (change)="onDateChange()" />
             </div>
 
             <div class="filter-select">
-                <label>Plant Name</label>
+                <label class="field-label-bottom">Plant Name</label>
                 <select [(ngModel)]="filterPlant" (change)="applyFilters()">
                     <option value="Plant 1">Plant 1</option>
                     <option value="Plant 2">Plant 2</option>
@@ -37,7 +37,17 @@
             </div>
 
             <div class="filter-select">
-                <label>Export</label>
+                <label class="field-label-bottom">Shift</label>
+                <select [(ngModel)]="filterShift" (change)="applyFilters()">
+                    <option value="">All Shifts</option>
+                    <option value="Night">Night</option>
+                    <option value="Morning">Morning</option>
+                    <option value="Afternoon">Afternoon</option>
+                </select>
+            </div>
+
+            <div class="filter-select">
+                <label class="field-label-bottom">Export</label>
                 <select (change)="onExportChange($event)">
                     <option value="">Select Option</option>
                     <option value="pdf">Export PDF</option>
@@ -47,7 +57,7 @@
             </div>
 
             <div class="filter-select">
-                <label>Import</label>
+                <label class="field-label-bottom">Import</label>
                 <select (change)="onImportSelect($event)">
                     <option value="">Select Option</option>
                     <option value="excel">Import Excel</option>
@@ -71,7 +81,7 @@
                         <th>Cutting Date</th>
                         <th>Mould</th>
                         <th>Size</th>
-                        <th>Ball Test</th>
+                        <th>Penetration</th>
                         <th>Time</th>
                         <th>Action</th>
                     </tr>
@@ -129,8 +139,20 @@
             <!-- HEADER SECTION -->
             <div class="form-grid header-grid">
                 <div class="form-group">
-                    <label>Date</label>
-                    <input type="date" formControlName="cuttingDate">
+                    <label class="label-blue">Plant</label>
+                    <select formControlName="plantName" (change)="onPlantChange()">
+                        <option value="" disabled>Select Plant</option>
+                        <option value="Plant 1">Plant 1</option>
+                        <option value="Plant 2">Plant 2</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Batch No</label>
+                    <select formControlName="batchNo" (change)="onBatchChange($event)">
+                        <option value="" disabled>Select Batch</option>
+                        <option *ngFor="let p of productionList" [value]="p.batchNo">{{ p.batchNo }}</option>
+                    </select>
                 </div>
 
                 <div class="form-group">
@@ -142,20 +164,8 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Plant</label>
-                    <select formControlName="plantName" (change)="onPlantChange()">
-                        <option value="" disabled>Select Plant</option>
-                        <option value="Plant 1">Plant 1</option>
-                        <option value="Plant 2">Plant 2</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label>Batch No</label>
-                    <select formControlName="batchNo">
-                        <option value="" disabled>Select Batch</option>
-                        <option *ngFor="let p of productionList" [value]="p.batchNo">{{ p.batchNo }}</option>
-                    </select>
+                    <label>Date</label>
+                    <input type="date" formControlName="cuttingDate">
                 </div>
             </div>
 
@@ -170,17 +180,54 @@
 
                 <div class="form-group">
                     <label class="label-blue">SIZE</label>
-                    <input type="text" formControlName="size" placeholder="650x240x100/150">
+                    <select formControlName="size" (change)="onSizeChange()">
+                        <option value="">--</option>
+                        <option value="" disabled>Select Size</option>
+
+                        <optgroup label="Pattern 1">
+                            <option value="650x240x100/150">650x240x100/150</option>
+                        </optgroup>
+                        <optgroup label="Pattern 2">
+                            <option value="650x240x100/150">650x240x100/150</option>
+                        </optgroup>
+                        <optgroup label="Pattern 3">
+                            <option value="650x240x125">650x240x125</option>
+                        </optgroup>
+                        <optgroup label="Pattern 4">
+                            <option value="650x240x200">650x240x200</option>
+                        </optgroup>
+                        <optgroup label="Pattern 5">
+                            <option value="650x240x300/150/100">650x240x300/150/100</option>
+                        </optgroup>
+                    </select>
                 </div>
 
                 <div class="form-group">
-                    <label class="label-blue">BALL TEST (MM)</label>
-                    <input type="number" formControlName="ballTestMm" placeholder="Ball Test">
+                    <label class="label-blue">PENETRATION (MM)</label>
+                    <input type="number" formControlName="ballTestMm" placeholder="Penetration">
                 </div>
 
                 <div class="form-group">
-                    <label class="label-blue">CUTTING TIME</label>
+                    <label class="label-blue">CUTTING START TIME</label>
+                    <div style="display:flex;gap:6px;align-items:center">
+                        <input type="time" formControlName="cuttingStartTime" style="flex:1">
+                        <button type="button" class="link-btn" (click)="useCurrentTimeForCuttingStart()" title="Use current time">⏱ Now</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="label-blue">CUTTING TIME (End)</label>
                     <input type="text" formControlName="time" placeholder="Time">
+                </div>
+
+                <div class="form-group">
+                    <label class="label-blue">CUTTING TEMP (°C)</label>
+                    <input type="number" formControlName="cuttingTempC" placeholder="Temp °C">
+                </div>
+
+                <div class="form-group">
+                    <label class="label-blue">CUTTING HOURS</label>
+                    <input type="number" formControlName="cuttingHours" placeholder="Hours">
                 </div>
             </div>
 
@@ -189,27 +236,23 @@
                 <table class="table table-bordered text-center align-middle">
                     <thead class="bg-light">
                         <tr>
-                            <th>Len (Length)</th>
-                            <th>Qty (Items)</th>
+                            <th>Thickness</th>
+                            <th>Number of Blocks</th>
                             <th>Quantity (Total)</th>
                             <th>Breakage</th>
                             <th>Net Qty</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td class="fw-bold">100</td>
-                            <td><input type="number" class="form-control text-center" formControlName="qty100"></td>
-                            <td><input type="number" class="form-control text-center bg-light" formControlName="quantityTotal100" readonly></td>
-                            <td><input type="number" class="form-control text-center" formControlName="breakage100"></td>
-                            <td><input type="number" class="form-control text-center bg-light" formControlName="netQty100" readonly></td>
+                        <tr *ngFor="let item of sizeDetails; let i = index">
+                            <td class="fw-bold">{{ item.height }}</td>
+                            <td><input type="number" class="form-control text-center" [(ngModel)]="item.quantity" [ngModelOptions]="{standalone: true}" (ngModelChange)="calculateTotals()"></td>
+                            <td><input type="number" class="form-control text-center bg-light" [value]="item.quantityTotal | number:'1.4-4'" readonly></td>
+                            <td><input type="number" class="form-control text-center" [(ngModel)]="item.breakage" [ngModelOptions]="{standalone: true}" (ngModelChange)="calculateTotals()"></td>
+                            <td><input type="number" class="form-control text-center bg-light" [value]="item.netQuantity" readonly></td>
                         </tr>
-                        <tr>
-                            <td class="fw-bold">150</td>
-                            <td><input type="number" class="form-control text-center" formControlName="qty150"></td>
-                            <td><input type="number" class="form-control text-center bg-light" formControlName="quantityTotal150" readonly></td>
-                            <td><input type="number" class="form-control text-center" formControlName="breakage150"></td>
-                            <td><input type="number" class="form-control text-center bg-light" formControlName="netQty150" readonly></td>
+                        <tr *ngIf="sizeDetails.length === 0">
+                            <td colspan="5" class="text-muted text-center">Select a size to enter quantities</td>
                         </tr>
                         <tr>
                             <td colspan="1" class="text-end fw-bold">Total Item:</td>
@@ -309,8 +352,9 @@
                         <tr>
                             <th>Mould</th>
                             <th>Size</th>
-                            <th>Ball Test</th>
-                            <th>Time</th>
+                            <th>Penetration</th>
+                            <th>Cutting Start Time</th>
+                            <th>Cutting Time</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -318,6 +362,7 @@
                             <td>{{ selected?.mouldNo }}</td>
                             <td>{{ selected?.size }}</td>
                             <td>{{ selected?.ballTestMm }}</td>
+                            <td>{{ selected?.cuttingStartTime || '—' }}</td>
                             <td>{{ selected?.time }}</td>
                         </tr>
                     </tbody>
@@ -326,8 +371,8 @@
                 <table class="table table-bordered text-center align-middle mt-3">
                     <thead class="bg-light">
                         <tr>
-                            <th>Len (Length)</th>
-                            <th>Qty (Items)</th>
+                            <th>Thickness</th>
+                            <th>Number of Blocks</th>
                             <th>Quantity (Total)</th>
                             <th>Breakage</th>
                             <th>Net Qty</th>

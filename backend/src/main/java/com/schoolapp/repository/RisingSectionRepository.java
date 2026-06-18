@@ -14,5 +14,6 @@ public interface RisingSectionRepository extends JpaRepository<RisingSection, Lo
     List<RisingSection> findByCreatedDateBetween(Date start, Date end);
     List<RisingSection> findByCreatedDateBetweenAndPlantName(Date start, Date end, String plantName);
     List<RisingSection> findByBatchNo(String batchNo);
+    List<RisingSection> findByBatchNoAndShift(String batchNo, String shift);
     boolean existsByBatchNo(String batchNo);
 }

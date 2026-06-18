@@ -1,4 +1,4 @@
-export const environment = {
+export const prod_environment = {
   production: true,
-  apiUrl: 'https://poetic-presence-production.up.railway.app'
+  apiUrl: 'http://103.168.19.63:8080/shirke-erp'
 };

@@ -22,7 +22,7 @@ public class AutoclaveExportServiceImpl implements StageReportService {
 
     @Override
     public String[] getHeaders() {
-        return new String[] { "Autoclave No", "Run No", "Started At", "Started Date", "Completed At", "Completed Date",
+        return new String[] { "Autoclave No", "Cycle Number", "Started At", "Started Date", "Completed At", "Completed Date",
                 "Remarks" };
     }
 
@@ -32,11 +32,12 @@ public class AutoclaveExportServiceImpl implements StageReportService {
         return reports.stream().map(r -> {
             Map<String, Object> map = new LinkedHashMap<>();
             map.put("Autoclave No", r.getAutoclaveNo());
-            map.put("Run No", r.getRunNo());
+            map.put("Cycle Number", r.getAutoclaveCycleNumber());
             map.put("Started At", r.getStartedAt());
             map.put("Started Date", r.getStartedDate());
             map.put("Completed At", r.getCompletedAt());
             map.put("Completed Date", r.getCompletedDate());
+            map.put("Pressure Release", String.valueOf(r.getPressureRelease()));
             map.put("Remarks", r.getRemarks());
             return map;
         }).collect(Collectors.toList());

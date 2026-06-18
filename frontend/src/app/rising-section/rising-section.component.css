@@ -216,6 +216,7 @@
 .link-btn.danger { background: #fef2f2; color: #dc2626; }
 .link-btn.info { background: #eff6ff; color: #2563eb; }
 .link-btn.success { background: #ecfdf5; color: #059669; }
+.link-btn.hz { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
 
 /* PAGINATION */
 .pagination {
@@ -339,6 +340,86 @@
     border-color: #7f46ff;
     background: #fff;
     box-shadow: 0 0 0 4px rgba(127, 70, 255, 0.1);
+}
+
+.remarks-multiselect {
+    position: relative;
+    width: 100%;
+}
+
+.remarks-select-box {
+    width: 100%;
+    min-height: 42px;
+    padding: 10px 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background: #f9f9f9;
+    color: #333;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    cursor: pointer;
+    text-align: left;
+}
+
+.remarks-select-box:hover,
+.remarks-select-box:focus {
+    outline: none;
+    border-color: #7f46ff;
+    background: #fff;
+    box-shadow: 0 0 0 4px rgba(127, 70, 255, 0.1);
+}
+
+.remarks-select-box .arrow {
+    color: #64748b;
+    font-size: 11px;
+    transition: transform 0.2s ease;
+}
+
+.remarks-select-box .arrow.open {
+    transform: rotate(180deg);
+}
+
+.remarks-dropdown-list {
+    position: absolute;
+    z-index: 20;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    max-height: 280px;
+    overflow-y: auto;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.16);
+}
+
+.remarks-dropdown-item {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: flex-start;
+    gap: 10px !important;
+    padding: 10px 12px;
+    color: #334155 !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    line-height: 1.4;
+    letter-spacing: 0 !important;
+    text-transform: none !important;
+    cursor: pointer;
+}
+
+.remarks-dropdown-item:hover {
+    background: #f8fafc;
+}
+
+.remarks-dropdown-item input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    margin: 2px 0 0;
+    flex: 0 0 auto;
 }
 
 .form-actions {

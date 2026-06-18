@@ -1,0 +1,92 @@
+<div class="bh-page">
+
+  <!-- ==================== HEADER ==================== -->
+  <div class="bh-header">
+    <div class="bh-title-block">
+      <span class="bh-icon">🔍</span>
+      <div>
+        <h1 class="bh-title">Batch Traceability</h1>
+        <p class="bh-subtitle">Track a batch across all production stages</p>
+      </div>
+    </div>
+    <button class="btn-dashboard" (click)="goToDashboard()">⬅ Dashboard</button>
+  </div>
+
+  <!-- ==================== SEARCH BAR ==================== -->
+  <div class="bh-search-card">
+    <div class="search-row">
+      <input
+        id="batchSearchInput"
+        type="text"
+        class="search-input"
+        placeholder="Enter Batch No (e.g. BATCH-0001)"
+        [(ngModel)]="searchBatchNo"
+        (keyup.enter)="search()"
+      />
+      <button class="btn-search" (click)="search()" [disabled]="loading || !searchBatchNo.trim()">
+        {{ loading ? 'Searching…' : '🔍 Search' }}
+      </button>
+      <button class="btn-clear-search" (click)="clear()" *ngIf="traceability || error">✕ Clear</button>
+    </div>
+  </div>
+
+  <!-- ==================== LOADING ==================== -->
+  <div class="bh-loading" *ngIf="loading">
+    <div class="spinner"></div>
+    <span>Fetching batch history…</span>
+  </div>
+
+  <!-- ==================== ERROR ==================== -->
+  <div class="bh-error" *ngIf="!loading && error">
+    <span>⚠️ {{ error }}</span>
+  </div>
+
+  <!-- ==================== RESULTS ==================== -->
+  <div *ngIf="!loading && traceability">
+
+    <!-- Batch banner -->
+    <div class="batch-banner">
+      <span class="batch-number-label">Batch: <strong>{{ searchBatchNo }}</strong></span>
+      <div class="stage-pills">
+        <span *ngFor="let stage of stages"
+          class="stage-pill"
+          [style.background]="getStageData(stage) ? stage.color : '#ccc'"
+          [title]="stage.label">
+          {{ stage.icon }} {{ stage.label }}
+          <span class="pill-status">{{ getStageData(stage) ? '✔' : '—' }}</span>
+        </span>
+      </div>
+    </div>
+
+    <!-- ==================== STAGE CARDS ==================== -->
+    <div class="stages-grid">
+      <div class="stage-card" *ngFor="let stage of stages"
+        [class.stage-card--empty]="!getStageData(stage)">
+
+        <!-- Stage Header -->
+        <div class="stage-card-header" [style.background]="stage.color">
+          <span class="stage-card-icon">{{ stage.icon }}</span>
+          <span class="stage-card-title">{{ stage.label }}</span>
+          <span class="stage-card-badge" *ngIf="getStageData(stage)">✔ Done</span>
+          <span class="stage-card-badge stage-card-badge--pending" *ngIf="!getStageData(stage)">⏳ Pending</span>
+        </div>
+
+        <!-- Stage Body: data fields -->
+        <div class="stage-card-body" *ngIf="getStageData(stage)">
+          <div class="field-row" *ngFor="let key of stage.fields">
+            <span class="field-label">{{ getFieldLabel(key) }}</span>
+            <span class="field-value">{{ formatValue(getStageData(stage)[key]) }}</span>
+          </div>
+        </div>
+
+        <!-- Empty state -->
+        <div class="stage-empty-body" *ngIf="!getStageData(stage)">
+          <span class="empty-text">No data recorded for this stage</span>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+</div>

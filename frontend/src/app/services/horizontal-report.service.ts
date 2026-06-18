@@ -25,31 +25,29 @@ export class HorizontalReportService {
         fromDate?: string,
         toDate?: string,
         batchNo?: string,
-        plantName?: string
+        plantName?: string,
+        shift?: string
     ): Observable<HorizontalReportRow[]> {
         let params = new HttpParams();
         if (fromDate) params = params.set('fromDate', fromDate);
         if (toDate) params = params.set('toDate', toDate);
         if (batchNo) params = params.set('batchNo', batchNo);
         if (plantName) params = params.set('plantName', plantName);
+        if (shift) params = params.set('shift', shift);
         return this.http.get<HorizontalReportRow[]>(this.baseUrl, { params });
     }
 
     /** Download combined horizontal Excel for one batch or a date range */
-    downloadExcel(
-        fromDate?: string,
-        toDate?: string,
-        batchNo?: string,
-        stage?: string,
-        plantName?: string
-    ): Observable<Blob> {
-        let params = new HttpParams();
+    downloadExcel(fromDate?: string, toDate?: string, batchNo?: string, upToStage?: string, plantName?: string, shift?: string): Observable<Blob> {
+        let params = new HttpParams().set('format', 'excel');
+
         if (fromDate) params = params.set('fromDate', fromDate);
         if (toDate) params = params.set('toDate', toDate);
         if (batchNo) params = params.set('batchNo', batchNo);
-        if (stage) params = params.set('upToStage', stage);
+        if (upToStage) params = params.set('upToStage', upToStage);
         if (plantName) params = params.set('plantName', plantName);
-        params = params.set('format', 'excel');
+        if (shift) params = params.set('shift', shift);
+
         return this.http.get(`${this.baseUrl}/download`, { params, responseType: 'blob' });
     }
 

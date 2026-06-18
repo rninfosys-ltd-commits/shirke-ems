@@ -34,7 +34,7 @@ public class CastingExportServiceImpl implements StageReportService {
             map.put("Batch No", r.getBatchNo());
             map.put("Height", r.getHeight());
             map.put("Mould No", r.getMouldNo());
-            map.put("Flow (cm)", r.getFlowInCm());
+            map.put("Flow (cm)", r.getMouldFlow() != null ? String.valueOf(r.getMouldFlow()) : "—");
             map.put("Temp (C)", r.getCastingTempC());
             map.put("Shift", r.getShift());
             map.put("Date", r.getCreatedDate());

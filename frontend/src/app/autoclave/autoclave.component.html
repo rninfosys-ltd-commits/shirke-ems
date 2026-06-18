@@ -19,17 +19,17 @@
         <div class="filters">
 
             <div class="date-field">
-                <label>From Date</label>
+                <label class="field-label-bottom">From Date</label>
                 <input type="date" [(ngModel)]="filterFromDate" (change)="onDateChange()" />
             </div>
 
             <div class="date-field">
-                <label>To Date</label>
+                <label class="field-label-bottom">To Date</label>
                 <input type="date" [(ngModel)]="filterToDate" (change)="onDateChange()" />
             </div>
 
             <div class="filter-select">
-                <label>Plant Name</label>
+                <label class="field-label-bottom">Plant Name</label>
                 <select [(ngModel)]="filterPlant" (change)="applyFilters()">
                     <option value="Plant 1">Plant 1</option>
                     <option value="Plant 2">Plant 2</option>
@@ -37,7 +37,17 @@
             </div>
 
             <div class="filter-select">
-                <label>Export</label>
+                <label class="field-label-bottom">Shift</label>
+                <select [(ngModel)]="filterShift" (change)="onShiftChange()">
+                    <option value="">All Shifts</option>
+                    <option *ngFor="let s of shifts" [value]="s" [hidden]="!s">
+                        {{ s }}
+                    </option>
+                </select>
+            </div>
+
+            <div class="filter-select">
+                <label class="field-label-bottom">Export</label>
                 <select (change)="onExportChange($event)">
                     <option value="">Select Option</option>
                     <option value="pdf">Export PDF</option>
@@ -47,7 +57,7 @@
             </div>
 
             <div class="filter-select">
-                <label>Import</label>
+                <label class="field-label-bottom">Import</label>
                 <select (change)="onImportSelect($event)">
                     <option value="">Select Option</option>
                     <option value="excel">Import Excel</option>
@@ -66,10 +76,10 @@
                 <thead>
                     <tr>
                         <th>Batch No</th>
-                        <th>Cycle No</th>
+                        <th>Autoclave Cycle Number</th>
                         <th>Date</th>
-                        <th>Start Time</th>
-                        <th>End Time</th>
+                        <th>Transfer Start</th>
+                        <th>Release End</th>
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -80,15 +90,17 @@
                             <td class="clickable" (click)="openAutoclaveModal(r)">
                                 {{ r.batchNo }}
                             </td>
-                            <td>{{ r.cycleNo }}</td>
-                            <td>{{ r.createdDate | date:'dd-MM-yyyy' }}</td>
-                            <td>{{ r.cycleStartTime }}</td>
-                            <td>{{ r.cycleEndTime }}</td>
+                            <td>{{ r.autoclaveCycleNumber }}</td>
+                            <td>{{ r.startedDate | date:'dd-MM-yyyy' }}</td>
+                            <td>{{ r.transferStartTime }}</td>
+                            <td>{{ r.releaseEndTime }}</td>
                             <td>
                                 <button class="link-btn" (click)="edit(r)">Edit</button>
                                 <button class="link-btn danger" (click)="delete(r.id)">Delete</button>
                                 <button class="link-btn info" (click)="selected = r; download('pdf')">PDF</button>
                                 <button class="link-btn success" (click)="selected = r; download('excel')">XLS</button>
+                                <button class="link-btn hz" (click)="selected = r; downloadHorizontalReport(r)"
+                                    title="Combined Horizontal">HZ</button>
                             </td>
                         </tr>
                     </ng-container>
@@ -121,8 +133,17 @@
             <h4 class="section-subtitle">GENERAL INFORMATION</h4>
             <div class="form-grid header-grid">
                 <div class="form-group">
-                    <label>Run Number</label>
-                    <input type="text" formControlName="runNo">
+                    <label class="label-blue">Plant</label>
+                    <select formControlName="plantName" (change)="onPlantChange()">
+                        <option value="" disabled>Select Plant</option>
+                        <option value="Plant 1">Plant 1</option>
+                        <option value="Plant 2">Plant 2</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Autoclave Cycle Number (Auto-Generated)</label>
+                    <input type="text" formControlName="autoclaveCycleNumber" readonly style="background-color: #f1f5f9; cursor: not-allowed;">
                 </div>
 
                 <div class="form-group">
@@ -134,14 +155,24 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Plant</label>
-                    <select formControlName="plantName" (change)="onPlantChange()">
-                        <option value="" disabled>Select Plant</option>
-                        <option value="Plant 1">Plant 1</option>
-                        <option value="Plant 2">Plant 2</option>
+                    <label>Date</label>
+                    <input type="date" formControlName="startedDate">
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Autoclave No</label>
+                    <select formControlName="autoclaveNumber" (change)="onAutoclaveNumberChange()">
+                        <option value="" disabled>Select Autoclave No</option>
+                        <ng-container *ngIf="form.get('plantName')?.value === 'Plant 1'">
+                            <option *ngFor="let no of plant1AutoclaveNumbers" [value]="no">{{ no }}</option>
+                        </ng-container>
+                        <ng-container *ngIf="form.get('plantName')?.value === 'Plant 2'">
+                            <option *ngFor="let no of plant2AutoclaveNumbers" [value]="no">{{ no }}</option>
+                        </ng-container>
                     </select>
                 </div>
-
                 <div class="form-group">
                     <label>Current Status</label>
                     <input type="text" formControlName="currentStatus">
@@ -150,29 +181,105 @@
 
             <div class="divider"></div>
 
+            <!-- BATCH COUNTS -->
+            <h4 class="section-subtitle">BATCH COUNTS</h4>
+            <div class="form-grid">
+                <ng-container *ngIf="form.get('plantName')?.value === 'Plant 1'">
+                    <div class="form-group">
+                        <label>Select Plant 1 Batches</label>
+                        <div class="custom-multiselect">
+                            <div class="select-box" (click)="toggleDropdown($event)">
+                                <span class="placeholder">{{ getSelectedBatchesPlaceholder() }}</span>
+                                <span class="arrow" [class.open]="dropdownOpen">▼</span>
+                            </div>
+                            <div class="dropdown-list" *ngIf="dropdownOpen">
+                                <div class="dropdown-item" *ngFor="let batch of availableBatches">
+                                    <label (click)="$event.stopPropagation()">
+                                        <input type="checkbox" [checked]="isBatchSelected(batch)" (change)="toggleBatchSelection(batch)">
+                                        {{ batch }}
+                                    </label>
+                                </div>
+                                <div class="dropdown-no-data" *ngIf="availableBatches.length === 0" style="padding: 10px 16px; color: #64748b; font-size: 13px;">
+                                    No batches available
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Plant 1 (P1) batch count (Max 18)</label>
+                        <input type="number" formControlName="plant1BatchCount" max="18" readonly style="background-color: #f1f5f9; cursor: not-allowed;">
+                    </div>
+                </ng-container>
+
+                <ng-container *ngIf="form.get('plantName')?.value === 'Plant 2'">
+                    <div class="form-group">
+                        <label>Select Plant 2 Batches</label>
+                        <div class="custom-multiselect">
+                            <div class="select-box" (click)="toggleDropdown($event)">
+                                <span class="placeholder">{{ getSelectedBatchesPlaceholder() }}</span>
+                                <span class="arrow" [class.open]="dropdownOpen">▼</span>
+                            </div>
+                            <div class="dropdown-list" *ngIf="dropdownOpen">
+                                <div class="dropdown-item" *ngFor="let batch of availableBatches">
+                                    <label (click)="$event.stopPropagation()">
+                                        <input type="checkbox" [checked]="isBatchSelected(batch)" (change)="toggleBatchSelection(batch)">
+                                        {{ batch }}
+                                    </label>
+                                </div>
+                                <div class="dropdown-no-data" *ngIf="availableBatches.length === 0" style="padding: 10px 16px; color: #64748b; font-size: 13px;">
+                                    No batches available
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Plant 2 (P2) batch count (Max 14)</label>
+                        <input type="number" formControlName="plant2BatchCount" max="14" readonly style="background-color: #f1f5f9; cursor: not-allowed;">
+                    </div>
+                </ng-container>
+            </div>
+
+            <div class="divider"></div>
+
             <!-- LIFECYCLE TRACKING -->
-            <h4 class="section-subtitle">LIFECYCLE TRACKING (TIMESTAMPS)</h4>
+            <h4 class="section-subtitle">AUTOCLAVE CYCLE TRACKING</h4>
             <div class="form-grid">
                 <div class="form-group">
-                    <label class="label-blue">Cycle Start Time</label>
-                    <input type="datetime-local" formControlName="cycleStartTime">
+                    <label class="label-blue">Door Close Time</label>
+                    <input type="datetime-local" formControlName="doorCloseTime">
                 </div>
                 <div class="form-group">
-                    <label class="label-blue">Hold Start Time</label>
-                    <input type="datetime-local" formControlName="holdStartTime">
+                    <label class="label-blue">Vacuum Start Time</label>
+                    <input type="datetime-local" formControlName="vacuumStartTime">
                 </div>
                 <div class="form-group">
-                    <label class="label-blue">Hold End Time</label>
-                    <input type="datetime-local" formControlName="holdEndTime">
+                    <label class="label-blue">Rising Start Time</label>
+                    <input type="datetime-local" formControlName="autoclaveRisingStartTime">
+                </div>
+                <div class="form-group">
+                    <label class="label-blue">Rising Close / End Time</label>
+                    <input type="datetime-local" formControlName="autoclaveRisingCloseTime">
+                </div>
+                <div class="form-group">
+                    <label class="label-blue">Total Process Time</label>
+                    <input type="text" [value]="totalProcessTimeDisplay" readonly style="background-color: #f1f5f9; cursor: not-allowed;">
                 </div>
                 <div class="form-group">
                     <label class="label-blue">Transfer Start Time</label>
                     <input type="datetime-local" formControlName="transferStartTime">
                 </div>
                 <div class="form-group">
+                    <label class="label-blue">Transferred To Autoclave No</label>
+                    <select formControlName="transferredToAutoclaveNo">
+                        <option value="">Select Autoclave</option>
+                        <option *ngFor="let no of getAvailableTransferAutoclaves()" [value]="no">{{ no }}</option>
+                    </select>
+                </div>
+                <div class="form-group">
                     <label class="label-blue">Transfer End Time</label>
                     <input type="datetime-local" formControlName="transferEndTime">
                 </div>
+
                 <div class="form-group">
                     <label class="label-blue">Release Start Time</label>
                     <input type="datetime-local" formControlName="releaseStartTime">
@@ -182,12 +289,12 @@
                     <input type="datetime-local" formControlName="releaseEndTime">
                 </div>
                 <div class="form-group">
-                    <label class="label-blue">Door Open Time</label>
-                    <input type="datetime-local" formControlName="doorOpenTime">
+                    <label class="label-blue">Pressure After Door Open</label>
+                    <input type="number" formControlName="pressureAfterDoorOpen" step="0.01">
                 </div>
                 <div class="form-group">
-                    <label class="label-blue">Cycle End Time</label>
-                    <input type="datetime-local" formControlName="cycleEndTime">
+                    <label class="label-blue">Door Open Time</label>
+                    <input type="datetime-local" formControlName="doorOpenTime">
                 </div>
             </div>
 
@@ -209,28 +316,19 @@
                     <input type="number" formControlName="pressure3Hr" step="0.01">
                 </div>
                 <div class="form-group">
-                    <label class="label-blue">At Completion</label>
-                    <input type="number" formControlName="pressureCompletion" step="0.01">
-                </div>
-                <div class="form-group">
                     <label class="label-blue">At Release</label>
                     <input type="number" formControlName="pressureRelease" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label class="label-blue">Total Pressure After Rising Close</label>
+                    <input type="number" formControlName="totalPressureAfterRisingClose" step="0.01">
                 </div>
             </div>
 
             <div class="divider"></div>
 
-            <!-- BATCH COUNTS -->
-            <h4 class="section-subtitle">BATCH COUNTS & NOTES</h4>
+            <h4 class="section-subtitle">REMARKS</h4>
             <div class="form-grid">
-                <div class="form-group">
-                    <label>Plant 1 Batch Count</label>
-                    <input type="number" formControlName="plant1BatchCount">
-                </div>
-                <div class="form-group">
-                    <label>Plant 2 Batch Count</label>
-                    <input type="number" formControlName="plant2BatchCount">
-                </div>
                 <div class="form-group" style="grid-column: span 2;">
                     <label>Remarks</label>
                     <input type="text" formControlName="remarks" placeholder="Enter additional notes">

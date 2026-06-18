@@ -1,6 +1,8 @@
 package com.schoolapp.service;
 
 import org.springframework.stereotype.Service;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.schoolapp.dao.WireCuttingImportRequestDto;
 import com.schoolapp.dao.WireCuttingImportResponseDto;
@@ -11,6 +13,7 @@ import com.schoolapp.repository.WireCuttingReportRepository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class WireCuttingReportServiceImpl implements WireCuttingReportService {
@@ -23,6 +26,12 @@ public class WireCuttingReportServiceImpl implements WireCuttingReportService {
 
     @Override
     public WireCuttingReport save(WireCuttingReportRequestDto dto) {
+        validate(dto);
+        if (repository.existsByBatchNo(dto.getBatchNo())) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Wire cutting report already exists for batch: " + dto.getBatchNo());
+        }
         WireCuttingReport r = new WireCuttingReport();
         map(dto, r);
         r.setApprovalStage("NONE");
@@ -31,8 +40,14 @@ public class WireCuttingReportServiceImpl implements WireCuttingReportService {
 
     @Override
     public WireCuttingReport update(Long id, WireCuttingReportRequestDto dto) {
+        validate(dto);
         WireCuttingReport r = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Not found"));
+        if (!Objects.equals(r.getBatchNo(), dto.getBatchNo()) && repository.existsByBatchNo(dto.getBatchNo())) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Wire cutting report already exists for batch: " + dto.getBatchNo());
+        }
         map(dto, r);
         return repository.save(r);
     }
@@ -120,27 +135,91 @@ public class WireCuttingReportServiceImpl implements WireCuttingReportService {
         r.setCuttingDate(d.getCuttingDate());
         r.setMouldNo(d.getMouldNo());
         r.setSize(d.getSize());
+        r.setCuttingLength(resolveCuttingLength(d.getCuttingLength(), d.getSize()));
         r.setBallTestMm(d.getBallTestMm());
-
-        r.setQty100(d.getQty100());
-        r.setQuantityTotal100(d.getQuantityTotal100());
-        r.setBreakage100(d.getBreakage100());
-        r.setNetQty100(d.getNetQty100());
-
-        r.setQty150(d.getQty150());
-        r.setQuantityTotal150(d.getQuantityTotal150());
-        r.setBreakage150(d.getBreakage150());
-        r.setNetQty150(d.getNetQty150());
 
         r.setTotalItem(d.getTotalItem());
 
+        if (r.getSizeDetails() != null) {
+            r.getSizeDetails().clear();
+        } else {
+            r.setSizeDetails(new java.util.ArrayList<>());
+        }
+
+        if (d.getSizeDetails() != null) {
+            for (com.schoolapp.dao.CuttingSizeDetailDto sizeDto : d.getSizeDetails()) {
+                com.schoolapp.entity.CuttingSizeDetail sd = new com.schoolapp.entity.CuttingSizeDetail();
+                sd.setCuttingReport(r);
+                sd.setLength(sizeDto.getLength());
+                sd.setHeight(sizeDto.getHeight());
+                sd.setWidth(sizeDto.getWidth());
+                sd.setQuantity(sizeDto.getQuantity());
+                sd.setBreakage(sizeDto.getBreakage());
+                sd.setNetQuantity(sizeDto.getNetQuantity());
+                r.getSizeDetails().add(sd);
+            }
+        }
+
         r.setRemark(d.getRemark());
         r.setTime(d.getTime());
+        r.setCycleTime(resolveCycleTime(d.getCycleTime(), d.getTime()));
         r.setUserId(d.getUserId());
         r.setBranchId(d.getBranchId());
         r.setOrgId(d.getOrgId());
         r.setPlantName(d.getPlantName());
         r.setShift(d.getShift());
+        r.setCuttingHours(d.getCuttingHours());
+        r.setCuttingTempC(d.getCuttingTempC());
+    }
+
+    private int resolveCuttingLength(int requestedCuttingLength, String size) {
+        if (requestedCuttingLength > 0) {
+            return requestedCuttingLength;
+        }
+        if (size == null || size.isBlank()) {
+            return 0;
+        }
+
+        java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("^(\\d+)").matcher(size.trim());
+        if (matcher.find()) {
+            try {
+                return Integer.parseInt(matcher.group(1));
+            } catch (NumberFormatException ignored) {
+                return 0;
+            }
+        }
+        return 0;
+    }
+
+    private String resolveCycleTime(String cycleTime, String fallbackTime) {
+        if (cycleTime != null && !cycleTime.isBlank()) {
+            return cycleTime;
+        }
+        if (fallbackTime != null && !fallbackTime.isBlank()) {
+            return fallbackTime;
+        }
+        return null;
+    }
+
+    private void validate(WireCuttingReportRequestDto dto) {
+        if (dto == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Wire cutting payload is required");
+        }
+        if (dto.getBatchNo() == null || dto.getBatchNo().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Batch No is required");
+        }
+        if (dto.getPlantName() == null || dto.getPlantName().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Plant Name is required");
+        }
+        if (dto.getShift() == null || dto.getShift().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Shift is required");
+        }
+        if (dto.getCuttingDate() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cutting Date is required");
+        }
+        if (dto.getUserId() <= 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Logged-in user is required");
+        }
     }
 
     @Override

@@ -21,9 +21,11 @@ public class CastingHallReportResponseDto {
     private String approvedByL3Name;
 
     // casting fields
+    private String mouldNo;
+    private Double mouldHeight;
+    private Double mouldFlow;
+
     private String height;
-    private int mouldNo;
-    private int flowInCm;
     private int castingTempC;
     private String remark;
 	public Long getId() {
@@ -98,18 +100,6 @@ public class CastingHallReportResponseDto {
 	public void setHeight(String height) {
 		this.height = height;
 	}
-	public int getMouldNo() {
-		return mouldNo;
-	}
-	public void setMouldNo(int mouldNo) {
-		this.mouldNo = mouldNo;
-	}
-	public int getFlowInCm() {
-		return flowInCm;
-	}
-	public void setFlowInCm(int flowInCm) {
-		this.flowInCm = flowInCm;
-	}
 	public int getCastingTempC() {
 		return castingTempC;
 	}
@@ -121,6 +111,24 @@ public class CastingHallReportResponseDto {
 	}
 	public void setRemark(String remark) {
 		this.remark = remark;
+	}
+	public String getMouldNo() {
+		return mouldNo;
+	}
+	public void setMouldNo(String mouldNo) {
+		this.mouldNo = mouldNo;
+	}
+	public Double getMouldHeight() {
+		return mouldHeight;
+	}
+	public void setMouldHeight(Double mouldHeight) {
+		this.mouldHeight = mouldHeight;
+	}
+	public Double getMouldFlow() {
+		return mouldFlow;
+	}
+	public void setMouldFlow(Double mouldFlow) {
+		this.mouldFlow = mouldFlow;
 	}
 
     

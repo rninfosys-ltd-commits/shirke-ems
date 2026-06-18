@@ -6,7 +6,6 @@ package com.schoolapp.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 
 import com.schoolapp.entity.AutoclaveCycle;
 
@@ -20,14 +19,20 @@ public interface AutoclaveRepository extends JpaRepository<AutoclaveCycle, Long>
   @Query(value = "SELECT autoclave_no FROM autoclave_cycle ORDER BY id DESC LIMIT 1", nativeQuery = true)
   String findLastAutoclaveNo();
 
-  @Query("SELECT CASE WHEN COUNT(w) > 0 THEN true ELSE false END FROM AutoclaveWagon w WHERE w.batchNo = :batchNo")
-  boolean existsByWagonBatch(@Param("batchNo") Integer batchNo);
+  @Query(value = "SELECT autoclave_cycle_number FROM autoclave_cycle ORDER BY id DESC LIMIT 1", nativeQuery = true)
+  String findLastAutoclaveCycleNumber();
 
   List<AutoclaveCycle> findByStartedDateBetween(Date start, Date end);
 
-  @Query("SELECT DISTINCT c FROM AutoclaveCycle c JOIN c.wagons w WHERE " +
-      "CAST(w.batchNo as string) = :batchNo")
-  List<AutoclaveCycle> findByBatchNo(@Param("batchNo") String batchNo);
+  @org.springframework.data.jpa.repository.Query("SELECT a FROM AutoclaveCycle a WHERE a.batchNo = :batchNo OR a.batchNo LIKE CONCAT(:batchNo, ', %') OR a.batchNo LIKE CONCAT('%, ', :batchNo) OR a.batchNo LIKE CONCAT('%, ', :batchNo, ', %')")
+  List<AutoclaveCycle> findByBatchNo(@org.springframework.data.repository.query.Param("batchNo") String batchNo);
+
+  @org.springframework.data.jpa.repository.Query("SELECT COUNT(a) > 0 FROM AutoclaveCycle a WHERE a.batchNo = :batchNo OR a.batchNo LIKE CONCAT(:batchNo, ', %') OR a.batchNo LIKE CONCAT('%, ', :batchNo) OR a.batchNo LIKE CONCAT('%, ', :batchNo, ', %')")
+  boolean existsByBatchNo(@org.springframework.data.repository.query.Param("batchNo") String batchNo);
+
+  default boolean existsByWagonBatch(int batchNo) {
+    return existsByBatchNo(String.valueOf(batchNo));
+  }
 
   @org.springframework.data.jpa.repository.Query("SELECT a FROM AutoclaveCycle a WHERE a.plantName = :plantName")
   List<AutoclaveCycle> findByPlantName(@org.springframework.data.repository.query.Param("plantName") String plantName);

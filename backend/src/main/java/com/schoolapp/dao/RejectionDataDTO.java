@@ -1,18 +1,17 @@
 package com.schoolapp.dao;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import java.util.Date;
-import jakarta.persistence.Column;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class RejectionDataDTO {
 
 	private Long id;
@@ -21,7 +20,9 @@ public class RejectionDataDTO {
 	private String blockSize;
 	private Integer qty;
 	private String shift;
+	private String plantName;
 
+	// ===== Existing breakage fields =====
 	private Integer cornerDamage;
 	private Integer eruptionType;
 	private Integer topSideDamages;
@@ -30,25 +31,37 @@ public class RejectionDataDTO {
 	private Integer centreCrack;
 	private Integer bottomUncutBlocks;
 	private Integer totalBreakages;
-	@Column(name = "user_id")
+
+	// ===== NEW fields =====
+	private Integer autoclaveDamage;
+	private Integer craneDamage;
+	private Integer collapse;
+	private Integer unrise;
+	private Integer unsize;
+	private Integer uncut;
+	private Integer chipping;
+
+	// ===== NEW rejection category fields =====
+	private Integer crackRejection;
+	private Integer dimensionFailure;
+	private Integer densityFailure;
+	private Integer strengthFailure;
+	private Integer otherRejection;
+
+	/** Auto-calculated by service: sum of all rejection categories */
+	private Integer totalRejection;
+
+	private String remarks;
+
+	// ===== Workflow FK =====
+	private Long cubeTestId;
+
+	// ===== Common =====
 	private Integer userId;
-
-	@Column(name = "branch_id")
 	private Integer branchId;
-
-	@Column(name = "org_id")
 	private Integer orgId;
-
-	@Column(name = "created_date")
-	@Temporal(TemporalType.TIMESTAMP)
 	private Date createdDate;
-
-	@Column(name = "updated_by")
 	private Integer updatedBy;
-
-	@Column(name = "updated_date")
-	@Temporal(TemporalType.TIMESTAMP)
 	private Date updatedDate;
-
 	private Integer isActive;
 }

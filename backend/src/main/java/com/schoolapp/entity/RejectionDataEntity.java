@@ -30,12 +30,14 @@ public class RejectionDataEntity {
 	private String blockSize;
 
 	private Integer qty;
+
 	@Column(name = "shift")
 	private String shift;
 
 	@Column(name = "plant_name", length = 50)
 	private String plantName;
 
+	// ===== Existing breakage fields (kept for backward compat) =====
 	@Column(name = "corner_damage")
 	private Integer cornerDamage;
 
@@ -60,6 +62,50 @@ public class RejectionDataEntity {
 	@Column(name = "total_breakages")
 	private Integer totalBreakages;
 
+	// ===== NEW fields =====
+	@Column(name = "autoclave_damage")
+	private Integer autoclaveDamage;
+	@Column(name = "crane_damage")
+	private Integer craneDamage;
+	@Column(name = "collapse")
+	private Integer collapse;
+	@Column(name = "unrise")
+	private Integer unrise;
+	@Column(name = "unsize")
+	private Integer unsize;
+	@Column(name = "uncut")
+	private Integer uncut;
+	@Column(name = "chipping")
+	private Integer chipping;
+
+	// ===== NEW rejection category fields =====
+	@Column(name = "crack_rejection")
+	private Integer crackRejection;
+
+	@Column(name = "dimension_failure")
+	private Integer dimensionFailure;
+
+	@Column(name = "density_failure")
+	private Integer densityFailure;
+
+	@Column(name = "strength_failure")
+	private Integer strengthFailure;
+
+	@Column(name = "other_rejection")
+	private Integer otherRejection;
+
+	/** Auto-calculated: sum of all rejection category fields */
+	@Column(name = "total_rejection")
+	private Integer totalRejection;
+
+	@Column(name = "remarks", length = 500)
+	private String remarks;
+
+	// ===== Workflow FK to Cube Test =====
+	@Column(name = "cube_test_id")
+	private Long cubeTestId;
+
+	// ===== Common Required Fields =====
 	@Column(name = "user_id")
 	private Integer userId;
 

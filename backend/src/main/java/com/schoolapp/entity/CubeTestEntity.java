@@ -1,15 +1,9 @@
 package com.schoolapp.entity;
 
 import java.util.Date;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
+import java.util.List;
 
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -42,6 +36,7 @@ public class CubeTestEntity {
     @Column(name = "plant_name", length = 50)
     private String plantName;
 
+    // ===== Legacy single-sample fields (kept for backward compat) =====
     @Column(name = "cube_dimension_immediate")
     private String cubeDimensionImmediate;
 
@@ -72,8 +67,53 @@ public class CubeTestEntity {
     @Column(name = "density_kgm3")
     private Double densityKgM3;
 
-    // ---------- APPROVAL WORKFLOW ----------
+    // ===== NEW FIELDS =====
+    @Column(name = "demould_density")
+    private Double demouldDensity;
+    @Column(name = "wet_density")
+    private Double wetDensity;
+    @Column(name = "wet_strength")
+    private Double wetStrength;
+    @Column(name = "dry_density")
+    private Double dryDensity;
+    @Column(name = "dry_strength")
+    private Double dryStrength;
 
+    // ===== Workflow FK to Block Separating =====
+    @Column(name = "block_separating_id")
+    private Long blockSeparatingId;
+
+    // ===== NEW FIELDS: Cube Size & Top/Mid/Bottom =====
+    @Column(name = "cube_size")
+    private String cubeSize; // "150x150x150" or "100x100x100"
+
+    // Post Cutting (Wet) - Top/Mid/Bottom
+    @Column(name = "wet_weight_top") private Double wetWeightTop;
+    @Column(name = "wet_weight_mid") private Double wetWeightMid;
+    @Column(name = "wet_weight_btm") private Double wetWeightBtm;
+    @Column(name = "wet_density_top") private Double wetDensityTop;
+    @Column(name = "wet_density_mid") private Double wetDensityMid;
+    @Column(name = "wet_density_btm") private Double wetDensityBtm;
+    @Column(name = "wet_strength_top") private Double wetStrengthTop;
+    @Column(name = "wet_strength_mid") private Double wetStrengthMid;
+    @Column(name = "wet_strength_btm") private Double wetStrengthBtm;
+
+    // Dry Oven - Top/Mid/Bottom
+    @Column(name = "dry_weight_top") private Double dryWeightTop;
+    @Column(name = "dry_weight_mid") private Double dryWeightMid;
+    @Column(name = "dry_weight_btm") private Double dryWeightBtm;
+    @Column(name = "dry_density_top") private Double dryDensityTop;
+    @Column(name = "dry_density_mid") private Double dryDensityMid;
+    @Column(name = "dry_density_btm") private Double dryDensityBtm;
+    @Column(name = "dry_strength_top") private Double dryStrengthTop;
+    @Column(name = "dry_strength_mid") private Double dryStrengthMid;
+    @Column(name = "dry_strength_btm") private Double dryStrengthBtm;
+
+    // ===== Multi-sample details =====
+    @OneToMany(mappedBy = "cubeTest", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<CubeTestDetail> details;
+
+    // ===== Approval Workflow =====
     @Column(name = "approved_by_l1")
     private String approvedByL1;
 
@@ -83,7 +123,6 @@ public class CubeTestEntity {
     @Column(name = "approved_by_l3")
     private String approvedByL3;
 
-    // @Column(length = 20)
     @Column(name = "approval_stage")
     private String approvalStage = "NONE";
 
@@ -93,6 +132,7 @@ public class CubeTestEntity {
     @Column(name = "reject_reason")
     private String rejectReason;
 
+    // ===== Common Required Fields =====
     @Column(name = "user_id")
     private int userId;
 
@@ -115,5 +155,4 @@ public class CubeTestEntity {
 
     @Column(name = "is_active")
     private int isActive;
-
 }

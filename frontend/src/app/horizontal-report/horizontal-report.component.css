@@ -579,3 +579,50 @@
     font-size: 0.82rem;
     color: #718096;
 }
+
+/* Filter bar aligned with Rising Section style */
+.hr-filters {
+    gap: 16px;
+    padding: 20px;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    margin-bottom: 25px;
+}
+
+.filter-group {
+    gap: 4px;
+    min-width: 160px;
+}
+
+.filter-group label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.filter-group input,
+.filter-group select {
+    height: 42px;
+    padding: 0 14px;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    background: #f9f9f9;
+    color: #333;
+}
+
+.filter-group input:focus,
+.filter-group select:focus {
+    border-color: #7f46ff;
+    background: #fff;
+    box-shadow: 0 0 0 4px rgba(127, 70, 255, 0.1);
+}
+
+.filter-actions .btn-apply,
+.filter-actions .btn-clear {
+    height: 42px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-radius: 10px;
+}

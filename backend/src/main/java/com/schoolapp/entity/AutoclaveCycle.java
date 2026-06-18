@@ -6,7 +6,6 @@ import lombok.NoArgsConstructor;
 
 import jakarta.persistence.*;
 import java.util.Date;
-import java.util.List;
 
 @Entity
 @Table(name = "autoclave_cycle")
@@ -20,7 +19,8 @@ public class AutoclaveCycle {
     private Long id;
 
     private String autoclaveNo;
-    private String runNo;
+    private Integer autoclaveNumber; // NEW: 1-6 for Plant 1, 1-5 for Plant 2
+    private String autoclaveCycleNumber;
     private String startedAt;
     private Date startedDate;
     private String completedAt;
@@ -29,6 +29,70 @@ public class AutoclaveCycle {
     private String remarks;
     private String shift;
     private String plantName;
+
+    // ===== STATUS =====
+    @Column(name = "current_status", length = 50)
+    private String currentStatus;
+
+    @Column(name = "batch_no")
+    private String batchNo;
+
+    // ===== BATCH COUNTS =====
+    @Column(name = "plant1_batch_count")
+    private Integer plant1BatchCount;
+
+    @Column(name = "plant2_batch_count")
+    private Integer plant2BatchCount;
+
+    @Column(name = "transfer_start_time")
+    private String transferStartTime;
+
+    @Column(name = "transferred_to_autoclave_no")
+    private Integer transferredToAutoclaveNo;
+
+    @Column(name = "transfer_end_time")
+    private String transferEndTime;
+
+    @Column(name = "release_start_time")
+    private String releaseStartTime;
+
+    @Column(name = "release_end_time")
+    private String releaseEndTime;
+
+    @Column(name = "door_open_time")
+    private String doorOpenTime;
+
+    // ===== NEW LIFECYCLE FIELDS (Autoclave Cycle Tracking) =====
+    @Column(name = "door_close_time")
+    private String doorCloseTime;
+
+    @Column(name = "vacuum_start_time")
+    private String vacuumStartTime;
+
+    @Column(name = "autoclave_rising_start_time")
+    private String autoclaveRisingStartTime;
+
+    @Column(name = "autoclave_rising_close_time")
+    private String autoclaveRisingCloseTime;
+
+    @Column(name = "total_pressure_after_rising_close")
+    private Double totalPressureAfterRisingClose;
+
+    @Column(name = "pressure_after_door_open")
+    private Double pressureAfterDoorOpen;
+
+    // ===== PRESSURE READINGS =====
+    @Column(name = "pressure1_hr")
+    private Double pressure1Hr;
+
+    @Column(name = "pressure2_hr")
+    private Double pressure2Hr;
+
+    @Column(name = "pressure3_hr")
+    private Double pressure3Hr;
+
+    @Column(name = "pressure_release")
+    private Double pressureRelease;
 
     // 🔥 REQUIRED FIELDS
     private int userId;
@@ -45,8 +109,11 @@ public class AutoclaveCycle {
 
     private int isActive = 1;
 
-    // 🔗 RELATION
-    @OneToMany(mappedBy = "autoclave", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<AutoclaveWagon> wagons;
+    public String getBatchNo() {
+        return batchNo;
+    }
 
+    public void setBatchNo(String batchNo) {
+        this.batchNo = batchNo;
+    }
 }

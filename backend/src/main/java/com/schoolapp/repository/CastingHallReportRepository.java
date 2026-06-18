@@ -17,6 +17,8 @@ public interface CastingHallReportRepository
         boolean existsByBatchNo(String batchNo);
 
         List<CastingHallReport> findByBatchNo(String batchNo);
+        List<CastingHallReport> findByBatchNoAndShift(String batchNo, String shift);
+        void deleteByProductionEntry_Id(Long productionId);
 
         Page<CastingHallReport> findByPlantNameContainingIgnoreCase(String plantName, Pageable pageable);
 

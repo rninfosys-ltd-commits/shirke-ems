@@ -39,10 +39,10 @@ export class ProductionEntryComponent implements OnInit {
   filterFromDate = '';
   filterToDate = '';
   filterPlant = 'Plant 1';
+  filterShift = '';
   excelPreview: any[] = [];
   hasExcelErrors = false;
   apiMessage = '';
-  showSilo2 = false;
 
   // ================= PAGINATION =================
   pageSize = 5;
@@ -59,16 +59,25 @@ export class ProductionEntryComponent implements OnInit {
     totalSolid: 0,
     totalBatchWeight: 0,
     totalLiquid: 0,
-    finalSolidPercent: 0
+    finalSolidPercent: 0,
+    totalSolidsPerCbm: 0,
+    totalBindersPerCbm: 0,
+    totalWaterPerCbm: 0,
+    waterSolidRatio: 0
   };
 
-  batchers: string[] = ['Rajesh Kumar', 'Sanjay Sharma', 'Amit Patel', 'Vijay Singh', 'Rahul Verma'];
-  filteredBatchers: string[] = [];
+  batchers = [
+    { id: 1, name: 'S. S. Bhosale' },
+    { id: 2, name: 'S. J. Bhosale' },
+    { id: 3, name: 'R. M. Swami' },
+    { id: 4, name: 'P. D. Vanjare' }
+  ];
+  filteredBatchers: any[] = [];
   showBatcherDropdown = false;
   shifts: string[] = [
-    'Night (00:00 - 08:00)',
-    'Morning (08:00 - 16:00)',
-    'Afternoon (16:00 - 00:00)'
+    'Night (00:00 - 08:00) [1st Shift]',
+    'Morning (08:00 - 16:00) [2nd Shift]',
+    'Afternoon (16:00 - 00:00) [3rd Shift]'
   ];
 
   constructor(
@@ -95,15 +104,11 @@ export class ProductionEntryComponent implements OnInit {
       plantName: ['Plant 1', Validators.required],
       shift: ['', Validators.required],
       productionDate: [today],
-      batcher: [''],
+      batcherName: [''],
+      batcherId: [null],
 
       siloNo1: [''],
-      literWeight1: [''],
       faSolid1: [''],
-
-      siloNo2: [''],
-      literWeight2: [''],
-      faSolid2: [''],
 
       // Slurry Properties
       faDensity: [0],
@@ -119,7 +124,7 @@ export class ProductionEntryComponent implements OnInit {
       gypsumKg: [0],
       solOilKg: [0],
       surfactant: [0],
-      dcChemical: [0],
+      aluminumPowderKg: [0],
       dcmrt: [0],
 
       // Process Parameters
@@ -128,11 +133,17 @@ export class ProductionEntryComponent implements OnInit {
       castingTime: [''],
       productionTime: [''],
       productionRemark: [''],
-      remark: [''],
+      cbmVolume: [''],
 
       userId: [1],
       branchId: [1],
       orgId: [1]
+    });
+
+    // Reset CBM Volume when Plant changes
+    this.productionForm.get('plantName')?.valueChanges.subscribe(() => {
+      this.productionForm.patchValue({ cbmVolume: '' });
+      this.recalculate();
     });
 
     this.setShiftByTime();
@@ -225,6 +236,11 @@ export class ProductionEntryComponent implements OnInit {
         if (p.plantName !== this.filterPlant && p.plantName !== plantId) return false;
       }
 
+      // ✅ SHIFT FILTER
+      if (this.filterShift && !(p.shift || '').toLowerCase().includes(this.filterShift.toLowerCase())) {
+        return false;
+      }
+
       // ✅ DATE FILTER
       const date = new Date(p.createdDate).getTime();
       const dateOk =
@@ -258,6 +274,10 @@ export class ProductionEntryComponent implements OnInit {
 
     this.currentPage = 1;
     this.updatePagination();
+  }
+
+  onShiftChange() {
+    this.applyFilters();
   }
 
   updatePagination() {
@@ -298,6 +318,7 @@ export class ProductionEntryComponent implements OnInit {
     this.filterFromDate = '';
     this.filterToDate = '';
     this.filterPlant = 'Plant 1';
+    this.filterShift = '';
     this.filteredProductionList = [...this.productionList];
     this.currentPage = 1;
     this.updatePagination();
@@ -341,29 +362,65 @@ export class ProductionEntryComponent implements OnInit {
 
 
   exportExcel() {
-    if (!this.filterFromDate || !this.filterToDate) {
-      alert('Please select date range');
-      return;
-    }
+    const data = this.filteredProductionList.map(p => {
+      const row: any = {
+        PlantName: p.plantName ?? '',
+        Shift: p.shift ?? '',
+        ProductionDate: p.productionDate ?? '',
+        BatcherName: p.batcherName ?? '',
+        BatcherId: p.batcherId ?? '',
+        SiloNo1: p.siloNo1 ?? '',
+        FaSolid1: p.faSolid1 ?? '',
+        FaDensity: p.faDensity ?? '',
+        ExcessDensity: p.excessDensity ?? '',
+        ExcessSolid: p.excessSolid ?? '',
+        FaSlurryQty: p.faSlurryQty ?? '',
+        ExcessSlurryQty: p.excessSlurryQty ?? '',
+        WaterLiter: p.waterLiter ?? '',
+        LimeKg: p.limeKg ?? '',
+        CementKg: p.cementKg ?? '',
+        GypsumKg: p.gypsumKg ?? '',
+        SolOilKg: p.solOilKg ?? '',
+        Surfactant: p.surfactant ?? '',
+        AluminumPowderKg: p.aluminumPowderKg ?? '',
+        Dcmrt: p.dcmrt ?? '',
+        MixingTime: p.mixingTime ?? '',
+        TempC: p.tempC ?? '',
+        CastingTime: p.castingTime ?? '',
+        ProductionTime: p.productionTime ?? '',
+        ProductionRemark: p.productionRemark ?? '',
+        CbmVolume: p.cbmVolume ?? '',
+        TotalSolid: p.totalSolid ?? '',
+        TotalSolidsPerCbm: p.totalSolidsPerCbm ?? '',
+        TotalBindersPerCbm: p.totalBindersPerCbm ?? '',
+        TotalWaterPerCbm: p.totalWaterPerCbm ?? '',
+        WaterSolidRatio: p.waterSolidRatio ?? ''
+      };
 
-    this.workflowService.exportReport('PRODUCTION', this.filterFromDate, this.filterToDate, 'excel', this.filterPlant || undefined).subscribe({
-      next: (blob) => {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `Production_Report_${this.filterFromDate}_to_${this.filterToDate}.xlsx`;
-        a.click();
-        URL.revokeObjectURL(url);
-      },
-      error: () => alert('Failed to export Excel')
+      (p.materials || []).forEach((m: any) => {
+        row[m.materialName || `Material_${m.materialMasterId}`] = m.value ?? '';
+      });
+
+      return row;
     });
+
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Production');
+    const buffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Production_Report_${this.filterFromDate || 'all'}_to_${this.filterToDate || 'all'}.xlsx`;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
 
 
   calculateTotalSolid(): number {
-    return (+this.productionForm.value.faSolid1 || 0) +
-      (+this.productionForm.value.faSolid2 || 0);
+    return (+this.productionForm.value.faSolid1 || 0);
   }
 
   recalculate(): void {
@@ -371,7 +428,6 @@ export class ProductionEntryComponent implements OnInit {
 
     const faDensity = +v.faDensity || 0;
     const faSolid1 = +v.faSolid1 || 0;
-    const faSolid2 = +v.faSolid2 || 0;
     const excessDensity = +v.excessDensity || 0;
     const excessSolid = +v.excessSolid || 0;
 
@@ -383,7 +439,7 @@ export class ProductionEntryComponent implements OnInit {
     const gypsumKg = +v.gypsumKg || 0;
     const solOilKg = +v.solOilKg || 0;
     const surfactant = +v.surfactant || 0;
-    const dcChemical = (+v.dcChemical || 0) / 1000; // ml -> kg
+    const aluminumPowderKg = +v.aluminumPowderKg || 0;
     const dcmrt = (+v.dcmrt || 0) / 1000; // ml -> kg
 
     // Solid contributions
@@ -399,16 +455,26 @@ export class ProductionEntryComponent implements OnInit {
     const totalLiquid = faLiquid + excessLiquid + waterLiter + solOilKg + surfactant;
 
     // Total batch weight
-    const totalBatchWeight = faSlurryQty + excessSlurryQty + waterLiter + limeKg + cementKg + gypsumKg + solOilKg + surfactant + dcChemical + dcmrt;
+    const totalBatchWeight = faSlurryQty + excessSlurryQty + waterLiter + limeKg + cementKg + gypsumKg + solOilKg + surfactant + aluminumPowderKg + dcmrt;
 
     // Final solid %
     const finalSolidPercent = totalBatchWeight > 0 ? (totalSolid / totalBatchWeight) * 100 : 0;
+
+    const cbmVolume = +v.cbmVolume || 0;
+    const totalSolidsPerCbm = cbmVolume > 0 ? (totalSolid / cbmVolume) : 0;
+    const totalBindersPerCbm = cbmVolume > 0 ? ((cementKg + limeKg) / cbmVolume) : 0;
+    const totalWaterPerCbm = cbmVolume > 0 ? (totalLiquid / cbmVolume) : 0;
+    const waterSolidRatio = totalSolid > 0 ? (totalLiquid / totalSolid) : 0;
 
     this.liveCalc = {
       totalSolid: +totalSolid.toFixed(2),
       totalBatchWeight: +totalBatchWeight.toFixed(2),
       totalLiquid: +totalLiquid.toFixed(2),
-      finalSolidPercent: +finalSolidPercent.toFixed(2)
+      finalSolidPercent: +finalSolidPercent.toFixed(2),
+      totalSolidsPerCbm: +totalSolidsPerCbm.toFixed(2),
+      totalBindersPerCbm: +totalBindersPerCbm.toFixed(2),
+      totalWaterPerCbm: +totalWaterPerCbm.toFixed(2),
+      waterSolidRatio: +waterSolidRatio.toFixed(2)
     };
   }
 
@@ -416,19 +482,6 @@ export class ProductionEntryComponent implements OnInit {
     const userId = this.auth.getLoggedInUserId();
     if (!userId) return '—';
     return this.getUserName(userId) || '—';
-  }
-
-  toggleSilo2() {
-    this.showSilo2 = true;
-  }
-
-  removeSilo2() {
-    this.showSilo2 = false;
-    this.productionForm.patchValue({
-      siloNo2: '',
-      literWeight2: '',
-      faSolid2: ''
-    });
   }
 
   userMap: { [key: string]: string } = {};
@@ -471,14 +524,14 @@ export class ProductionEntryComponent implements OnInit {
   }
 
   filterBatchers() {
-    const val = this.productionForm.value.batcher || '';
+    const val = this.productionForm.value.batcherName || '';
     this.filteredBatchers = this.batchers.filter(b =>
-      b.toLowerCase().includes(val.toLowerCase())
+      b.name.toLowerCase().includes(val.toLowerCase())
     );
   }
 
-  selectBatcher(name: string) {
-    this.productionForm.patchValue({ batcher: name });
+  selectBatcher(b: any) {
+    this.productionForm.patchValue({ batcherName: b.name, batcherId: b.id });
     this.showBatcherDropdown = false;
   }
 
@@ -510,12 +563,21 @@ export class ProductionEntryComponent implements OnInit {
       gypsumKg: 0,
       solOilKg: 0,
       surfactant: 0,
-      dcChemical: 0,
+      aluminumPowderKg: 0,
       dcmrt: 0,
-      tempC: 0
+      tempC: 0,
+      cbmVolume: 4.5 // Default commonly used CBM Volume
     });
-    this.showSilo2 = false;
-    this.liveCalc = { totalSolid: 0, totalBatchWeight: 0, totalLiquid: 0, finalSolidPercent: 0 };
+    this.liveCalc = {
+      totalSolid: 0,
+      totalBatchWeight: 0,
+      totalLiquid: 0,
+      finalSolidPercent: 0,
+      totalSolidsPerCbm: 0,
+      totalBindersPerCbm: 0,
+      totalWaterPerCbm: 0,
+      waterSolidRatio: 0
+    };
     this.filteredBatchers = [...this.batchers];
 
     // Reset dynamic material values
@@ -572,8 +634,14 @@ export class ProductionEntryComponent implements OnInit {
 
     const payload = {
       ...this.productionForm.value,
+      batcherId: this.productionForm.value.batcherId,
+      batcherName: this.productionForm.value.batcherName,
       userId,
       totalSolid: this.liveCalc.totalSolid || this.calculateTotalSolid(),
+      totalSolidsPerCbm: this.liveCalc.totalSolidsPerCbm,
+      totalBindersPerCbm: this.liveCalc.totalBindersPerCbm,
+      totalWaterPerCbm: this.liveCalc.totalWaterPerCbm,
+      waterSolidRatio: this.liveCalc.waterSolidRatio,
       materials: materialsPayload
     };
 
@@ -606,8 +674,10 @@ export class ProductionEntryComponent implements OnInit {
       });
     }
 
-    this.showSilo2 = !!(row.siloNo2 || row.literWeight2 || row.faSolid2);
     this.filteredBatchers = [...this.batchers];
+
+    // Recalculate so the live calc panel shows values instead of 0
+    setTimeout(() => this.recalculate(), 100);
   }
 
   delete(id: number) {
@@ -658,18 +728,13 @@ export class ProductionEntryComponent implements OnInit {
       { label: 'Shift', key: 'shift' },
 
       { label: 'Silo No 1', key: 'siloNo1' },
-      { label: 'Liter Weight 1', key: 'literWeight1' },
       { label: 'FA Solid 1', key: 'faSolid1' },
-
-      { label: 'Silo No 2', key: 'siloNo2' },
-      { label: 'Liter Weight 2', key: 'literWeight2' },
-      { label: 'FA Solid 2', key: 'faSolid2' },
 
       { label: 'Total Solid', key: 'totalSolid' },
       { label: 'FA Slurry Qty', key: 'faSlurryQty' },
       { label: 'Excess Slurry Qty', key: 'excessSlurryQty' },
       { label: 'Surfactant', key: 'surfactant' },
-      { label: 'DC Chemical', key: 'dcChemical' },
+      { label: 'Aluminium Powder (gm)', key: 'aluminumPowderKg' },
       { label: 'DC MRT', key: 'dcmrt' },
       { label: 'Mixing Time', key: 'mixingTime' },
     ];
@@ -687,7 +752,6 @@ export class ProductionEntryComponent implements OnInit {
       { label: 'Production Time', key: 'productionTime' },
 
       { label: 'Production Remark', key: 'productionRemark' },
-      { label: 'Remark', key: 'remark' },
 
       { label: 'Approval Stage', key: 'approvalStage' },
       { label: 'Approved By L1', key: 'approvedByL1' },
@@ -939,12 +1003,7 @@ export class ProductionEntryComponent implements OnInit {
     const payload = {
       productions: this.excelRows.map(r => ({
         siloNo1: r['Silo No 1'] || r['Silo No'],
-        literWeight1: Number(r['Liter Weight 1'] || r['Liter Weight'] || 0),
         faSolid1: Number(r['FA Solid 1'] || r['FA Solid'] || 0),
-
-        siloNo2: r['Silo No 2'],
-        literWeight2: Number(r['Liter Weight 2'] || 0),
-        faSolid2: Number(r['FA Solid 2'] || 0),
 
         waterLiter: Number(r['Water Liter'] || 0),
         cementKg: Number(r['Cement Kg'] || 0),
@@ -956,8 +1015,7 @@ export class ProductionEntryComponent implements OnInit {
 
         castingTime: r['Casting Time'],
         productionTime: r['Production Time'],
-        productionRemark: r['Production Remark'],
-        remark: r['Remark']
+        productionRemark: r['Production Remark']
       })),
       uploadedBy: 1,
       branchId: 1,

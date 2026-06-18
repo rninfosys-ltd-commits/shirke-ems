@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RisingSectionService } from '../services/RisingSectionService';
 import { ProductionService } from '../services/ProductionService';
@@ -7,6 +7,8 @@ import { Router } from '@angular/router';
 import { WorkflowService } from '../services/workflow.service';
 import { FilterService } from '../services/filter.service';
 import { HorizontalReportService } from '../services/horizontal-report.service';
+import { BatchLookupService } from '../services/batch-lookup.service';
+import * as XLSX from 'xlsx';
 
 @Component({
   selector: 'app-rising-section',
@@ -20,17 +22,19 @@ export class RisingSectionComponent implements OnInit {
   list: any[] = [];
   productionList: any[] = [];
   editId: number | null = null;
+  remarksDropdownOpen = false;
 
   shifts: string[] = [
-    'Night (00:00 - 08:00)',
-    'Morning (08:00 - 16:00)',
-    'Afternoon (16:00 - 00:00)'
+    'Night (00:00 - 08:00) [1st Shift]',
+    'Morning (08:00 - 16:00) [2nd Shift]',
+    'Afternoon (16:00 - 00:00) [3rd Shift]'
   ];
 
   // Filters
   filterFromDate: string = '';
   filterToDate: string = '';
   filterPlant: string = 'Plant 1';
+  filterShift: string = '';
 
   // Pagination
   currentPage = 1;
@@ -46,7 +50,8 @@ export class RisingSectionComponent implements OnInit {
     private router: Router,
     private workflowService: WorkflowService,
     private filterService: FilterService,
-    private horizontalReportService: HorizontalReportService
+    private horizontalReportService: HorizontalReportService,
+    private batchLookup: BatchLookupService
   ) { }
 
   ngOnInit(): void {
@@ -72,23 +77,143 @@ export class RisingSectionComponent implements OnInit {
     else this.form.patchValue({ shift: this.shifts[2] });
   }
 
+  risingRemarkOptions: { id: number, english: string, marathi: string, value: string }[] = [
+    { id: 1, english: 'Main mixer discharge valve not opened.', marathi: 'मुख्य मिक्सर डिस्चार्ज व्हॉल्व्ह उघडलेला नाही.', value: '1' },
+    { id: 2, english: 'Aluminium mixer valve not opened.', marathi: 'अॅल्युमिनियम मिक्सर व्हॉल्व्ह उघडलेला नाही.', value: '2' },
+    { id: 3, english: 'Double aluminium powder added.', marathi: 'दुहेरी प्रमाणात अॅल्युमिनियम पावडर टाकण्यात आली.', value: '3' },
+    { id: 4, english: 'Soluble oil not added.', marathi: 'सोल्युबल ऑइल टाकलेले नाही.', value: '4' },
+    { id: 5, english: 'Ferry carriage stuck.', marathi: 'फेरी कॅरेज अडकले आहे.', value: '5' },
+    { id: 6, english: 'Mixer agitator jammed.', marathi: 'मिक्सर अॅजिटेटर जॅम झाला आहे.', value: '6' },
+    { id: 7, english: 'Cement and lime powder screw jammed.', marathi: 'सिमेंट आणि लाईम पावडर स्क्रू जॅम झाला आहे.', value: '7' },
+    { id: 8, english: 'Temperature increased due to ferry carriage under maintenance.', marathi: 'फेरी कॅरेज देखभालीखाली असल्यामुळे तापमान वाढले.', value: '8' },
+    { id: 9, english: 'Mould derailed on ferry carriage.', marathi: 'फेरी कॅरेजवर साचा (मोल्ड) रुळावरून घसरला.', value: '9' }
+  ];
+
   initForm(): void {
+    const now = this.getCurrentTime();
     this.form = this.fb.group({
       plantNo: [''],
       batchNo: ['', Validators.required],
-      risingTime: [this.getCurrentTime()],
+      risingStartTime: [now],
+      dischargeTime: [''],
       risingTempC: [0],
-      moldPenetration: [0],
-      ballTest: [''],
+      mouldNo: [''],
+      mouldHeight: [0],
+      mouldFlow: [0],
+
+      // Keep `remark` for backward compatibility (backend expects string),
+      // but UI will store multi-select selections in `remarks` (string array).
       remark: [''],
+      remarks: [[] as string[]],
+
       shift: ['1', Validators.required],
       plantName: ['Plant 1']
     });
+
+    // Auto-calculate total rising time whenever either time changes
+    this.form.get('risingStartTime')?.valueChanges.subscribe(() => this.calcTotalRisingTime());
+    this.form.get('dischargeTime')?.valueChanges.subscribe(() => this.calcTotalRisingTime());
+  }
+
+  private buildRemarkTextFromIds(ids: string[] | null | undefined): string {
+    const safe = (ids || []).filter(Boolean);
+    const selected = this.risingRemarkOptions.filter(o => safe.includes(o.value));
+    if (!selected.length) return '';
+
+    // Use bilingual text per remark; join multiple selections with '; '
+    return selected.map(o => `${o.english} / ${o.marathi}`).join('; ');
+  }
+
+  private parseRemarkTextToIds(text: string | null | undefined): string[] {
+    if (!text) return [];
+    const trimmed = String(text).trim();
+    if (!trimmed) return [];
+
+    // If backend stored our `value` ids, handle that format first
+    const idMatches = trimmed.match(/\b[1-9]\b/g);
+    if (idMatches && idMatches.length) return Array.from(new Set(idMatches));
+
+    // Otherwise attempt to match by bilingual string presence
+    const ids: string[] = [];
+    for (const opt of this.risingRemarkOptions) {
+      const key = `${opt.english} / ${opt.marathi}`;
+      if (trimmed.includes(key)) ids.push(opt.value);
+      else if (trimmed.includes(opt.english) || trimmed.includes(opt.marathi)) ids.push(opt.value);
+    }
+    return Array.from(new Set(ids));
+  }
+
+  toggleRemark(value: string, event: Event): void {
+    event.stopPropagation();
+    const checked = (event.target as HTMLInputElement).checked;
+    const current: string[] = this.form.get('remarks')?.value ?? [];
+
+    const set = new Set<string>(current);
+    if (checked) set.add(value);
+    else set.delete(value);
+
+    const next = Array.from(set);
+    this.form.patchValue({
+      remarks: next,
+      // keep backward compatible string field in sync
+      remark: this.buildRemarkTextFromIds(next)
+    });
+  }
+
+  toggleRemarksDropdown(event: Event): void {
+    event.stopPropagation();
+    this.remarksDropdownOpen = !this.remarksDropdownOpen;
+  }
+
+  isRemarkSelected(value: string): boolean {
+    return (this.form.get('remarks')?.value ?? []).includes(value);
+  }
+
+  getSelectedRemarksPlaceholder(): string {
+    const selected: string[] = this.form?.get('remarks')?.value ?? [];
+    if (!selected.length) return 'Select Remarks';
+    return selected.length === 1 ? '1 Remark Selected' : `${selected.length} Remarks Selected`;
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.remarks-multiselect')) {
+      this.remarksDropdownOpen = false;
+    }
   }
 
   getCurrentTime(): string {
     const now = new Date();
-    return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const hh = String(now.getHours()).padStart(2, '0');
+    const mm = String(now.getMinutes()).padStart(2, '0');
+    return `${hh}:${mm}`;
+  }
+
+  // ===== TOTAL RISING TIME CALCULATION =====
+  totalRisingTimeDisplay = '';
+
+  calcTotalRisingTime(): void {
+    const start = this.form.get('risingStartTime')?.value;
+    const end = this.form.get('dischargeTime')?.value;
+    if (!start || !end) { this.totalRisingTimeDisplay = ''; return; }
+    try {
+      const [sh, sm] = start.split(':').map(Number);
+      const [eh, em] = end.split(':').map(Number);
+      let diff = (eh * 60 + em) - (sh * 60 + sm);
+      if (diff < 0) diff += 24 * 60;
+      const h = Math.floor(diff / 60);
+      const m = diff % 60;
+      this.totalRisingTimeDisplay = `${h} Hours ${m} Minutes`;
+    } catch { this.totalRisingTimeDisplay = ''; }
+  }
+
+  useCurrentTimeForRisingStart(): void {
+    this.form.patchValue({ risingStartTime: this.getCurrentTime() });
+  }
+
+  useCurrentTimeForDischarge(): void {
+    this.form.patchValue({ dischargeTime: this.getCurrentTime() });
   }
 
   loadList(): void {
@@ -109,6 +234,9 @@ export class RisingSectionComponent implements OnInit {
       if (this.filterPlant) {
         filtered = filtered.filter((r: any) => r.plantName === this.filterPlant);
       }
+      if (this.filterShift) {
+        filtered = filtered.filter((r: any) => (r.shift || '').toLowerCase().includes(this.filterShift.toLowerCase()));
+      }
 
       this.list = filtered;
       this.updatePagination();
@@ -128,12 +256,33 @@ export class RisingSectionComponent implements OnInit {
     this.filterFromDate = '';
     this.filterToDate = '';
     this.filterPlant = 'Plant 1';
+    this.filterShift = '';
     this.onFilterChange();
   }
 
   loadProductions(): void {
     this.productionService.getAll().subscribe(res => {
       this.productionList = res || [];
+    });
+  }
+
+  onBatchChange(event?: any): void {
+    const batchNo = this.form.get('batchNo')?.value;
+    if (!batchNo) return;
+    this.batchLookup.getBatchDetails(batchNo).subscribe({
+      next: (res) => {
+        const shared = res?.sharedFields || {};
+        if (res?.casting || res?.production) {
+          this.form.patchValue({
+            shift: shared.shift || res?.casting?.shift || res?.production?.shift || this.form.value.shift,
+            plantName: shared.plantName || res?.casting?.plantName || res?.production?.plantName || this.form.value.plantName,
+            mouldNo: shared.mouldNo ?? res?.casting?.mouldNo ?? this.form.value.mouldNo,
+            mouldHeight: shared.mouldHeight ?? res?.casting?.mouldHeight ?? res?.casting?.height ?? this.form.value.mouldHeight,
+            mouldFlow: shared.mouldFlow ?? res?.casting?.mouldFlow ?? this.form.value.mouldFlow
+          });
+        }
+      },
+      error: (err) => console.log('Batch lookup error:', err)
     });
   }
 
@@ -149,13 +298,19 @@ export class RisingSectionComponent implements OnInit {
   }
 
   openForm(): void {
+    const now = this.getCurrentTime();
     this.showForm = true;
     this.editId = null;
+    this.totalRisingTimeDisplay = '';
     this.form.reset({
-      risingTime: this.getCurrentTime(),
-      risingTempC: 0,
-      moldPenetration: 0,
-      plantName: 'Plant 1'
+      risingStartTime: now,
+      dischargeTime: '',
+      mouldNo: '',
+      mouldHeight: 0,
+      mouldFlow: 0,
+      plantName: 'Plant 1',
+      remark: '',
+      remarks: []
     });
     this.setShiftByTime();
   }
@@ -163,7 +318,17 @@ export class RisingSectionComponent implements OnInit {
   edit(row: any): void {
     this.showForm = true;
     this.editId = row.id;
-    this.form.patchValue(row);
+
+    // Pre-fill multi-select using backend stored remark text
+    const backendText = row?.remarks ?? row?.remark ?? '';
+    const selectedIds = this.parseRemarkTextToIds(backendText);
+
+    this.form.patchValue({
+      ...row,
+      remarks: selectedIds,
+      // keep remark updated too for backward compat/export
+      remark: this.buildRemarkTextFromIds(selectedIds)
+    });
   }
 
   delete(id: number): void {
@@ -175,14 +340,24 @@ export class RisingSectionComponent implements OnInit {
   submit(): void {
     if (this.form.invalid) return;
 
+    const fv = this.form.value;
+    const selectedIds: string[] = fv.remarks ?? [];
+    const remarkText = this.buildRemarkTextFromIds(selectedIds);
+
     const payload = {
-      ...this.form.value,
+      ...fv,
+      // backward compatible fields (backend DTO has both)
+      remark: remarkText,
+      remarks: remarkText,
+
+      // send dischargeTime as risingEndTime for backend compat
+      risingEndTime: fv.dischargeTime,
       userId: this.auth.getLoggedInUserId(),
       branchId: 1,
       orgId: 1
     };
 
-    const req$ = this.editId 
+    const req$ = this.editId
       ? this.service.update(this.editId, payload)
       : this.service.save(payload);
 
@@ -222,21 +397,32 @@ export class RisingSectionComponent implements OnInit {
   }
 
   exportExcel() {
-    if (!this.filterFromDate || !this.filterToDate) {
-      alert('Please select date range');
-      return;
-    }
-    this.workflowService.exportReport('RISING', this.filterFromDate, this.filterToDate, 'excel').subscribe({
-      next: (blob) => {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `Rising_Report_${this.filterFromDate}_to_${this.filterToDate}.xlsx`;
-        a.click();
-        URL.revokeObjectURL(url);
-      },
-      error: () => alert('Failed to export Excel')
-    });
+    const data = this.list.map(r => ({
+      PlantNo: r.plantNo ?? '',
+      BatchNo: r.batchNo ?? '',
+      Shift: r.shift ?? '',
+      RisingStartTime: r.risingStartTime ?? '',
+      DischargeTime: r.dischargeTime ?? r.risingEndTime ?? '',
+      TotalRisingTime: r.risingTime ?? '',
+      MouldNo: r.mouldNo ?? '',
+      MouldHeight: r.mouldHeight ?? '',
+      MouldFlow: r.mouldFlow ?? '',
+      RisingTemperature: r.risingTemperature ?? '',
+      Remark: r.remark ?? '',
+      PlantName: r.plantName ?? ''
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Rising');
+    const buffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Rising_Report_${this.filterFromDate || 'all'}_to_${this.filterToDate || 'all'}.xlsx`;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   exportPdf() {
@@ -257,9 +443,48 @@ export class RisingSectionComponent implements OnInit {
     });
   }
 
+  downloadRising(r: any, format: string = 'pdf'): void {
+    if (!r || !r.batchNo) {
+      alert('No batch selected to download');
+      return;
+    }
+    this.workflowService.downloadReport(r.batchNo, 'RISING', format).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const ext = format === 'excel' ? 'xlsx' : 'pdf';
+        a.download = `workflow_report_${r.batchNo}_RISING.${ext}`;
+        a.click();
+        URL.revokeObjectURL(url);
+      },
+      error: () => { alert('Failed to download report.'); }
+    });
+  }
+
+  /** Download combined horizontal Excel for this rising batch */
+  downloadHorizontalReport(r: any): void {
+    const batchNo = r?.batchNo;
+    if (!batchNo) {
+      alert('No batch number available');
+      return;
+    }
+    this.horizontalReportService.downloadLifecycleExcel(batchNo, 'RISING').subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `horizontal_report_${batchNo}.xlsx`;
+        a.click();
+        URL.revokeObjectURL(url);
+      },
+      error: () => alert('Failed to download horizontal report.')
+    });
+  }
+
   exportHorizontalReport() {
     if (!this.filterFromDate || !this.filterToDate) { alert('Please select a date range first'); return; }
-    this.horizontalReportService.downloadExcel(this.filterFromDate, this.filterToDate, undefined, 'RISING').subscribe({
+    this.horizontalReportService.downloadExcel(this.filterFromDate, this.filterToDate, undefined, 'RISING', this.filterPlant, this.filterShift).subscribe({
       next: (blob) => {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');

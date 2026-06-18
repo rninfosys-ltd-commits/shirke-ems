@@ -1,7 +1,287 @@
-.lead-wrapper {
-    background-color: white;
+/* ================= MODERN DASHBOARD STYLES ================= */
+.container {
+    max-width: 1500px;
+    margin: auto;
     padding: 20px;
-    min-height: 100vh;
+}
+
+.main {
+    background-color: #f8fafc;
+    padding: 30px;
+    border-radius: 20px;
+    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.page-title {
+    font-size: 28px;
+    font-weight: 800;
+    color: #1e293b;
+    margin: 0;
+    background: none;
+    padding: 0;
+}
+
+/* BUTTONS */
+.add-btn {
+    height: 42px;
+    padding: 0 20px;
+    border-radius: 10px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 14px;
+    background: #4f46e5;
+    color: white;
+}
+
+.add-btn:hover {
+    background: #4338ca;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+}
+
+.dash-btn {
+    height: 42px;
+    padding: 0 20px;
+    border-radius: 10px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 14px;
+    background: #5850ec;
+    color: white;
+    margin-left: 12px;
+}
+
+.dash-btn:hover {
+    background: #4a41d4;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(88, 80, 236, 0.3);
+}
+
+/* FILTERS */
+.filters {
+    display: flex;
+    align-items: flex-end;
+    gap: 20px;
+    background: #ffffff;
+    padding: 24px;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e2e8f0;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+}
+
+.date-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 200px;
+}
+
+.date-field label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.date-field input[type="date"] {
+    padding: 10px 15px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 14px;
+    color: #1e293b;
+    background: #f8fafc;
+    width: 100%;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.date-field input[type="date"]:focus {
+    border-color: #4f46e5;
+    background: white;
+    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+}
+
+.filter-select {
+    min-width: 150px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.filter-select label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.filter-select select {
+    width: 100%;
+    height: 42px;
+    padding: 0 15px;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    font-size: 14px;
+    color: #1e293b;
+    cursor: pointer;
+}
+
+.clear-btn {
+    height: 42px;
+    padding: 0 20px;
+    border-radius: 10px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    background: #ef4444;
+    color: white;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.clear-btn:hover {
+    background: #dc2626;
+}
+
+/* TABLE */
+.table-scroll {
+    background: #ffffff;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e2e8f0;
+}
+
+.custom-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.custom-table thead th {
+    background-color: #f1f5f9;
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 16px;
+    border-bottom: 2px solid #e2e8f0;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.custom-table tbody td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+    font-size: 14px;
+    background: white !important;
+    white-space: nowrap;
+}
+
+.custom-table tbody tr:hover td {
+    background-color: #f8fafc !important;
+}
+
+.custom-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* ACTION BUTTONS */
+.link-btn {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-right: 5px;
+}
+
+.link-btn.danger { background: #fef2f2; color: #dc2626; }
+.link-btn.info { background: #eff6ff; color: #2563eb; }
+.link-btn.success { background: #ecfdf5; color: #059669; }
+.link-btn.hz { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+
+/* BADGES */
+.badge {
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.badge.active {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.badge.inactive {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+/* PAGINATION */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin-top: 30px;
+}
+
+.pagination button {
+    height: 40px;
+    padding: 0 20px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    background: white;
+    color: #64748b;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.pagination button:hover:not(:disabled) {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+}
+
+.pagination button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.pagination span {
+    font-weight: 700;
+    color: #1e293b;
+    font-size: 16px;
 }
 
 /* ================= MODERN FORM STYLES (Rising Aesthetic) ================= */
@@ -95,6 +375,12 @@
     border-color: #7f46ff;
     background: #fff;
     box-shadow: 0 0 0 4px rgba(127, 70, 255, 0.1);
+}
+
+.readonly-input {
+    background: #f1f5f9 !important;
+    color: #64748b !important;
+    cursor: default;
 }
 
 .divider {
@@ -235,964 +521,4 @@
     .form-grid {
         grid-template-columns: repeat(2, 1fr);
     }
-}
-
-@media (max-width: 600px) {
-    .form-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* TABLE */
-.list-title {
-    margin-bottom: 16px;
-    color: #1e3a8a;
-}
-
-/* ================= LEAD TABLE (SAME AS PROJECT) ================= */
-
-.lead-table {
-    width: 100%;
-    min-width: 720px;
-    border-collapse: collapse;
-    border: 1px solid #e5e7eb;
-}
-
-.table-scroll {
-    width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-}
-
-/* HEADER */
-.lead-table th {
-    background: blue;
-    font-size: 16px;
-    text-transform: uppercase;
-    color: white;
-}
-
-/* CELL */
-.lead-table th,
-.lead-table td {
-    padding: 8px 12px;
-    border: 1px solid #e5e7eb;
-    font-size: 15px;
-    white-space: nowrap !important;
-}
-
-/* ROW HOVER */
-.lead-table tbody tr:hover {
-    background: #f1f5f9;
-}
-
-.badge {
-    padding: 4px 10px;
-    border-radius: 999px;
-    font-size: 14px;
-    font-weight: 600;
-}
-
-.badge.active {
-    background: #dcfce7;
-    color: #166534;
-}
-
-.badge.inactive {
-    background: #fee2e2;
-    color: #991b1b;
-}
-
-.no-data {
-    text-align: center;
-    padding: 20px;
-    color: #64748b;
-}
-
-/* RESPONSIVE */
-@media (max-width: 1100px) {
-    .grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .field.full {
-        grid-column: span 2;
-    }
-}
-
-@media (max-width: 600px) {
-    .grid {
-        grid-template-columns: 1fr;
-    }
-
-    .field.full {
-        grid-column: span 1;
-    }
-}
-
-.pagination {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 14px;
-    margin-top: 24px;
-}
-
-.pagination button {
-    padding: 8px 24px;
-    border-radius: 999px;
-    border: none;
-    font-weight: 600;
-    color: white;
-    background-color: #1e40af;
-    cursor: pointer;
-    font-size: 16px;
-}
-
-.pagination button:disabled {
-    background: #94a3b8;
-    cursor: not-allowed;
-}
-
-.add-btn {
-    height: 42px;
-    padding: 0 20px;
-    border-radius: 10px;
-    border: none;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-size: 14px;
-    background: #4f46e5;
-    color: white;
-}
-
-.add-btn:hover {
-    background: #4338ca;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
-}
-
-.dash-btn {
-    height: 42px;
-    padding: 0 20px;
-    border-radius: 10px;
-    border: none;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-size: 14px;
-    background: #5850ec;
-    color: white;
-    margin-left: 12px;
-}
-
-.dash-btn:hover {
-    background: #4a41d4;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(88, 80, 236, 0.3);
-}
-
-.title {
-    font-size: 20px;
-    font-weight: 700;
-    background: linear-gradient(135deg, #7f46ff 0%, #9d6bff 100%);
-    color: white;
-    padding: 8px 16px;
-    border-radius: 10px;
-}
-
-.header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 25px;
-}
-
-.filters {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 14px;
-    padding: 14px 18px;
-
-    background: #ffffff;
-    border: 1px solid #e5e7eb;
-    border-radius: 14px;
-    margin-bottom: 10px;
-    flex-wrap: wrap;
-}
-
-/* ================= DATE FIELD (LABEL + INPUT) ================= */
-
-.date-field {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-/* LABEL */
-.date-field label {
-    font-size: 20px;
-    font-weight: 500;
-    color: #374151;
-}
-
-/* ================= INPUTS & SELECTS ================= */
-
-.filters input[type="date"],
-.filters select {
-    height: 42px;
-    /* ✅ same height everywhere */
-    width: 280px;
-    /* ✅ same width everywhere */
-
-    padding: 0 14px;
-    font-size: 19px;
-
-    border-radius: 10px;
-    border: 1px solid #d1d5db;
-    background: #ffffff;
-    color: #374151;
-
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-/* ================= FOCUS (CLEAN & SOFT) ================= */
-
-.filters input:focus,
-.filters select:focus {
-    outline: none;
-    border-color: #6366f1;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
-}
-
-/* ================= SELECT ARROW (CONSISTENT) ================= */
-
-.filters select {
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg fill='none' stroke='%236b7280' stroke-width='2' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 14px center;
-    background-size: 16px;
-    padding-right: 40px;
-}
-
-/* ================= CLEAR BUTTON ================= */
-
-.clear-btn {
-    height: 42px;
-    /* matches inputs */
-    padding: 5px 35px;
-
-    border-radius: 999px;
-    border: none;
-
-    font-size: 22px;
-    font-weight: 600;
-
-    background: #ff0000;
-    color: #ffffff;
-
-    cursor: pointer;
-    white-space: nowrap;
-    transition: background 0.2s ease, transform 0.2s ease;
-}
-
-.clear-btn:hover {
-    background: #dc2626;
-    transform: translateY(-1px);
-}
-
-/* ================= SCROLLBAR (CLEAN) ================= */
-
-.filters::-webkit-scrollbar {
-    height: 4px;
-}
-
-.filters::-webkit-scrollbar-thumb {
-    background: #e5e7eb;
-    border-radius: 4px;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-/* ================= TOP LINE LABEL INPUT ================= */
-
-.date-field.top-label {
-    position: relative;
-    min-width: 280px;
-}
-
-/* LABEL ON BORDER LINE */
-.date-field.top-label label {
-    position: absolute;
-    top: -9px;
-    /* 👈 sits on border line */
-    left: 14px;
-    background: #ffffff;
-    /* cuts border behind */
-    padding: 0 6px;
-
-    font-size: 19px;
-    font-weight: 4000;
-    color: #2563eb;
-    z-index: 2;
-}
-
-/* INPUT */
-.date-field.top-label input {
-    width: 100%;
-    height: 42px;
-    padding: 0 14px;
-    font-size: 19px;
-
-    border-radius: 12px;
-    border: 1.5px solid #cbd5e1;
-    background: #f8fafc;
-
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-/* FOCUS */
-.date-field.top-label input:focus {
-    outline: none;
-    background: #ffffff;
-    border-color: #2563eb;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
-}
-
-/* ================= MODAL FIX ================= */
-
-.modal-backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.45);
-    z-index: 999;
-}
-
-.modal {
-    position: fixed;
-    inset: 0;
-    z-index: 1000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.modal-card {
-    background: #ffffff;
-    width: 90%;
-    max-width: 1100px;
-    border-radius: 16px;
-    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.25);
-    display: flex;
-    flex-direction: column;
-    max-height: 85vh;
-}
-
-.modal-body {
-    padding: 16px;
-    overflow-y: auto;
-}
-
-.modal-footer {
-    padding: 16px;
-    display: flex;
-    justify-content: center;
-    gap: 16px;
-}
-
-.close-btn {
-    background: transparent;
-    border: none;
-    font-size: 22px;
-    cursor: pointer;
-}
-
-/* ================= COMPACT FILTER BAR – LEAD LIST ================= */
-
-@media (max-width: 1200px) {
-
-    .filters {
-
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        flex-wrap: wrap;
-        justify-content: flex-start;
-        padding: 10px 12px;
-    }
-
-    /* DATE FIELDS */
-    .filters .date-field.top-label {
-        min-width: 255px;
-    }
-
-    .filters .date-field.top-label input {
-        width: 200px;
-        /* 🔽 reduced width */
-        height: 34px;
-        font-size: 18px;
-        padding: 0 10px;
-    }
-
-    .filters .date-field.top-label label {
-        font-size: 16px;
-        top: -12px;
-    }
-
-    /* SELECT DROPDOWNS */
-    .filters select {
-        width: 140px;
-        /* 🔽 compact */
-        height: 34px;
-        font-size: 18px;
-        padding: 0 10px;
-    }
-
-    /* CLEAR BUTTON */
-    .filters .clear-btn {
-        height: 34px;
-        padding: 8px 18px;
-        font-size: 20px;
-        white-space: nowrap;
-    }
-}
-
-/* ================= LEAD TABLE ROW COLORS ================= */
-
-.lead-table tbody tr:nth-child(odd) {
-    background-color: #bfd6edab;
-    font-size: 20px;
-
-}
-
-.lead-table tbody tr:nth-child(even) {
-    background-color: white;
-    font-size: 20px;
-
-}
-
-
-.lead-table tbody tr:hover {
-    background-color: #e0f2fe;
-    transition: background-color 0.2s ease;
-}
-
-
-
-/* =========================================
-   LEAD FILTERS — MATCH PROJECT FILTER UI
-   MOBILE ONLY
-========================================= */
-
-
-/* ROW CONFIGS */
-.row-header {
-    grid-template-columns: 1fr 180px 180px;
-    align-items: center;
-}
-
-.page-title1 {
-    font-size: 26px;
-    font-weight: 700;
-    background: linear-gradient(135deg, #7f46ff 0%, #9d6bff 100%);
-
-    color: white;
-    padding: 13px 25px;
-    border-radius: 10px;
-    width: 250px;
-    margin-top: 5px;
-    margin-left: 10px;
-}
-
-/* 🔥 Full width textarea inside grid rows */
-.form-field.textarea {
-    grid-column: 1 / -1;
-    /* spans all columns */
-}
-
-.form-field.textarea textarea {
-    height: 50px;
-    /* optional – nicer UX */
-}
-
-/* ROW CONFIGS */
-.row-header {
-    grid-template-columns: 1fr 180px 180px;
-    align-items: center;
-}
-
-
-/* ROW 1 FIX */
-.row-1 {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-
-.row-1 .sub-row {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
-}
-
-
-.row-2 {
-    grid-template-columns: repeat(3, 1fr);
-}
-
-.row-3 {
-    grid-template-columns: repeat(4, 1fr);
-}
-
-/* ⭐ FIXED ROW */
-.row-4 {
-    grid-template-columns: 2fr 2fr 2fr 2fr;
-}
-
-/* FORM FIELD */
-.form-field {
-    position: relative;
-}
-
-.form-field input,
-.form-field select,
-.form-field textarea {
-    width: 100%;
-    padding: 14px 12px;
-    border: 1px solid #cfcfcf;
-    border-radius: 8px;
-    background: #fff;
-    font-size: 14px;
-}
-
-.form-field textarea {
-    height: 50px;
-}
-
-/* FLOATING LABEL */
-.form-field label {
-    position: absolute;
-    top: 0%;
-    left: 20px;
-    transform: translateY(-50%);
-    background: #fff;
-    padding: 0 6px;
-    color: gray;
-    font-size: 20px;
-    transition: .2s ease;
-    pointer-events: none;
-}
-
-.form-field input:focus+label,
-.form-field input:not(:placeholder-shown)+label,
-.form-field select:focus+label,
-.form-field textarea:focus+label,
-.form-field textarea:not(:placeholder-shown)+label {
-    top: 3px;
-    font-size: 19px;
-    color: #2563eb;
-
-}
-
-.form-field input,
-.form-field select,
-.form-field textarea {
-    font-size: 19px;
-    border: 1.5px solid #0a4995;
-    /* light blue-gray */
-    transition: border-color 0.25s ease, box-shadow 0.25s ease;
-}
-
-/* ================= HEADER BAR ================= */
-
-.row-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 7px 15px;
-}
-
-/* LEFT TITLE */
-
-.page-title1 {
-    background: #8b5cf6;
-    color: white;
-    width: 250px;
-    padding: 15px 30px;
-    border-radius: 12px;
-    font-size: 26px;
-    font-weight: 700;
-    white-space: nowrap;
-}
-
-/* RIGHT SIDE */
-
-.header-right {
-    display: flex;
-    gap: 30px;
-}
-
-/* DATE + SHIFT BOX */
-
-.form-field {
-    position: relative;
-    min-width: 200px;
-}
-
-.form-field input,
-.form-field select {
-    height: 52px;
-    padding: 0 14px;
-    border-radius: 10px;
-    border: 1.8px solid #818286;
-    font-size: 18px;
-    background: white;
-}
-
-/* FLOAT LABEL */
-
-.form-field label {
-    position: absolute;
-    top: -10px;
-    left: 12px;
-    background: white;
-    padding: 0 6px;
-    font-size: 16px;
-    color: black;
-}
-
-/* MOBILE */
-/* 
-@media(max-width:768px) {
-
-    .row-header {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 14px;
-    }
-
-    .header-right {
-        width: 100%;
-    }
-
-    .form-field {
-        width: 100%;
-    }
-
-} */
-
-/* =================================================
-   FORCE ALL FORM LABELS TO TOP (GLOBAL FIX)
-================================================= */
-
-.form-field {
-    position: relative;
-}
-
-/* INPUT / SELECT */
-
-.form-field input,
-.form-field select,
-.form-field textarea {
-    width: 100%;
-    height: 52px;
-    padding: 0 14px;
-    border-radius: 10px;
-    border: 1.8px solid gray;
-    font-size: 18px;
-    background: white;
-}
-
-/* LABEL ALWAYS ON TOP */
-
-.form-field label {
-    position: absolute !important;
-    top: -5px !important;
-    left: 14px !important;
-
-    background: white;
-    padding: 0 6px;
-
-    font-size: 18px !important;
-    /* font-weight: 600; */
-
-    color: #2563eb;
-
-    pointer-events: none;
-}
-
-/* REMOVE FLOATING CENTER BEHAVIOR COMPLETELY */
-
-.form-field input:focus+label,
-.form-field input:not(:placeholder-shown)+label,
-.form-field select:focus+label,
-.form-field textarea:focus+label {
-    top: -5px !important;
-}
-
-/* TEXTAREA HEIGHT */
-
-.form-field textarea {
-    height: 80px;
-}
-
-
-/* space between buttons */
-
-
-
-.action-cell button {
-    margin-right: 4px;
-}
-
-/* ACTION BUTTONS */
-.link-btn {
-    background: blue;
-    border: none;
-    padding: 4px 12px;
-    margin-right: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    color: white;
-    border-radius: 7px;
-    font-size: 14px;
-}
-
-/* delete button red */
-.link-btn.danger {
-    padding: 4px 12px;
-    margin-right: 12px;
-    background-color: red;
-    color: white;
-    border-radius: 10px;
-    font-size: 14px;
-}
-
-.link-btn.danger:hover {
-    background: #c62828;
-}
-
-.link-btn.info {
-    background-color: #7b1fa2;
-}
-
-.link-btn.success {
-    background-color: #2e7d32;
-}
-
-.link-btn.hz {
-    background-color: #2e7d32;
-}
-
-/* =====================================================
-   REJECTION DATA – FINAL MOBILE RESPONSIVE FIX
-===================================================== */
-@media (max-width:768px) {
-
-    /* PAGE WRAPPER */
-    .lead-wrapper {
-        padding: 8px 4px;
-    }
-
-    /* CARD */
-    .lead-card {
-        padding: 8px;
-    }
-
-    /* HEADER */
-    .header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .title {
-        font-size: 16px;
-        padding: 6px 10px;
-        width: auto;
-        white-space: nowrap;
-    }
-
-    .toggle-btn {
-        font-size: 25px;
-        padding: 12px 28px;
-        border-radius: 8px;
-    }
-
-    /* ================= FILTER BAR ================= */
-
-    .lead-card .filters {
-        display: flex;
-        flex-direction: column;
-        gap: 14px;
-        padding: 6px;
-        background: transparent;
-        border: none;
-    }
-
-    .lead-card .filters>* {
-        width: 100% !important;
-    }
-
-    /* DATE INPUTS */
-    .lead-card .date-field.top-label {
-        width: 100%;
-    }
-
-    .lead-card .date-field.top-label input {
-        width: 100%;
-        height: 48px !important;
-        font-size: 18px;
-    }
-
-    .lead-card .date-field.top-label label {
-        font-size: 16px;
-        top: -10px;
-    }
-
-    /* SELECTS */
-    .lead-card .filters select {
-        width: 100% !important;
-        height: 48px !important;
-        font-size: 18px;
-    }
-
-    /* CLEAR BUTTON */
-    .lead-card .filters .clear-btn {
-        width: 100%;
-        height: 50px;
-        font-size: 20px;
-        border-radius: 12px;
-    }
-
-    /* ================= TABLE ================= */
-
-    .table-scroll {
-        overflow-x: auto;
-        margin-top: 10px;
-    }
-
-    .lead-table {
-        min-width: 750px;
-    }
-
-    .lead-table th,
-    .lead-table td {
-        white-space: nowrap;
-        font-size: 18px;
-        padding: 8px;
-    }
-
-    /* ================= FORM ================= */
-
-    .row-header {
-        flex-direction: column;
-        gap: 12px;
-    }
-
-    .page-title1 {
-        width: 100%;
-        text-align: center;
-        font-size: 18px;
-        margin-top: -7px;
-    }
-
-    .header-right {
-        flex-direction: column;
-        width: 100%;
-        gap: 12px;
-        margin-top: 15px;
-    }
-
-    .form-field {
-        width: 100%;
-        margin-top: 5px;
-    }
-
-    /* GRID → SINGLE COLUMN */
-    .grid {
-        grid-template-columns: 1fr !important;
-        gap: 14px;
-    }
-
-    /* FORM INPUTS */
-    .form-field input,
-    .form-field select {
-        height: 48px;
-        font-size: 18px;
-    }
-
-    .form-field label {
-        top: 5px;
-    }
-
-    /* ACTION BUTTONS */
-    .actions {
-        flex-direction: row;
-        gap: 10px;
-    }
-
-    .actions button {
-        width: 100%;
-        font-size: 18px;
-    }
-
-    /* PAGINATION */
-    .pagination {
-        flex-direction: row;
-        gap: 10px;
-    }
-
-    .pagination button {
-        padding: 10px 18px;
-        font-size: 16px;
-    }
-
-    /* ================= MOBILE HEADER FIX ================= */
-
-    .lead-card .header {
-        flex-direction: column !important;
-        align-items: center !important;
-        gap: 12px;
-        padding: 10px 0;
-    }
-
-    .lead-card .title {
-        font-size: 22px;
-        padding: 6px 12px;
-        width: auto;
-        white-space: nowrap;
-        text-align: center;
-        margin: 0 auto;
-    }
-
-    .lead-card .header>div {
-        width: 100%;
-        display: flex;
-        justify-content: space-between;
-        gap: 10px;
-    }
-
-    .toggle-btn {
-        flex: 1;
-        padding: 10px;
-        font-size: 18px;
-        margin: 0 !important;
-        border-radius: 6px;
-        white-space: nowrap;
-    }
-
 }

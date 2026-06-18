@@ -32,6 +32,13 @@
                 <option value="Plant 2">Plant 2</option>
             </select>
         </div>
+        <div class="filter-group">
+            <label>Shift</label>
+            <select [(ngModel)]="shiftFilter">
+                <option value="">All Shifts</option>
+                <option *ngFor="let s of shifts" [value]="s">{{ s }}</option>
+            </select>
+        </div>
         <div class="filter-actions">
             <button class="btn-apply" (click)="loadReport()">Apply</button>
             <button class="btn-clear" (click)="clearFilters()">Clear</button>

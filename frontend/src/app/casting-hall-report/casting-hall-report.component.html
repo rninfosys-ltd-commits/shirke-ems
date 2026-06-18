@@ -20,17 +20,17 @@
         <div class="filters">
 
             <div class="date-field">
-                <label>From Date</label>
+                <label class="field-label-bottom">From Date</label>
                 <input type="date" [(ngModel)]="filterFromDate" (change)="onDateChange()" />
             </div>
 
             <div class="date-field">
-                <label>To Date</label>
+                <label class="field-label-bottom">To Date</label>
                 <input type="date" [(ngModel)]="filterToDate" (change)="onDateChange()" />
             </div>
 
             <div class="filter-select">
-                <label>Plant Name</label>
+                <label class="field-label-bottom">Plant Name</label>
                 <select [ngModel]="plantFilter" (change)="onFilterChange($event)">
                     <option value="Plant 1">Plant 1</option>
                     <option value="Plant 2">Plant 2</option>
@@ -38,7 +38,17 @@
             </div>
 
             <div class="filter-select">
-                <label>Export</label>
+                <label class="field-label-bottom">Shift</label>
+                <select [(ngModel)]="shiftFilter" (change)="onShiftFilterChange($event)">
+                    <option value="">All Shifts</option>
+                    <option value="Night">Night</option>
+                    <option value="Morning">Morning</option>
+                    <option value="Afternoon">Afternoon</option>
+                </select>
+            </div>
+
+            <div class="filter-select">
+                <label class="field-label-bottom">Export</label>
                 <select (change)="onExportChange($event)">
                     <option value="">Select Option</option>
                     <option value="pdf">Export PDF</option>
@@ -48,7 +58,7 @@
             </div>
 
             <div class="filter-select">
-                <label>Import</label>
+                <label class="field-label-bottom">Import</label>
                 <select (change)="onImportSelect($event)">
                     <option value="">Select Option</option>
                     <option value="excel">Import Excel</option>
@@ -72,8 +82,6 @@
                         <th>Plant</th>
                         <th>Height</th>
                         <th>Mould No</th>
-                        <th>Flow (cm)</th>
-                        <th>Temp (°C)</th>
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -89,8 +97,6 @@
                             <td>{{ r.plantName }}</td>
                             <td>{{ r.height }}</td>
                             <td>{{ r.mouldNo }}</td>
-                            <td>{{ r.flowInCm }}</td>
-                            <td>{{ r.castingTempC }}</td>
                             <td>
                                 <button class="link-btn" (click)="edit(r)">Edit</button>
                                 <button class="link-btn danger" (click)="delete(r.id)">Delete</button>
@@ -127,8 +133,20 @@
             <!-- HEADER SECTION -->
             <div class="form-grid header-grid">
                 <div class="form-group">
-                    <label>Date</label>
-                    <input type="date" formControlName="reportDate">
+                    <label class="label-blue">Plant</label>
+                    <select formControlName="plantName" (change)="onPlantChange()">
+                        <option value="" disabled>Select Plant</option>
+                        <option value="Plant 1">Plant 1</option>
+                        <option value="Plant 2">Plant 2</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Batch No</label>
+                    <select formControlName="batchNo" (change)="onBatchChange($event)">
+                        <option value="" disabled>Select Batch</option>
+                        <option *ngFor="let p of productionList" [value]="p.batchNo">{{ p.batchNo }}</option>
+                    </select>
                 </div>
 
                 <div class="form-group">
@@ -140,42 +158,26 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Plant</label>
-                    <select formControlName="plantName" (change)="onPlantChange()">
-                        <option value="" disabled>Select Plant</option>
-                        <option value="Plant 1">Plant 1</option>
-                        <option value="Plant 2">Plant 2</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label>Batch No</label>
-                    <select formControlName="batchNo">
-                        <option value="" disabled>Select Batch</option>
-                        <option *ngFor="let p of productionList" [value]="p.batchNo">{{ p.batchNo }}</option>
-                    </select>
+                    <label>Date</label>
+                    <input type="date" formControlName="reportDate">
                 </div>
             </div>
 
             <div class="form-grid">
-                <div class="form-group">
-                    <label class="label-blue">Height</label>
-                    <input type="text" formControlName="height" placeholder="Height">
-                </div>
 
                 <div class="form-group">
                     <label class="label-blue">Mould No</label>
-                    <input type="number" formControlName="mouldNo" placeholder="Mould No">
+                    <input type="text" formControlName="mouldNo" placeholder="Mould No">
                 </div>
-
+                
                 <div class="form-group">
-                    <label class="label-blue">Flow (cm)</label>
-                    <input type="number" formControlName="flowInCm" placeholder="Flow">
+                    <label class="label-blue">Mould Height</label>
+                    <input type="number" formControlName="mouldHeight" placeholder="Height">
                 </div>
-
+                
                 <div class="form-group">
-                    <label class="label-blue">Casting Temp °C</label>
-                    <input type="number" formControlName="castingTempC" placeholder="Temp">
+                    <label class="label-blue">Mould Flow</label>
+                    <input type="number" formControlName="mouldFlow" placeholder="Flow">
                 </div>
 
                 <div class="form-group full-width">
@@ -307,8 +309,6 @@
                                 <th>Plant</th>
                                 <th>Height</th>
                                 <th>Mould No</th>
-                                <th>Flow (cm)</th>
-                                <th>Casting Temp</th>
                                 <th colspan="2">Remark</th>
                             </tr>
                         </thead>
@@ -319,8 +319,6 @@
                                 <td>{{ selectedCasting?.plantName }}</td>
                                 <td>{{ selectedCasting?.height }}</td>
                                 <td>{{ selectedCasting?.mouldNo }}</td>
-                                <td>{{ selectedCasting?.flowInCm }}</td>
-                                <td>{{ selectedCasting?.castingTempC }}</td>
                                 <td colspan="2">{{ selectedCasting?.remark || '—' }}</td>
                             </tr>
                         </tbody>

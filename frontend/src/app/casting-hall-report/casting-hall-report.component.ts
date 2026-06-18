@@ -12,6 +12,7 @@ import { AuthService } from '../services/auth.service';
 import { WorkflowService } from '../services/workflow.service';
 import { FilterService } from '../services/filter.service';
 import { HorizontalReportService } from '../services/horizontal-report.service';
+import { BatchLookupService } from '../services/batch-lookup.service';
 
 @Component({
   selector: 'app-casting-hall-report',
@@ -47,6 +48,7 @@ export class CastingHallReportComponent implements OnInit {
   totalElements = 0;
   totalPages = 0;
   plantFilter = 'Plant 1';
+  shiftFilter = '';
   // pagedList: any[] = [];
 
 
@@ -60,11 +62,11 @@ export class CastingHallReportComponent implements OnInit {
   filterToDate = '';
   selectedCasting: any = null;
 
-  batchers: string[] = ['Rajesh Kumar', 'Sanjay Sharma', 'Amit Patel', 'Vijay Singh', 'Rahul Verma'];
+  batchers: string[] = ['S. S. Bhosale', 'S. J. Bhosale', 'R. M. Swami', 'P. D. Vanjare'];
   shifts: string[] = [
-    'Night (00:00 - 08:00)',
-    'Morning (08:00 - 16:00)',
-    'Afternoon (16:00 - 00:00)'
+    'Night (00:00 - 08:00) [1st Shift]',
+    'Morning (08:00 - 16:00) [2nd Shift]',
+    'Afternoon (16:00 - 00:00) [3rd Shift]'
   ];
 
   constructor(
@@ -75,7 +77,8 @@ export class CastingHallReportComponent implements OnInit {
     private router: Router,
     private workflowService: WorkflowService,
     private filterService: FilterService,
-    private horizontalReportService: HorizontalReportService
+    private horizontalReportService: HorizontalReportService,
+    private batchLookup: BatchLookupService
   ) { }
 
   // ================= INIT =================
@@ -92,7 +95,8 @@ export class CastingHallReportComponent implements OnInit {
       height: [''],
       mouldNo: [0],
       flowInCm: [0],
-      castingTempC: [0],
+      mouldHeight: [0],
+      mouldFlow: [0],
       remark: ['']
     });
 
@@ -157,10 +161,10 @@ export class CastingHallReportComponent implements OnInit {
       this.reportList = res.content;
       this.totalElements = res.totalElements;
       this.totalPages = res.totalPages;
-      
+
       // Since we are doing server-side pagination, filteredList is just reportList
       this.filteredList = this.reportList;
-      
+
       this.filterAvailableBatches();
     });
   }
@@ -189,6 +193,38 @@ export class CastingHallReportComponent implements OnInit {
     this.filterAvailableBatches();
   }
 
+  onBatchChange(event?: any) {
+    const batchNo = this.reportForm.get('batchNo')?.value;
+    if (batchNo) {
+      this.batchLookup.getBatchDetails(batchNo).subscribe({
+        next: (res) => {
+          const shared = res?.sharedFields || {};
+          if (res && res.production) {
+            this.reportForm.patchValue({
+              reportDate: res.production.createdDate ? new Date(res.production.createdDate).toISOString().substring(0, 10) : new Date().toISOString().substring(0, 10),
+              shift: shared.shift || res.production.shift || this.reportForm.value.shift,
+              plantName: shared.plantName || res.production.plantName || this.reportForm.value.plantName
+            });
+
+            if (this.reportForm.contains('mouldNo')) {
+              this.reportForm.patchValue({ mouldNo: shared.mouldNo ?? this.reportForm.value.mouldNo });
+            }
+            if (this.reportForm.contains('flowInCm')) {
+              this.reportForm.patchValue({ flowInCm: shared.flowInCm ?? this.reportForm.value.flowInCm });
+            }
+            if (this.reportForm.contains('mouldHeight')) {
+              this.reportForm.patchValue({ mouldHeight: shared.mouldHeight ?? this.reportForm.value.mouldHeight });
+            }
+            if (this.reportForm.contains('mouldFlow')) {
+              this.reportForm.patchValue({ mouldFlow: shared.mouldFlow ?? this.reportForm.value.mouldFlow });
+            }
+          }
+        },
+        error: (err) => console.log('Lookup error:', err)
+      });
+    }
+  }
+
 
   // ================= FILTER =================
   applyFilters() {
@@ -196,13 +232,18 @@ export class CastingHallReportComponent implements OnInit {
     // but the task specifically asked for server-side pagination and plant filtering.
     // If date range is also needed on server, the API would need more parameters.
     // For now, I'll focus on the requested plantName filter and pagination.
-    
+
     this.currentPage = 1;
     this.loadReports();
   }
 
   onFilterChange(event: any) {
     this.plantFilter = event.target.value;
+    this.applyFilters();
+  }
+
+  onShiftFilterChange(event: any) {
+    this.shiftFilter = event.target.value;
     this.applyFilters();
   }
 
@@ -248,7 +289,8 @@ export class CastingHallReportComponent implements OnInit {
       plantName: 'Plant 1',
       mouldNo: 0,
       flowInCm: 0,
-      castingTempC: 0
+      mouldHeight: 0,
+      mouldFlow: 0
     });
     this.setShiftByTime();
 
@@ -286,6 +328,10 @@ export class CastingHallReportComponent implements OnInit {
       branchId: 1,
       orgId: 1
     };
+
+    if (payload.shift) {
+      payload.shift = payload.shift.split(' ')[0];
+    }
 
     const req$ = this.editId
       ? this.service.update(this.editId, payload)
@@ -366,11 +412,11 @@ export class CastingHallReportComponent implements OnInit {
 
     // ===== PRODUCTION =====
     { label: 'Silo No 1', key: 'siloNo1' },
-    { label: 'Liter Weight 1', key: 'literWeight1' },
+    { label: 'FA Density (L/W)', key: 'literWeight1' },
     { label: 'FA Solid 1', key: 'faSolid1' },
 
     { label: 'Silo No 2', key: 'siloNo2' },
-    { label: 'Liter Weight 2', key: 'literWeight2' },
+    { label: 'Excess Density', key: 'literWeight2' },
     { label: 'FA Solid 2', key: 'faSolid2' },
 
     { label: 'Total Solid', key: 'totalSolid' },
@@ -390,7 +436,6 @@ export class CastingHallReportComponent implements OnInit {
     { label: 'Height', key: 'height' },
     { label: 'Mould No', key: 'mouldNo' },
     { label: 'Flow (cm)', key: 'flowInCm' },
-    { label: 'Casting Temp (°C)', key: 'castingTempC' },
     { label: 'Casting Remark', key: 'remark' },
 
     // ===== APPROVAL =====
@@ -402,22 +447,30 @@ export class CastingHallReportComponent implements OnInit {
 
 
   exportExcel() {
-    if (!this.filterFromDate || !this.filterToDate) {
-      alert('Please select date range');
-      return;
-    }
+    const data = this.filteredList.map(r => ({
+      ReportDate: r.reportDate ?? '',
+      PlantName: r.plantName ?? '',
+      BatchNo: r.batchNo ?? '',
+      Shift: r.shift ?? '',
+      Height: r.height ?? '',
+      MouldNo: r.mouldNo ?? '',
+      FlowInCm: r.flowInCm ?? '',
+      MouldHeight: r.mouldHeight ?? '',
+      MouldFlow: r.mouldFlow ?? '',
+      Remark: r.remark ?? ''
+    }));
 
-    this.workflowService.exportReport('CASTING', this.filterFromDate, this.filterToDate, 'excel').subscribe({
-      next: (blob) => {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `Casting_Report_${this.filterFromDate}_to_${this.filterToDate}.xlsx`;
-        a.click();
-        URL.revokeObjectURL(url);
-      },
-      error: () => alert('Failed to export Excel')
-    });
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Casting');
+    const buffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Casting_Report_${this.filterFromDate || 'all'}_to_${this.filterToDate || 'all'}.xlsx`;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
 
@@ -557,7 +610,7 @@ export class CastingHallReportComponent implements OnInit {
   /** Export horizontal report for the selected date range */
   exportHorizontalReport() {
     if (!this.filterFromDate || !this.filterToDate) { alert('Please select a date range first'); return; }
-    this.horizontalReportService.downloadExcel(this.filterFromDate, this.filterToDate, undefined, 'CASTING').subscribe({
+    this.horizontalReportService.downloadExcel(this.filterFromDate, this.filterToDate, undefined, 'CASTING', this.plantFilter, this.shiftFilter).subscribe({
       next: (blob) => {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -577,8 +630,6 @@ export class CastingHallReportComponent implements OnInit {
     { label: 'Mould No', key: 'mouldNo' },
 
     { label: 'Flow (cm)', key: 'flowInCm' },
-    { label: 'Casting Temp (°C)', key: 'castingTempC' },
-
     { label: 'Remark', key: 'remark' },
 
     { label: 'Approved By L1', key: 'approvedByL1' },
@@ -615,10 +666,10 @@ export class CastingHallReportComponent implements OnInit {
 
 
   loadCurrentUserRole() {
-    const role = localStorage.getItem('role') || '';
+    const role = (localStorage.getItem('role') || '').trim();
     this.currentUserRole = role.startsWith('ROLE_')
       ? role
-      : `ROLE_${role} `;
+      : `ROLE_${role}`;
   }
   openImportModal() {
     this.showImportModal = true;
@@ -636,7 +687,6 @@ export class CastingHallReportComponent implements OnInit {
     'Size': 'height',
     'Mould No': 'mouldNo',
     'Flow (cm)': 'flowInCm',
-    'Casting Temp (°C)': 'castingTempC',
     'Casting Remark': 'remark'
   };
   importPreviewFields = [
@@ -644,7 +694,6 @@ export class CastingHallReportComponent implements OnInit {
     { label: 'Height', key: 'height' },
     { label: 'Mould No', key: 'mouldNo' },
     { label: 'Flow (cm)', key: 'flowInCm' },
-    { label: 'Casting Temp (°C)', key: 'castingTempC' },
     { label: 'Remark', key: 'remark' }
   ];
 

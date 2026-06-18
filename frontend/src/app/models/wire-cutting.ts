@@ -1,9 +1,8 @@
 export interface WireCuttingReport {
-
     id?: number;
-
     batchNo: string;
     plantName: string;
+    shift?: string;
     cuttingDate: string | Date;
 
     mouldNo: number;
@@ -25,6 +24,8 @@ export interface WireCuttingReport {
     totalItem?: number;
     remark?: string;
     time: string;
+    cuttingStartTime?: string;
+    cycleTime?: string;
 
     // approval
     approvalStage?: string;
