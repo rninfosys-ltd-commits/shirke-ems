@@ -1,9 +1,9 @@
 // import { environment } from 'src/environments/environment';
-// import { prod_environment } from 'src/environments/environment.prod';
+import { prod_environment } from 'src/environments/environment.prod';
 
 export const APP_CONFIG = {
-    // BASE_URL: prod_environment.apiUrl,
-    BASE_URL: 'http://localhost:8080',
+    BASE_URL: prod_environment.apiUrl,
+    // BASE_URL: 'http://localhost:8080',
 
     API: {
         AUTH: '/api/auth',
