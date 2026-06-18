@@ -41,9 +41,9 @@
                 <label>Shift</label>
                 <select [(ngModel)]="filterShift" (change)="applyFilters()">
                     <option value="">All Shifts</option>
-                    <option value="Night (00:00 - 08:00)">Night</option>
-                    <option value="Morning (08:00 - 16:00)">Morning</option>
-                    <option value="Afternoon (16:00 - 00:00)">Afternoon</option>
+                    <option value="Night">Night</option>
+                    <option value="Morning">Morning</option>
+                    <option value="Afternoon">Afternoon</option>
                 </select>
             </div>
 
@@ -69,8 +69,8 @@
         </div>
 
         <!-- HIDDEN FILE INPUT -->
-        <input type="file" accept=".xlsx,.xls" hidden id="blockExcelInput" (change)="onExcelSelect($event)" />
-        <table class="table custom-table">
+        <div class="table-scroll">
+            <table class="custom-table">
             <thead>
                 <tr>
                     <th>Batch Number</th>
@@ -90,7 +90,7 @@
 
                     <td>{{ r.batchNumber }}</td>
                     <td>{{ r.castingDate | date:'dd-MM-yyyy' }}</td>
-                    <td>{{ r.shift === 'G' ? 'General Shift' : r.shift ? 'Shift ' + r.shift : '—' }}</td>
+                    <td>{{ r.shift || '—' }}</td>
                     <td>{{ r.blockSize }}</td>
                     <td>{{ r.time }}</td>
                     <td>{{ r.remark || '—' }}</td>
@@ -110,8 +110,9 @@
                 </tr>
             </tbody>
         </table>
+        </div>
         <!-- ================= PAGINATION ================= -->
-        <div class="pagination-bar" *ngIf="totalPages > 1">
+        <div class="pagination" *ngIf="totalPages > 1">
 
             <button (click)="prevPage()" [disabled]="currentPage === 1">
                 ⬅ Prev
@@ -143,8 +144,21 @@
             <!-- TOP ROW: SYSTEM FIELDS -->
             <div class="form-grid header-grid">
                 <div class="form-group">
-                    <label>Report Date</label>
-                    <input type="date" formControlName="reportDate">
+                    <label class="label-blue">Plant</label>
+                    <select formControlName="plantName" (change)="onPlantChange()">
+                        <option value="" disabled>Select Plant</option>
+                        <option value="Plant 1">Plant 1</option>
+                        <option value="Plant 2">Plant 2</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="label-blue">Batch Number</label>
+                    <select formControlName="batchNumber" (change)="onBatchChange($event)" [disabled]="noBatchAvailable">
+                        <option value="" disabled *ngIf="noBatchAvailable">No batches available</option>
+                        <option value="" disabled *ngIf="!noBatchAvailable">Select Batch</option>
+                        <option *ngFor="let b of autoclaveBatches" [value]="b.batchNo">{{ b.batchNo }}</option>
+                    </select>
                 </div>
 
                 <div class="form-group">
@@ -156,17 +170,8 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Plant</label>
-                    <select formControlName="plantName" (change)="onPlantChange()">
-                        <option value="" disabled>Select Plant</option>
-                        <option value="Plant 1">Plant 1</option>
-                        <option value="Plant 2">Plant 2</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label>Entry Time</label>
-                    <input type="text" formControlName="time" readonly class="readonly-input">
+                    <label>Report Date</label>
+                    <input type="date" formControlName="reportDate">
                 </div>
             </div>
 
@@ -181,17 +186,30 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="label-blue">Batch Number</label>
-                    <select formControlName="batchNumber" [disabled]="noBatchAvailable">
-                        <option value="" disabled *ngIf="noBatchAvailable">No batches available</option>
-                        <option value="" disabled *ngIf="!noBatchAvailable">Select Batch</option>
-                        <option *ngFor="let b of autoclaveBatches" [value]="b.batchNo">{{ b.batchNo }}</option>
-                    </select>
+                    <label>Entry Time</label>
+                    <input type="text" formControlName="time" readonly class="readonly-input">
                 </div>
 
                 <div class="form-group">
                     <label class="label-blue">Block Size</label>
-                    <input type="text" formControlName="blockSize" placeholder="Enter block size">
+                    <select formControlName="blockSize">
+                        <option value="" disabled>Select Size</option>
+                        <optgroup label="Pattern 1">
+                            <option value="650x240x100/150">650x240x100/150</option>
+                        </optgroup>
+                        <optgroup label="Pattern 2">
+                            <option value="650x240x100/150">650x240x100/150</option>
+                        </optgroup>
+                        <optgroup label="Pattern 3">
+                            <option value="650x240x125">650x240x125</option>
+                        </optgroup>
+                        <optgroup label="Pattern 4">
+                            <option value="650x240x200">650x240x200</option>
+                        </optgroup>
+                        <optgroup label="Pattern 5">
+                            <option value="650x240x300/150/100">650x240x300/150/100</option>
+                        </optgroup>
+                    </select>
                 </div>
 
                 <div class="form-group">

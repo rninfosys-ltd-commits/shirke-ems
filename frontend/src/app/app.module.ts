@@ -101,6 +101,7 @@ import { NotificationComponent } from './components/notification/notification.co
 import { TransactionExportComponent } from './components/transaction-export/transaction-export.component';
 import { HorizontalReportComponent } from './horizontal-report/horizontal-report.component';
 import { RisingSectionComponent } from './rising-section/rising-section.component';
+import { BatchHistoryComponent } from './batch-history/batch-history.component';
 
 
 
@@ -175,7 +176,8 @@ import { RisingSectionComponent } from './rising-section/rising-section.componen
     NotificationComponent,
     TransactionExportComponent,
     HorizontalReportComponent,
-    RisingSectionComponent
+    RisingSectionComponent,
+    BatchHistoryComponent
   ],
   imports: [
     BrowserModule,

@@ -17,6 +17,8 @@ public interface CubeTestRepository extends JpaRepository<CubeTestEntity, Long> 
 
     List<CubeTestEntity> findByBatchNo(String batchNo);
 
+    List<CubeTestEntity> findByBatchNoAndShift(String batchNo, String shift);
+
     List<CubeTestEntity> findByPlantName(String plantName);
 
     List<CubeTestEntity> findByTestingDateBetweenAndPlantName(Date start, Date end, String plantName);

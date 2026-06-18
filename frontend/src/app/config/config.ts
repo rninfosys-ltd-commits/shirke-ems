@@ -1,8 +1,9 @@
-import { environment } from 'src/environments/environment';
+// import { environment } from 'src/environments/environment';
+// import { prod_environment } from 'src/environments/environment.prod';
 
 export const APP_CONFIG = {
-    BASE_URL: environment.apiUrl,
-    // BASE_URL: 'http://localhost:8080',
+    // BASE_URL: prod_environment.apiUrl,
+    BASE_URL: 'http://localhost:8080',
 
     API: {
         AUTH: '/api/auth',
@@ -12,6 +13,7 @@ export const APP_CONFIG = {
         EMPLOYEES: '/api/employees',
         CUSTOMER_TRN: '/api/customer-trn',
         BATCH: '/api/batch',
+        BATCH_TRACEABILITY: '/api/batch-traceability',  // add this line
         KM_BATCH: '/api/km-batch',
         KM_ENTRY: '/api/km-entry',
         LOCATION: '/api/location',

@@ -1,7 +1,8 @@
 package com.schoolapp.dao;
 
-//package com.crmemp.dto;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class AutoclaveWagonDTO {
 
     public Integer batchNo;

@@ -42,19 +42,32 @@ public class ProductionEntry {
 	private String plantName;
 
 	private String siloNo1;
-	private Double literWeight1;
 	private Double faSolid1;
-
-	private String siloNo2;
-	private Double literWeight2;
-	private Double faSolid2;
 
 	private Double totalSolid;
 	private Double faSlurryQty;
 	private Double excessSlurryQty;
 	private Double surfactant;
-	private Double dcChemical;
+
+	@Column(name = "dc_chemical")
+	private Double aluminumPowderKg;
+
 	private Double dcmrt;
+
+	// ---------- BATCHER SELECTION ----------
+	private Long batcherId;
+	private String batcherName;
+
+	// ---------- ADDED CALCULATIONS ----------
+	private Double cbmVolume;
+	private Double totalSolidsPerCbm;
+	private Double totalBindersPerCbm;
+	private Double totalWaterPerCbm;
+	private Double waterSolidRatio;
+
+	private Double faDensity;
+	private Double excessDensity;
+	private Double excessSolid;
 
 	// ---------- LEGACY MATERIAL COLUMNS (kept for backward compatibility)
 	// ----------
@@ -63,31 +76,22 @@ public class ProductionEntry {
 	private Double limeKg;
 	private Double gypsumKg;
 	private Double solOilKg;
-	private Double aiPowerGm;
 	private Double tempC;
 	private Integer mixingTime;
 	private String approvalTimeL1;
 	private String approvalTimeL2;
 	private String approvalTimeL3;
-	private String approvalTimeL4;
-	private String approvalTimeL5;
-	private String approvalTimeL6;
-	private String approvalTimeL7;
 
 	private String castingTime;
 	private String productionTime;
 
 	@Column(length = 500)
 	private String productionRemark;
-
-	@Column(length = 500)
-	private String remark;
 	// ---------- APPROVAL WORKFLOW ----------
 
 	private String approvedByL1;
 	private String approvedByL2;
 	private String approvedByL3;
-	private String approvedByL4;
 
 	@Column(length = 20)
 	@Builder.Default
@@ -95,10 +99,6 @@ public class ProductionEntry {
 
 	private String rejectedBy;
 	private String rejectReason;
-
-	private String approvedByL5;
-	private String approvedByL6;
-	private String approvedByL7;
 
 	// ---------- DYNAMIC MATERIALS ----------
 	@OneToMany(mappedBy = "productionEntry", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)

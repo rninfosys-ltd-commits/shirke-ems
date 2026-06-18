@@ -1,5 +1,6 @@
 package com.schoolapp.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.util.Date;
 
@@ -20,10 +21,16 @@ public class CastingHallReport {
 
     private String batchNo;
 
-    private String height; // Changed to String for consistency with WireCutting
-    private int mouldNo;
+    @JsonIgnore
+    @OneToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "production_id")
+    private ProductionEntry productionEntry;
 
-    private int flowInCm;
+    private String mouldNo;
+    private Double mouldHeight;
+    private Double mouldFlow;
+
+    private String height; // Changed to String for consistency with WireCutting
     private int castingTempC;
 
     private String remark;

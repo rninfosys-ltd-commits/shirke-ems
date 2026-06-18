@@ -1,9 +1,9 @@
-<div class="lead-wrapper">
+<div class="container">
 
-    <div class="lead-card" *ngIf="showLeads">
+    <div class="main" *ngIf="showLeads">
 
         <div class="header">
-            <h2 class="title">Rejection Data</h2>
+            <h2 class="page-title">Rejection Data</h2>
 
             <div>
                 <button class="add-btn" (click)="openCreate()">+ Add</button>
@@ -39,9 +39,9 @@
                 <label>Shift</label>
                 <select [(ngModel)]="filterShift" (change)="applyFilters()">
                     <option value="">All Shifts</option>
-                    <option value="Night (00:00 - 08:00)">Night</option>
-                    <option value="Morning (08:00 - 16:00)">Morning</option>
-                    <option value="Afternoon (16:00 - 00:00)">Afternoon</option>
+                    <option value="Night (00:00 - 08:00) [1st Shift]">Night</option>
+                    <option value="Morning (08:00 - 16:00) [2nd Shift]">Morning</option>
+                    <option value="Afternoon (16:00 - 00:00) [3rd Shift]">Afternoon</option>
                 </select>
             </div>
 
@@ -70,7 +70,7 @@
         <input type="file" accept=".xlsx,.xls" hidden id="rejectionExcelInput" (change)="onExcelSelect($event)" />
 
         <div class="table-scroll">
-            <table class="lead-table">
+            <table class="custom-table">
 
                 <thead>
                     <tr>
@@ -138,24 +138,11 @@
         </div>
 
         <form [formGroup]="form" (ngSubmit)="submit()" class="form-body">
-            
+
             <!-- TOP ROW: SYSTEM FIELDS -->
             <div class="form-grid header-grid">
                 <div class="form-group">
-                    <label>Report Date</label>
-                    <input type="date" formControlName="date">
-                </div>
-
-                <div class="form-group">
-                    <label>Shift</label>
-                    <select formControlName="shift">
-                        <option value="" disabled>Select Shift</option>
-                        <option *ngFor="let s of shifts" [value]="s">{{ s }}</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label>Plant</label>
+                    <label class="label-blue">Plant</label>
                     <select formControlName="plantName" (change)="onPlantChange()">
                         <option value="" disabled>Select Plant</option>
                         <option value="Plant 1">Plant 1</option>
@@ -171,6 +158,19 @@
                         <option *ngFor="let b of cubeTests" [value]="b.batchNo">{{ b.batchNo }}</option>
                     </select>
                 </div>
+
+                <div class="form-group">
+                    <label>Shift</label>
+                    <select formControlName="shift">
+                        <option value="" disabled>Select Shift</option>
+                        <option *ngFor="let s of shifts" [value]="s">{{ s }}</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Report Date</label>
+                    <input type="date" formControlName="date">
+                </div>
             </div>
 
             <div class="divider"></div>
@@ -178,7 +178,7 @@
             <div class="rejection-layout-container">
                 <!-- LEFT: DATA FIELDS -->
                 <div class="rejection-fields-area">
-                    
+
                     <h4 class="section-subtitle">BASIC INFO</h4>
                     <div class="form-grid">
                         <div class="form-group">
@@ -187,7 +187,7 @@
                         </div>
                         <div class="form-group">
                             <label class="label-blue">Quantity (Qty)</label>
-                            <input type="number" formControlName="qty">
+                            <input type="number" formControlName="qty" readonly>
                         </div>
                     </div>
 
@@ -196,32 +196,60 @@
                     <h4 class="section-subtitle">DAMAGE TYPES (QTY)</h4>
                     <div class="form-grid">
                         <div class="form-group">
+                            <label>Middle crack</label>
+                            <input type="number" formControlName="centreCrack">
+                        </div>
+                        <div class="form-group">
+                            <label>rising Crack</label>
+                            <input type="number" formControlName="risingCrack">
+                        </div>
+                        <div class="form-group">
                             <label>Corner Damage</label>
                             <input type="number" formControlName="cornerDamage">
                         </div>
                         <div class="form-group">
-                            <label>Eruption Type</label>
-                            <input type="number" formControlName="eruptionType">
+                            <label>Bottom Line Middle Crack</label>
+                            <input type="number" formControlName="bottomUncutBlocks">
                         </div>
                         <div class="form-group">
-                            <label>Top Side Damage</label>
+                            <label>Upper line Crack</label>
                             <input type="number" formControlName="topSideDamages">
                         </div>
                         <div class="form-group">
-                            <label>Side/Thermal Crack</label>
+                            <label>Autoclave Damage</label>
+                            <input type="number" formControlName="autoclaveDamage">
+                        </div>
+                        <div class="form-group">
+                            <label>Side Crack</label>
                             <input type="number" formControlName="sideCrackThermalCrack">
                         </div>
                         <div class="form-group">
-                            <label>Rising Crack</label>
-                            <input type="number" formControlName="risingCrack">
+                            <label>Chipping</label>
+                            <input type="number" formControlName="chipping">
                         </div>
                         <div class="form-group">
-                            <label>Centre Crack</label>
-                            <input type="number" formControlName="centreCrack">
+                            <label>Crane Damage</label>
+                            <input type="number" formControlName="craneDamage">
                         </div>
                         <div class="form-group">
-                            <label>Bottom Uncut</label>
-                            <input type="number" formControlName="bottomUncutBlocks">
+                            <label>Unrise</label>
+                            <input type="number" formControlName="unrise">
+                        </div>
+                        <div class="form-group">
+                            <label>Unsize</label>
+                            <input type="number" formControlName="unsize">
+                        </div>
+                        <div class="form-group">
+                            <label>Uncut</label>
+                            <input type="number" formControlName="uncut">
+                        </div>
+                        <div class="form-group">
+                            <label>Collapse</label>
+                            <input type="number" formControlName="collapse">
+                        </div>
+                        <div class="form-group">
+                            <label>Eruption Type</label>
+                            <input type="number" formControlName="eruptionType">
                         </div>
                     </div>
                 </div>
@@ -229,7 +257,7 @@
                 <!-- RIGHT: CALCULATION PANEL -->
                 <div class="calc-panel-modern">
                     <div class="calc-header">SUMMARY</div>
-                    
+
                     <div class="calc-row">
                         <span>Original Qty</span>
                         <strong>{{ form.get('qty')?.value || 0 }}</strong>
@@ -238,7 +266,7 @@
                         <span>Total Breakages</span>
                         <strong>{{ totalBreakages }}</strong>
                     </div>
-                    
+
                     <div class="calc-footer-solid" [style.background]="isRemainingInvalid ? '#ef4444' : '#7f46ff'">
                         <span>REMAINING QTY</span>
                         <div class="solid-value">{{ remainingQty }}</div>

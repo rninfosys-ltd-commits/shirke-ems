@@ -19,6 +19,12 @@ export class ProductionDashboardComponent implements OnInit {
   toDate = '';
   hideCompleted = true; // ✅ Auto-hide fully completed batches
   filterPlant = 'Plant 1';
+  filterShift = '';
+  shifts: string[] = [
+    'Night (00:00 - 08:00) [1st Shift]',
+    'Morning (08:00 - 16:00) [2nd Shift]',
+    'Afternoon (16:00 - 00:00) [3rd Shift]'
+  ];
 
   // Pagination
   currentPage = 1;
@@ -104,6 +110,7 @@ export class ProductionDashboardComponent implements OnInit {
         return {
           batchNo: p.batchNo,
           plantName: p.plantName,
+          shift: p.shift,
           productionTimeObj: productionTime,
           castingTimeObj: castingTime,
           risingTimeObj: risingTime,
@@ -195,6 +202,8 @@ export class ProductionDashboardComponent implements OnInit {
         if (r.plantName !== this.filterPlant && r.plantName !== plantId) return false;
       }
 
+      if (this.filterShift && !(r.shift || '').toLowerCase().includes(this.filterShift.toLowerCase())) return false;
+
       const time = new Date(r.productionTimeObj).getTime();
       return (!from || time >= from) && (!to || time <= to);
     });
@@ -217,6 +226,7 @@ export class ProductionDashboardComponent implements OnInit {
     this.fromDate = '';
     this.toDate = '';
     this.filterPlant = 'Plant 1';
+    this.filterShift = '';
     this.onDateChange();
   }
 

@@ -11,6 +11,7 @@ import { Router } from '@angular/router';
 import { WorkflowService } from '../services/workflow.service';
 import { FilterService } from '../services/filter.service';
 import { HorizontalReportService } from '../services/horizontal-report.service';
+import { BatchLookupService } from '../services/batch-lookup.service';
 
 
 @Component({
@@ -42,9 +43,9 @@ export class CubeTestComponent implements OnInit {
   totalPages = 0;
 
   shifts: string[] = [
-    'Night (00:00 - 08:00)',
-    'Morning (08:00 - 16:00)',
-    'Afternoon (16:00 - 00:00)'
+    'Night (00:00 - 08:00) [1st Shift]',
+    'Morning (08:00 - 16:00) [2nd Shift]',
+    'Afternoon (16:00 - 00:00) [3rd Shift]'
   ];
 
   constructor(private fb: FormBuilder, private service: CubeTestService,
@@ -53,8 +54,34 @@ export class CubeTestComponent implements OnInit {
     private router: Router,
     private workflowService: WorkflowService,
     private filterService: FilterService,
-    private horizontalReportService: HorizontalReportService
+    private horizontalReportService: HorizontalReportService,
+    private batchLookup: BatchLookupService
   ) { }
+
+  onBatchChange(event?: any): void {
+    const batchNo = this.form.get('batchNo')?.value;
+    if (!batchNo) return;
+    this.batchLookup.getBatchDetails(batchNo).subscribe({
+      next: (res) => {
+        const shared = res?.sharedFields || {};
+        const src = res?.separating || res?.autoclave || res?.production;
+        if (src) {
+          this.form.patchValue({
+            shift: shared.shift || src.shift || this.form.value.shift,
+            plantName: shared.plantName || src.plantName || this.form.value.plantName
+          });
+        }
+        const blockSize = shared.blockSize || res?.separating?.blockSize || res?.cutting?.size || res?.casting?.height;
+        if (blockSize) {
+          this.form.patchValue({
+            cubeDimensionImmediate: blockSize,
+            castDate: shared.cuttingDate || shared.createdDate || this.form.value.castDate
+          });
+        }
+      },
+      error: (err) => console.log('Batch lookup error:', err)
+    });
+  }
 
   ngOnInit() {
 
@@ -68,18 +95,27 @@ export class CubeTestComponent implements OnInit {
       shift: ['', Validators.required],
       plantName: ['Plant 1', Validators.required],
 
+      // Legacy fields kept for fallback
       cubeDimensionImmediate: [''],
-      cubeDimensionOvenDry1: [''],
-      cubeDimensionOvenDry2: [''],
-      cubeDimensionOvenDry3: [''],
+      cubeDimensionOverDry: [''],
       weightImmediateKg: [''],
-      weightovenDryKg: [''],
+      weightOverDryKg: [''],
       weightWithMoistureKg: [''],
-      loadovenDryTonn: [''],
+      loadOverDryTonn: [''],
       loadMoistureTonn: [''],
-      compStrengthovenDry: [''],
+      compStrengthOverDry: [''],
       compStrengthMoisture: [''],
       densityKgM3: [''],
+
+      // NEW FIELDS
+      cubeSize: [''],
+      wetWeightTop: [''], wetDensityTop: [''], wetStrengthTop: [''],
+      wetWeightMid: [''], wetDensityMid: [''], wetStrengthMid: [''],
+      wetWeightBtm: [''], wetDensityBtm: [''], wetStrengthBtm: [''],
+      dryWeightTop: [''], dryDensityTop: [''], dryStrengthTop: [''],
+      dryWeightMid: [''], dryDensityMid: [''], dryStrengthMid: [''],
+      dryWeightBtm: [''], dryDensityBtm: [''], dryStrengthBtm: [''],
+
       isActive: [1]
     });
 
@@ -88,6 +124,12 @@ export class CubeTestComponent implements OnInit {
     this.loadBatches();
     const role = localStorage.getItem('role') || '';
     this.currentRole = role.startsWith('ROLE_') ? role : `ROLE_${role}`;
+
+    // Recalculate densities whenever cubeSize or any weight changes
+    this.form.get('cubeSize')?.valueChanges.subscribe(() => this.recalculateDensities());
+    ['wetWeightTop','wetWeightMid','wetWeightBtm','dryWeightTop','dryWeightMid','dryWeightBtm'].forEach(ctrl => {
+      this.form.get(ctrl)?.valueChanges.subscribe(() => this.recalculateDensities());
+    });
 
     this.filterService.fromDate$.subscribe(d => {
       this.filterFromDate = d;
@@ -106,6 +148,59 @@ export class CubeTestComponent implements OnInit {
     else this.form.patchValue({ shift: this.shifts[2] });
   }
 
+  // ================= PROGRESSIVE ENABLEMENT HELPERS =================
+
+  get cubeSizeSelected(): boolean {
+    return !!this.form.get('cubeSize')?.value;
+  }
+
+  private isWetRowComplete(pos: 'Top' | 'Mid' | 'Btm'): boolean {
+    const w = this.form.get(`wetWeight${pos}`)?.value;
+    const s = this.form.get(`wetStrength${pos}`)?.value;
+    return w !== null && w !== '' && s !== null && s !== '';
+  }
+
+  get wetTopComplete(): boolean { return this.isWetRowComplete('Top'); }
+  get wetMidComplete(): boolean { return this.isWetRowComplete('Mid'); }
+  get wetBtmComplete(): boolean { return this.isWetRowComplete('Btm'); }
+
+  get anyWetComplete(): boolean {
+    return this.wetTopComplete || this.wetMidComplete || this.wetBtmComplete;
+  }
+
+  // Dry row enabled only if corresponding wet row is complete
+  get dryTopEnabled(): boolean { return this.wetTopComplete; }
+  get dryMidEnabled(): boolean { return this.wetMidComplete; }
+  get dryBtmEnabled(): boolean { return this.wetBtmComplete; }
+
+  // ================= CALCULATION =================
+  recalculateDensities(): void {
+    const sizeStr = this.form.get('cubeSize')?.value; // e.g. "150x150x150" or "100x100x100"
+    if (!sizeStr) return;
+    
+    // calculate volume in m³
+    const dims = sizeStr.split('x').map(Number);
+    if (dims.length !== 3) return;
+    // convert mm to m
+    const volumeM3 = (dims[0] / 1000) * (dims[1] / 1000) * (dims[2] / 1000);
+    if (volumeM3 <= 0) return;
+
+    const calcDensity = (w: any) => {
+      const weight = Number(w);
+      if (isNaN(weight) || weight <= 0) return '';
+      return (weight / volumeM3).toFixed(2);
+    };
+
+    const vals = this.form.value;
+    this.form.patchValue({
+      wetDensityTop: calcDensity(vals.wetWeightTop),
+      wetDensityMid: calcDensity(vals.wetWeightMid),
+      wetDensityBtm: calcDensity(vals.wetWeightBtm),
+      dryDensityTop: calcDensity(vals.dryWeightTop),
+      dryDensityMid: calcDensity(vals.dryWeightMid),
+      dryDensityBtm: calcDensity(vals.dryWeightBtm)
+    }, { emitEvent: false });
+  }
 
   // ================= LOAD =================
 
@@ -276,7 +371,9 @@ export class CubeTestComponent implements OnInit {
 
     const payload = {
       ...this.form.value,
-      userId: userId
+      userId: userId,
+      branchId: 1,
+      orgId: 1
     };
 
     console.log('FINAL PAYLOAD:', payload); // 🔥
@@ -309,21 +406,43 @@ export class CubeTestComponent implements OnInit {
   }
 
   exportExcel() {
-    if (!this.filterFromDate || !this.filterToDate) {
-      alert('Please select date range');
-      return;
-    }
-    this.workflowService.exportReport('CUBE_TEST', this.filterFromDate, this.filterToDate, 'excel').subscribe({
-      next: (blob) => {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `CubeTest_Report_${this.filterFromDate}_to_${this.filterToDate}.xlsx`;
-        a.click();
-        URL.revokeObjectURL(url);
-      },
-      error: () => alert('Failed to export Excel')
-    });
+    const data = this.filtered.map(r => ({
+      BatchNo: r.batchNo ?? '',
+      ReportDate: r.reportDate ?? '',
+      CastDate: r.castDate ?? '',
+      TestingDate: r.testingDate ?? '',
+      Shift: r.shift ?? '',
+      PlantName: r.plantName ?? '',
+      CubeDimensionImmediate: r.cubeDimensionImmediate ?? '',
+      CubeDimensionOverDry: r.cubeDimensionOverDry ?? '',
+      WeightImmediateKg: r.weightImmediateKg ?? '',
+      WeightOverDryKg: r.weightOverDryKg ?? '',
+      WeightWithMoistureKg: r.weightWithMoistureKg ?? '',
+      LoadOverDryTonn: r.loadOverDryTonn ?? '',
+      LoadMoistureTonn: r.loadMoistureTonn ?? '',
+      CompStrengthOverDry: r.compStrengthOverDry ?? '',
+      CompStrengthMoisture: r.compStrengthMoisture ?? '',
+      DensityKgM3: r.densityKgM3 ?? '',
+      CubeSize: r.cubeSize ?? '',
+      WetWeightTop: r.wetWeightTop ?? '',
+      WetDensityTop: r.wetDensityTop ?? '',
+      WetStrengthTop: r.wetStrengthTop ?? '',
+      DryWeightTop: r.dryWeightTop ?? '',
+      DryDensityTop: r.dryDensityTop ?? '',
+      DryStrengthTop: r.dryStrengthTop ?? ''
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'CubeTest');
+    const buffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `CubeTest_Report_${this.filterFromDate || 'all'}_to_${this.filterToDate || 'all'}.xlsx`;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   exportPdf() {
@@ -388,6 +507,8 @@ export class CubeTestComponent implements OnInit {
         castDate: selected.castingDate
       });
     }
+
+    this.onBatchChange();
   }
 
   delete(id: number) {
@@ -530,7 +651,7 @@ export class CubeTestComponent implements OnInit {
   /** Export horizontal report for the selected date range */
   exportHorizontalReport() {
     if (!this.filterFromDate || !this.filterToDate) { alert('Please select a date range first'); return; }
-    this.horizontalReportService.downloadExcel(this.filterFromDate, this.filterToDate, undefined, 'CUBE_TEST').subscribe({
+    this.horizontalReportService.downloadExcel(this.filterFromDate, this.filterToDate, undefined, 'CUBE_TEST', this.filterPlant, this.filterShift).subscribe({
       next: (blob) => {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');

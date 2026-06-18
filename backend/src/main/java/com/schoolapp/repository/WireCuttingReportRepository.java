@@ -17,6 +17,7 @@ public interface WireCuttingReportRepository
         List<WireCuttingReport> findByCreatedDateBetween(Date start, Date end);
 
         List<WireCuttingReport> findByBatchNo(String batchNo);
+        List<WireCuttingReport> findByBatchNoAndShift(String batchNo, String shift);
 
         @org.springframework.data.jpa.repository.Query("SELECT w FROM WireCuttingReport w WHERE w.plantName = :plantName")
         List<WireCuttingReport> findByPlantName(

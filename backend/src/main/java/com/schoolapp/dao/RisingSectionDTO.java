@@ -11,13 +11,22 @@ public class RisingSectionDTO {
 
     private String plantNo;
     private String batchNo;
-    private String risingTime;
+    private String risingStartTime;
+    private String dischargeTime;     // discharge = rising end time
+    private String risingEndTime;     // kept for backward compat
+    private String risingTime;        // HH:MM duration string
+    private Integer totalRisingTimeMin; // computed minutes
+    private String mouldNo;
+    private Double mouldHeight;
+    private Double mouldFlow;
+    private Double risingTemperature;
     private Double risingTempC;
-    private Double moldPenetration;
-    private String ballTest;
     private String remark;
+    private String remarks;
     private String shift;
     private String plantName;
+
+    private Long castingId;
 
     private int userId;
     private int branchId;

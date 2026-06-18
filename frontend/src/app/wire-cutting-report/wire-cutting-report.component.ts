@@ -14,6 +14,7 @@ import { AuthService } from '../services/auth.service';
 import { WorkflowService } from '../services/workflow.service';
 import { FilterService } from '../services/filter.service';
 import { HorizontalReportService } from '../services/horizontal-report.service';
+import { BatchLookupService } from '../services/batch-lookup.service';
 @Component({
   selector: 'app-wire-cutting-report',
   templateUrl: './wire-cutting-report.component.html',
@@ -45,6 +46,7 @@ export class WireCuttingReportComponent implements OnInit {
   filterFromDate = '';
   filterToDate = '';
   filterPlant = 'Plant 1';
+  filterShift = '';
   castingList: any[] = [];
 
   allProductionList: any[] = [];
@@ -66,9 +68,9 @@ export class WireCuttingReportComponent implements OnInit {
   pagedList: any[] = [];
 
   shifts: string[] = [
-    'Night (00:00 - 08:00)',
-    'Morning (08:00 - 16:00)',
-    'Afternoon (16:00 - 00:00)'
+    'Night (00:00 - 08:00) [1st Shift]',
+    'Morning (08:00 - 16:00) [2nd Shift]',
+    'Afternoon (16:00 - 00:00) [3rd Shift]'
   ];
 
 
@@ -81,7 +83,8 @@ export class WireCuttingReportComponent implements OnInit {
     private router: Router,
     private workflowService: WorkflowService,
     private filterService: FilterService,
-    private horizontalReportService: HorizontalReportService
+    private horizontalReportService: HorizontalReportService,
+    private batchLookup: BatchLookupService
   ) { }
 
   ngOnInit(): void {
@@ -97,15 +100,10 @@ export class WireCuttingReportComponent implements OnInit {
       size: [''],
       ballTestMm: [0],
       time: [''],
-      qty100: [0],
-      quantityTotal100: [0],
-      breakage100: [0],
-      netQty100: [0],
-      qty150: [0],
-      quantityTotal150: [0],
-      breakage150: [0],
-      netQty150: [0],
+      cuttingStartTime: [''],
       totalItem: [0],
+      cuttingTempC: [0],
+      cuttingHours: [0],
       remark: ['']
     });
 
@@ -162,6 +160,13 @@ export class WireCuttingReportComponent implements OnInit {
     const ss = String(now.getSeconds()).padStart(2, '0');
     return `${hh}:${mm}:${ss}`;
   }
+
+  useCurrentTimeForCuttingStart(): void {
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2, '0');
+    const mm = String(now.getMinutes()).padStart(2, '0');
+    this.form.patchValue({ cuttingStartTime: `${hh}:${mm}` });
+  }
   // ================= LOAD =================
   load() {
     this.service.getAll().subscribe(res => {
@@ -174,8 +179,8 @@ export class WireCuttingReportComponent implements OnInit {
 
   }
   loadCasting() {
-    this.castingService.getAll().subscribe(res => {
-      this.castingList = res || [];
+    this.castingService.getAll(0, 1000).subscribe(res => {
+      this.castingList = res?.content || [];
     });
   }
   goToDashboard() {
@@ -214,6 +219,33 @@ export class WireCuttingReportComponent implements OnInit {
     this.filterAvailableBatches();
   }
 
+  onBatchChange(event?: any) {
+    const batchNo = this.form.get('batchNo')?.value;
+    if (!batchNo) return;
+    this.batchLookup.getBatchDetails(batchNo).subscribe({
+      next: (res) => {
+        const shared = res?.sharedFields || {};
+        if (res?.casting) {
+          this.form.patchValue({
+            mouldNo: shared.mouldNo ?? res.casting.mouldNo ?? 0,
+            size: shared.size || this.form.value.size
+          });
+        }
+
+        if (res?.production) {
+          this.form.patchValue({
+            shift: shared.shift || res.production.shift || this.form.value.shift,
+            plantName: shared.plantName || res.production.plantName || this.form.value.plantName,
+            cuttingDate: res.production.createdDate
+              ? new Date(res.production.createdDate).toISOString().substring(0, 10)
+              : new Date().toISOString().substring(0, 10)
+          });
+        }
+      },
+      error: (err) => console.log('Lookup error:', err)
+    });
+  }
+
   // ================= FILTER =================
   applyFilters() {
     if (
@@ -233,6 +265,9 @@ export class WireCuttingReportComponent implements OnInit {
     this.filteredList = this.list.filter(r => {
       // ✅ PLANT FILTER
       if (this.filterPlant && r.plantName !== this.filterPlant) return false;
+
+      // ✅ SHIFT FILTER
+      if (this.filterShift && r.shift !== this.filterShift) return false;
 
       if (!r.createdDate) return false;
       const d = new Date(r.createdDate).getTime();
@@ -279,6 +314,7 @@ export class WireCuttingReportComponent implements OnInit {
     this.filterFromDate = '';
     this.filterToDate = '';
     this.filterPlant = 'Plant 1';
+    this.filterShift = '';
     this.onDateChange();
   }
 
@@ -302,6 +338,7 @@ export class WireCuttingReportComponent implements OnInit {
     this.showForm = true;
 
     this.form.patchValue(row);
+    this.sizeDetails = row.sizeDetails || [];
 
     // ✅ EDIT MODE → show ALL batches matching the plant
     const selectedPlant = row.plantName;
@@ -315,36 +352,67 @@ export class WireCuttingReportComponent implements OnInit {
     }
   }
 
+  sizeDetails: any[] = [];
+
+  onSizeChange() {
+    const sizeStr = this.form.get('size')?.value;
+    this.sizeDetails = [];
+    if (!sizeStr) return;
+
+    // Accept both "x" and "×" so older records still work.
+    const parts = sizeStr.split(/[x×]/i).map((s: string) => s.trim());
+    if (parts.length === 3) {
+      const length = Number(parts[0]) || 0;
+      const width = Number(parts[1]) || 0;
+      const thicknesses = parts[2].split('/').map((s: string) => Number(s.trim()) || 0);
+
+      for (const t of thicknesses) {
+        this.sizeDetails.push({
+          length: length,
+          width: width,
+          height: t,
+          quantity: 0,
+          quantityTotal: 0,
+          breakage: 0,
+          netQuantity: 0
+        });
+      }
+    }
+    this.calculateTotals();
+  }
+
   calculateTotals() {
-    const val = this.form.getRawValue();
+    let totalItem = 0;
 
-    const q100 = Number(val.qty100) || 0;
-    const q150 = Number(val.qty150) || 0;
+    for (const item of this.sizeDetails) {
+      const q = Number(item.quantity) || 0;
+      const b = Number(item.breakage) || 0;
 
-    // Based on size 650x240x100/150
-    // 0.65 * 0.24 * 0.100 = 0.0156
-    // 0.65 * 0.24 * 0.150 = 0.0234
-    const totalQ100 = q100 * 0.0156;
-    const totalQ150 = q150 * 0.0234;
+      // Net Quantity = Gross Quantity (No deduction for breakage)
+      item.netQuantity = q; 
+      
+      if (item.breakage > item.quantity) {
+        // Prevent breakage from exceeding gross quantity visually, but let the user correct it
+      }
 
-    const b100 = Number(val.breakage100) || 0;
-    const b150 = Number(val.breakage150) || 0;
-
-    const net100 = totalQ100 - b100;
-    const net150 = totalQ150 - b150;
-
-    const totalItem = q100 + q150;
+      // Volume in cubic meters. Example 650x240x100 mm => 0.65 * 0.24 * 0.100 = 0.0156
+      item.quantityTotal = q * (item.length / 1000) * (item.width / 1000) * (item.height / 1000);
+      
+      totalItem += q;
+    }
 
     this.form.patchValue({
-      quantityTotal100: totalQ100.toFixed(4),
-      quantityTotal150: totalQ150.toFixed(4),
-      netQty100: net100.toFixed(4),
-      netQty150: net150.toFixed(4),
       totalItem: totalItem
     }, { emitEvent: false });
   }
 
   submit() {
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      alert('Please fill all required wire cutting fields before saving.');
+      return;
+    }
+
     this.calculateTotals();
 
     const userId = this.auth.getLoggedInUserId();
@@ -357,6 +425,7 @@ export class WireCuttingReportComponent implements OnInit {
     // Use getRawValue() to include disabled fields
     const payload = {
       ...this.form.getRawValue(),
+      sizeDetails: this.sizeDetails,
       userId,
       branchId: 1,
       orgId: 1
@@ -368,10 +437,16 @@ export class WireCuttingReportComponent implements OnInit {
       ? this.service.update(this.editId, payload)
       : this.service.save(payload);
 
-    req$.subscribe(() => {
-      this.showForm = false;
-      this.editId = null;
-      this.load();
+    req$.subscribe({
+      next: () => {
+        this.showForm = false;
+        this.editId = null;
+        this.load();
+      },
+      error: (err) => {
+        console.error('Wire cutting save failed', err);
+        alert(err?.error?.message || err?.error?.error || 'Failed to save wire cutting report.');
+      }
     });
   }
 
@@ -494,11 +569,11 @@ export class WireCuttingReportComponent implements OnInit {
 
     // ===== PRODUCTION =====
     { label: 'Silo No 1', key: 'siloNo1' },
-    { label: 'Liter Weight 1', key: 'literWeight1' },
+    { label: 'FA Density (L/W)', key: 'literWeight1' },
     { label: 'FA Solid 1', key: 'faSolid1' },
 
     { label: 'Silo No 2', key: 'siloNo2' },
-    { label: 'Liter Weight 2', key: 'literWeight2' },
+    { label: 'Excess Density', key: 'literWeight2' },
     { label: 'FA Solid 2', key: 'faSolid2' },
 
     { label: 'Total Solid', key: 'totalSolid' },
@@ -523,8 +598,10 @@ export class WireCuttingReportComponent implements OnInit {
 
     // ===== WIRE CUTTING =====
     { label: 'Cutting Date', key: 'cuttingDate', format: 'date' },
-    { label: 'Ball Test (mm)', key: 'ballTestMm' },
-    { label: 'Cutting Time', key: 'time' },
+    { label: 'Mould No', key: 'mouldNo' },
+    { label: 'Size', key: 'size' },
+    { label: 'Penetration (mm)', key: 'ballTestMm' },
+    { label: 'Time', key: 'time' },
     { label: 'Remark', key: 'remark' },
 
     // ===== APPROVAL =====
@@ -535,21 +612,33 @@ export class WireCuttingReportComponent implements OnInit {
   ];
 
   exportExcel() {
-    if (!this.filterFromDate || !this.filterToDate) {
-      alert('Please select date range');
-      return;
-    }
-    this.workflowService.exportReport('WIRE_CUTTING', this.filterFromDate, this.filterToDate, 'excel').subscribe({
-      next: (blob) => {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `WireCutting_Report_${this.filterFromDate}_to_${this.filterToDate}.xlsx`;
-        a.click();
-        URL.revokeObjectURL(url);
-      },
-      error: () => alert('Failed to export Excel')
-    });
+    const data = this.filteredList.map((r: any) => ({
+      CuttingDate: r.cuttingDate ?? '',
+      PlantName: r.plantName ?? '',
+      BatchNo: r.batchNo ?? '',
+      Shift: r.shift ?? '',
+      MouldNo: r.mouldNo ?? '',
+      Size: r.size ?? '',
+      BallTestMm: r.ballTestMm ?? '',
+      Time: r.time ?? '',
+      SizeDetails: (r.sizeDetails || []).map((sd: any) => `Thickness: ${sd.height}, Qty: ${sd.quantity}, Breakage: ${sd.breakage}, Net: ${sd.netQuantity}`).join(' | '),
+      TotalItem: r.totalItem ?? '',
+      CuttingTempC: r.cuttingTempC ?? '',
+      CuttingHours: r.cuttingHours ?? '',
+      Remark: r.remark ?? ''
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'WireCutting');
+    const buffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `WireCutting_Report_${this.filterFromDate || 'all'}_to_${this.filterToDate || 'all'}.xlsx`;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
 
@@ -601,7 +690,7 @@ export class WireCuttingReportComponent implements OnInit {
   /** Export horizontal report for the selected date range */
   exportHorizontalReport() {
     if (!this.filterFromDate || !this.filterToDate) { alert('Please select a date range first'); return; }
-    this.horizontalReportService.downloadExcel(this.filterFromDate, this.filterToDate, undefined, 'CUTTING').subscribe({
+    this.horizontalReportService.downloadExcel(this.filterFromDate, this.filterToDate, undefined, 'CUTTING', this.filterPlant, this.filterShift).subscribe({
       next: (blob) => {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -677,8 +766,8 @@ export class WireCuttingReportComponent implements OnInit {
     'Cutting Date': 'cuttingDate',
     'Mould No': 'mouldNo',
     'Size': 'size',
-    'Ball Test (mm)': 'ballTestMm',
-    'Cutting Time': 'time',
+    'Penetration (mm)': 'ballTestMm',
+    'Time': 'time',
     'Qty 100': 'qty100',
     'Qty 150': 'qty150',
     'Breakage 100': 'breakage100',
@@ -701,8 +790,8 @@ export class WireCuttingReportComponent implements OnInit {
     'Cutting Date',
     'Mould No',
     'Size',
-    'Ball Test (mm)',
-    'Cutting Time',
+    'Penetration (mm)',
+    'Time',
     'Qty 100',
     'Qty 150',
     'Breakage 100',
@@ -743,8 +832,8 @@ export class WireCuttingReportComponent implements OnInit {
           cuttingDate: this.toBackendDate(row['Cutting Date']),
           mouldNo: Number(row['Mould No']),
           size: String(row['Size']),
-          ballTestMm: Number(row['Ball Test (mm)']),
-          time: row['Cutting Time'],
+          ballTestMm: Number(row['Penetration (mm)']),
+          time: String(row['Time']),
           qty100: Number(row['Qty 100']) || 0,
           qty150: Number(row['Qty 150']) || 0,
           breakage100: Number(row['Breakage 100']) || 0,

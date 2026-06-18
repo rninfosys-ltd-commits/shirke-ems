@@ -23,10 +23,10 @@ public class ProductionExportServiceImpl implements StageReportService {
     @Override
     public String[] getHeaders() {
         return new String[] {
-                "Batch No", "Shift", "Date", "Silo 1", "Liter Wt 1", "FA Solid 1",
-                "Silo 2", "Liter Wt 2", "FA Solid 2", "Total Solid",
-                "FA Slurry Qty", "Excess Slurry Qty", "Surfactant", "Water (L)", "Cement (kg)", "Lime (kg)", "Gypsum (kg)", "Sol Oil (kg)", "AI Power (gm)",
-                "DC Chemical", "DC MRT", "Mixing Time", "Temperature", "Production Time", "Remark"
+                "Batch No", "Shift", "Date", "Silo 1", "FA Solid 1",
+                "Total Solid",
+                "FA Slurry Qty", "Excess Slurry Qty", "Surfactant", "Water (L)", "Cement (kg)", "Lime (kg)", "Gypsum (kg)", "Sol Oil (kg)",
+                "Aluminum Powder (kg)", "DC MRT", "Mixing Time", "Temperature", "Production Time", "Remark"
         };
     }
 
@@ -39,11 +39,7 @@ public class ProductionExportServiceImpl implements StageReportService {
             map.put("Shift", e.getShift());
             map.put("Date", e.getCreatedDate());
             map.put("Silo 1", e.getSiloNo1());
-            map.put("Liter Wt 1", e.getLiterWeight1());
             map.put("FA Solid 1", e.getFaSolid1());
-            map.put("Silo 2", e.getSiloNo2());
-            map.put("Liter Wt 2", e.getLiterWeight2());
-            map.put("FA Solid 2", e.getFaSolid2());
             map.put("Total Solid", e.getTotalSolid());
             map.put("FA Slurry Qty", e.getFaSlurryQty());
             map.put("Excess Slurry Qty", e.getExcessSlurryQty());
@@ -53,8 +49,7 @@ public class ProductionExportServiceImpl implements StageReportService {
             map.put("Lime (kg)", e.getLimeKg());
             map.put("Gypsum (kg)", e.getGypsumKg());
             map.put("Sol Oil (kg)", e.getSolOilKg());
-            map.put("AI Power (gm)", e.getAiPowerGm());
-            map.put("DC Chemical", e.getDcChemical());
+            map.put("Aluminum Powder (kg)", e.getAluminumPowderKg());
             map.put("DC MRT", e.getDcmrt());
             map.put("Mixing Time", e.getMixingTime());
             map.put("Temperature", e.getTempC());

@@ -209,18 +209,25 @@
 
 
 
-                <!-- Rising Remarks (checkbox multi-select) -->
+                <!-- Rising Remarks (dropdown multi-select) -->
                 <div class="form-group full-width">
-                    <label>Remark (Select multiple)</label>
-                    <div class="remark-checkboxes">
-                        <label class="remark-checkbox" *ngFor="let opt of risingRemarkOptions">
-                            <input
-                                type="checkbox"
-                                [checked]="form.get('remarks')?.value?.includes(opt.value)"
-                                (change)="toggleRemark(opt.value, $event)"
-                            />
-                            <span>{{ opt.english }} / {{ opt.marathi }}</span>
-                        </label>
+                    <label>Rising Section Remarks</label>
+                    <div class="remarks-multiselect">
+                        <button type="button" class="remarks-select-box" (click)="toggleRemarksDropdown($event)">
+                            <span>{{ getSelectedRemarksPlaceholder() }}</span>
+                            <span class="arrow" [class.open]="remarksDropdownOpen">▼</span>
+                        </button>
+
+                        <div class="remarks-dropdown-list" *ngIf="remarksDropdownOpen" (click)="$event.stopPropagation()">
+                            <label class="remarks-dropdown-item" *ngFor="let opt of risingRemarkOptions">
+                                <input
+                                    type="checkbox"
+                                    [checked]="isRemarkSelected(opt.value)"
+                                    (change)="toggleRemark(opt.value, $event)"
+                                />
+                                <span>{{ opt.english }} / {{ opt.marathi }}</span>
+                            </label>
+                        </div>
                     </div>
                 </div>
             </div>

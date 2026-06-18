@@ -26,29 +26,34 @@ public class WireCuttingReport {
 
 	private int mouldNo;
 	private String size; // Changed to String to support 650x240x100/150
+	@Column(name = "cutting_length")
+	private int cuttingLength;
 	private int ballTestMm;
-
-	// Table Fields for Len 100
-	private int qty100;
-	private double quantityTotal100;
-	private int breakage100;
-	private double netQty100;
-
-	// Table Fields for Len 150
-	private int qty150;
-	private double quantityTotal150;
-	private int breakage150;
-	private double netQty150;
 
 	private double totalItem;
 
 	private String remark;
 	private String time;
+	@Column(name = "cycle_time")
+	private String cycleTime;
 
 	private String shift; // Morning / Afternoon / Night
 
 	@Column(name = "plant_name", length = 50)
 	private String plantName;
+
+	// ---------- NEW FIELDS AND RELATIONSHIPS ----------
+	private Double cuttingHours;
+	private Double cuttingTempC;
+	private String cuttingTime;
+
+	@OneToOne(fetch = FetchType.EAGER)
+	@JoinColumn(name = "rising_id")
+	private RisingSection risingSection;
+
+	@OneToMany(mappedBy = "cuttingReport", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
+	@Builder.Default
+	private java.util.List<CuttingSizeDetail> sizeDetails = new java.util.ArrayList<>();
 
 	// ===== APPROVAL FLOW =====
 	private String approvalStage; // L1, L2, L3, APPROVED, REJECTED

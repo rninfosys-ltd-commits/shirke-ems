@@ -62,6 +62,7 @@ public class SecurityConfig {
                                                                 "/api/block-separating/**",
                                                                 "/api/cube-test/**",
                                                                 "/api/rejection/**",
+                                                                "/api/batch-traceability/**",
                                                                 "/api/km-batch/**",
                                                                 "/api/km-entry/**",
                                                                 "/api/receipts/**",

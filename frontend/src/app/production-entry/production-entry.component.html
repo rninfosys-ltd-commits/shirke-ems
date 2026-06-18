@@ -20,26 +20,34 @@
         <div class="filters">
 
             <div class="date-field">
-                <label>From Date</label>
+                <label class="field-label-bottom">From Date</label>
                 <input type="date" [(ngModel)]="filterFromDate" (change)="applyFilters()" />
             </div>
 
             <div class="date-field">
-                <label>To Date</label>
+                <label class="field-label-bottom">To Date</label>
                 <input type="date" [(ngModel)]="filterToDate" (change)="applyFilters()" />
             </div>
 
             <div class="filter-select">
-                <label>Plant</label>
+                <label class="field-label-bottom">Plant</label>
                 <select [(ngModel)]="filterPlant" (change)="applyFilters()">
                     <option value="Plant 1">Plant 1</option>
                     <option value="Plant 2">Plant 2</option>
                 </select>
             </div>
 
+            <div class="filter-select">
+                <label class="field-label-bottom">Shift</label>
+                <select [(ngModel)]="filterShift" (change)="onShiftChange()">
+                    <option value="">All Shifts</option>
+                    <option *ngFor="let s of shifts" [value]="s">{{ s }}</option>
+                </select>
+            </div>
+
 
             <div class="filter-select">
-                <label>Export</label>
+                <label class="field-label-bottom">Export</label>
                 <select (change)="exportData($any($event.target).value)">
                     <option value="">Select Option</option>
                     <option value="pdf">Export PDF</option>
@@ -49,7 +57,7 @@
             </div>
 
             <div class="filter-select">
-                <label>Import</label>
+                <label class="field-label-bottom">Import</label>
                 <select (change)="onImportSelect($event, fileInput)">
                     <option value="">Select Option</option>
                     <option value="excel">Import Excel</option>
@@ -71,7 +79,7 @@
                         <th>Batch No</th>
                         <th>Plant</th>
                         <th>Date</th>
-                        <th>Created By</th>
+                        <th>Batcher Name</th>
                         <th>Shift</th>
                         <th>Total Solid</th>
                         <!-- Dynamic Material Columns in list -->
@@ -90,7 +98,7 @@
                             </td>
                             <td>{{ p.plantName || '—' }}</td>
                             <td>{{ p.createdDate | date:'dd-MM-yyyy' }}</td>
-                            <td>{{ p.createdByName || getUserName(p.userId) }}</td>
+                            <td>{{ p.batcherName || p.createdByName || getUserName(p.userId) }}</td>
                             <td>{{ p.shift }}</td>
                             <td>{{ p.totalSolid }}</td>
                             <!-- Dynamic Material Values -->
@@ -193,13 +201,17 @@
             <!-- HEADER SECTION -->
             <div class="form-grid header-grid">
                 <div class="form-group">
-                    <label>Batch No</label>
-                    <input type="text" value="Auto-generated" readonly class="readonly-input">
+                    <label class="label-blue">Plant</label>
+                    <select formControlName="plantName">
+                        <option value="" disabled>Select Plant</option>
+                        <option value="Plant 1">Plant 1</option>
+                        <option value="Plant 2">Plant 2</option>
+                    </select>
                 </div>
 
                 <div class="form-group">
-                    <label>Date</label>
-                    <input type="date" formControlName="productionDate">
+                    <label>Batch No</label>
+                    <input type="text" value="Auto-generated" readonly class="readonly-input">
                 </div>
 
                 <div class="form-group">
@@ -208,6 +220,11 @@
                         <option value="" disabled>Select Shift</option>
                         <option *ngFor="let s of shifts" [value]="s">{{ s }}</option>
                     </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Date</label>
+                    <input type="date" formControlName="productionDate">
                 </div>
 
                 <div class="form-group">
@@ -222,17 +239,8 @@
                 <!-- LEFT: FORM FIELDS -->
                 <div class="batch-fields-area">
 
-                    <!-- PLANT / SILO SECTION -->
+                    <!-- SILO SECTION -->
                     <div class="form-grid">
-                        <div class="form-group">
-                            <label class="label-blue">Plant</label>
-                            <select formControlName="plantName">
-                                <option value="" disabled>Select Plant</option>
-                                <option value="Plant 1">Plant 1</option>
-                                <option value="Plant 2">Plant 2</option>
-                            </select>
-                        </div>
-
                         <div class="form-group">
                             <label class="label-blue">Silo No 1</label>
                             <select formControlName="siloNo1">
@@ -244,15 +252,15 @@
                         <div class="form-group">
                             <label class="label-blue">Batcher</label>
                             <div class="searchable-dropdown">
-                                <input type="text" formControlName="batcher" placeholder="Search batcher..."
+                                <input type="text" formControlName="batcherName" placeholder="Search batcher..."
                                     (focus)="toggleBatcherDropdown(true)" (blur)="toggleBatcherDropdown(false)"
                                     (input)="onBatcherInput()" autocomplete="off">
 
                                 <div class="dropdown-list" *ngIf="showBatcherDropdown">
                                     <div class="dropdown-item" *ngFor="let b of filteredBatchers"
-                                        (click)="selectBatcher(b)">
-                                        <div class="batcher-icon">{{ getInitials(b) }}</div>
-                                        <span>{{ b }}</span>
+                                        (mousedown)="selectBatcher(b)">
+                                        <div class="batcher-icon">{{ getInitials(b.name) }}</div>
+                                        <span>{{ b.name }}</span>
                                     </div>
                                     <div class="dropdown-item no-results" *ngIf="filteredBatchers.length === 0">
                                         No batchers found
@@ -262,26 +270,24 @@
                         </div>
                     </div>
 
-                    <div class="divider" *ngIf="productionForm.get('siloNo1')?.value || productionForm.get('siloNo2')?.value"></div>
-
-                    <ng-container *ngIf="productionForm.get('siloNo1')?.value || productionForm.get('siloNo2')?.value">
+                    <ng-container *ngIf="productionForm.get('siloNo1')?.value">
                         <!-- SLURRY SECTION -->
                         <h4 class="section-subtitle">SLURRY PROPERTIES</h4>
                         <div class="form-grid">
                             <div class="form-group">
-                                <label>FA Density (L/W)</label>
+                                <label>FA Density (L/W) (gm/cc)</label>
                                 <input type="number" formControlName="faDensity" (input)="recalculate()">
                             </div>
                             <div class="form-group">
-                                <label>FA Solid %</label>
+                                <label>FA Solid 1 (%)</label>
                                 <input type="number" formControlName="faSolid1" (input)="recalculate()">
                             </div>
                             <div class="form-group">
-                                <label>Excess Density</label>
+                                <label>Excess Density (gm/cc)</label>
                                 <input type="number" formControlName="excessDensity" (input)="recalculate()">
                             </div>
                             <div class="form-group">
-                                <label>Excess Solid %</label>
+                                <label>FA Solid 2 (%)</label>
                                 <input type="number" formControlName="excessSolid" (input)="recalculate()">
                             </div>
                         </div>
@@ -317,7 +323,7 @@
                             </div>
 
                             <div class="form-group">
-                                <label class="label-blue">Soluble Oil (L)</label>
+                                <label class="label-blue">Sol Oil Ltr</label>
                                 <input type="number" formControlName="solOilKg" (input)="recalculate()">
                             </div>
 
@@ -332,8 +338,8 @@
                             </div>
 
                             <div class="form-group">
-                                <label class="label-blue">DC Chemical (ml)</label>
-                                <input type="number" formControlName="dcChemical" (input)="recalculate()">
+                                <label class="label-blue">Aluminium Powder (gm)</label>
+                                <input type="number" formControlName="aluminumPowderKg" (input)="recalculate()">
                             </div>
 
                             <div class="form-group">
@@ -359,6 +365,19 @@
                         <h4 class="section-subtitle">PROCESS PARAMETERS</h4>
                         <div class="form-grid">
                             <div class="form-group">
+                                <label>CBM Volume (m³)</label>
+                                <select formControlName="cbmVolume" (change)="recalculate()">
+                                    <option value="" disabled>Select CBM</option>
+                                    <ng-container *ngIf="productionForm.get('plantName')?.value === 'Plant 1'">
+                                        <option [value]="3.744">3.744</option>
+                                    </ng-container>
+                                    <ng-container *ngIf="productionForm.get('plantName')?.value === 'Plant 2'">
+                                        <option [value]="3.276">3.276</option>
+                                        <option [value]="3.024">3.024</option>
+                                    </ng-container>
+                                </select>
+                            </div>
+                            <div class="form-group">
                                 <label>Mixing Time (s)</label>
                                 <input type="number" formControlName="mixingTime">
                             </div>
@@ -380,7 +399,7 @@
                 </div>
 
                 <!-- RIGHT: CALCULATION PANEL -->
-                <div class="calc-panel-modern" *ngIf="productionForm.get('siloNo1')?.value || productionForm.get('siloNo2')?.value">
+                <div class="calc-panel-modern" *ngIf="productionForm.get('siloNo1')?.value">
                     <div class="calc-header">LIVE CALCULATIONS</div>
 
                     <div class="calc-row">
@@ -399,6 +418,26 @@
                     <div class="calc-footer-solid">
                         <span>FINAL SOLID %</span>
                         <div class="solid-value">{{ liveCalc.finalSolidPercent | number:'1.2-2' }}%</div>
+                    </div>
+                    
+                    <div class="divider"></div>
+                    <div class="calc-header" style="margin-top:10px;">PER CBM METRICS</div>
+                    
+                    <div class="calc-row">
+                        <span>Solids/CBM</span>
+                        <strong>{{ liveCalc.totalSolidsPerCbm | number:'1.2-2' }} kg/m³</strong>
+                    </div>
+                    <div class="calc-row">
+                        <span>Binders/CBM</span>
+                        <strong>{{ liveCalc.totalBindersPerCbm | number:'1.2-2' }} kg/m³</strong>
+                    </div>
+                    <div class="calc-row">
+                        <span>Water/CBM</span>
+                        <strong>{{ liveCalc.totalWaterPerCbm | number:'1.2-2' }} L/m³</strong>
+                    </div>
+                    <div class="calc-row">
+                        <span>W:S Ratio</span>
+                        <strong>{{ liveCalc.waterSolidRatio | number:'1.2-2' }}</strong>
                     </div>
                 </div>
             </div>
@@ -458,12 +497,7 @@
                         <thead>
                             <tr>
                                 <th>Silo 1</th>
-                                <th>Water 1</th>
-                                <th>Solid 1</th>
-
-                                <th>Silo 2</th>
-                                <th>Water 2</th>
-                                <th>Solid 2</th>
+                                <th>FA Solid 1</th>
 
                                 <th>Total Solid</th>
                                 <th>Production Time</th>
@@ -472,15 +506,9 @@
                         </thead>
 
                         <tbody>
-                            <!-- ================= ROW 1 : SILO + PRODUCTION ================= -->
                             <tr>
                                 <td>{{ selectedProduction?.siloNo1 }}</td>
-                                <td>{{ selectedProduction?.literWeight1 }}</td>
                                 <td>{{ selectedProduction?.faSolid1 }}</td>
-
-                                <td>{{ selectedProduction?.siloNo2 || '—' }}</td>
-                                <td>{{ selectedProduction?.literWeight2 || '—' }}</td>
-                                <td>{{ selectedProduction?.faSolid2 || '—' }}</td>
 
                                 <td>{{ selectedProduction?.totalSolid }}</td>
                                 <td>{{ selectedProduction?.productionTime }}</td>
@@ -491,7 +519,7 @@
                                 <th colspan="2">FA Slurry Qty</th>
                                 <th colspan="2">Excess Slurry Qty</th>
                                 <th>Surfactant</th>
-                                <th>DC Chemical</th>
+                                <th>Aluminium Powder (gm)</th>
                                 <th>DC MRT</th>
                                 <th colspan="2">Mixing Time</th>
                             </tr>
@@ -499,18 +527,15 @@
                                 <td colspan="2">{{ selectedProduction?.faSlurryQty || '0' }} kg</td>
                                 <td colspan="2">{{ selectedProduction?.excessSlurryQty || '0' }} kg</td>
                                 <td>{{ selectedProduction?.surfactant || '0' }} kg</td>
-                                <td>{{ selectedProduction?.dcChemical || '0' }} ml</td>
+                                <td>{{ selectedProduction?.aluminumPowderKg || '0' }} kg</td>
                                 <td>{{ selectedProduction?.dcmrt || '0' }} ml</td>
                                 <td colspan="2">{{ selectedProduction?.mixingTime || '0' }} s</td>
                             </tr>
 
-                            <!-- ================= ROW 2 : DYNAMIC MATERIALS ================= -->
                             <tr class="section-header" *ngIf="materialList.length">
                                 <th *ngFor="let m of materialList">{{ m.materialName }}</th>
                                 <th>Casting Time</th>
                                 <th colspan="1">Production Remark</th>
-                                <th *ngIf="materialList.length < 7" [attr.colspan]="9 - materialList.length - 2">Remark
-                                </th>
                             </tr>
 
                             <tr *ngIf="materialList.length">
@@ -519,8 +544,6 @@
                                 </td>
                                 <td>{{ selectedProduction?.castingTime }}</td>
                                 <td colspan="1">{{ selectedProduction?.productionRemark || '—' }}</td>
-                                <td *ngIf="materialList.length < 7" [attr.colspan]="9 - materialList.length - 2">{{
-                                    selectedProduction?.remark || '—' }}</td>
                             </tr>
 
                             <!-- Fallback for legacy data when no dynamic materials -->
@@ -533,7 +556,6 @@
                                     <th>Sol Oil</th>
                                     <th>AI Power</th>
                                     <th colspan="1">Production Remark</th>
-                                    <th colspan="2">Remark</th>
                                 </tr>
 
                                 <tr>
@@ -544,7 +566,6 @@
                                     <td>{{ selectedProduction?.solOilKg }}</td>
                                     <td>{{ selectedProduction?.aiPowerGm }}</td>
                                     <td colspan="1">{{ selectedProduction?.productionRemark || '—' }}</td>
-                                    <td colspan="2">{{ selectedProduction?.remark || '—' }}</td>
                                 </tr>
                             </ng-container>
                         </tbody>

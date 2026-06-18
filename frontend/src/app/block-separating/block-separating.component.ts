@@ -10,6 +10,7 @@ import { Router } from '@angular/router';
 import { WorkflowService } from '../services/workflow.service';
 import { FilterService } from '../services/filter.service';
 import { HorizontalReportService } from '../services/horizontal-report.service';
+import { BatchLookupService } from '../services/batch-lookup.service';
 
 @Component({
   selector: 'app-block-separating',
@@ -33,9 +34,9 @@ export class BlockSeparatingComponent implements OnInit {
   editId: number | null = null;
 
   shifts: string[] = [
-    'Night (00:00 - 08:00)',
-    'Morning (08:00 - 16:00)',
-    'Afternoon (16:00 - 00:00)'
+    'Night (00:00 - 08:00) [1st Shift]',
+    'Morning (08:00 - 16:00) [2nd Shift]',
+    'Afternoon (16:00 - 00:00) [3rd Shift]'
   ];
 
   filterShift = '';
@@ -56,8 +57,43 @@ export class BlockSeparatingComponent implements OnInit {
     private router: Router,
     private workflowService: WorkflowService,
     private filterService: FilterService,
-    private horizontalReportService: HorizontalReportService
+    private horizontalReportService: HorizontalReportService,
+    private batchLookup: BatchLookupService
   ) { }
+
+  onBatchChange(event?: any): void {
+    const batchNumber = this.form.get('batchNumber')?.value;
+    if (!batchNumber) return;
+
+    // Auto-fill castingDate from the already-loaded batch list
+    const matched = this.autoclaveBatches.find(b => b.batchNo === batchNumber);
+    if (matched?.castingDate) {
+      const dateStr = new Date(matched.castingDate).toISOString().split('T')[0];
+      this.form.patchValue({ castingDate: dateStr });
+    }
+
+    this.batchLookup.getBatchDetails(batchNumber).subscribe({
+      next: (res) => {
+        const shared = res?.sharedFields || {};
+        const src = res?.cutting || res?.casting || res?.production;
+        if (src) {
+          this.form.patchValue({
+            shift: shared.shift || src.shift || this.form.value.shift,
+            plantName: shared.plantName || src.plantName || this.form.value.plantName
+          });
+          // Also fill castingDate from API if not already set
+          const apiDate = src.castingDate || src.cuttingDate || src.createdDate;
+          if (apiDate && !this.form.value.castingDate) {
+            this.form.patchValue({ castingDate: new Date(apiDate).toISOString().split('T')[0] });
+          }
+        }
+        if (shared.blockSize || res?.cutting?.size) {
+          this.form.patchValue({ blockSize: shared.blockSize || res.cutting.size });
+        }
+      },
+      error: (err) => console.log('Batch lookup error:', err)
+    });
+  }
 
   ngOnInit(): void {
     const today = new Date().toISOString().split('T')[0];
@@ -275,6 +311,14 @@ export class BlockSeparatingComponent implements OnInit {
 
     if (this.form.invalid) {
       this.form.markAllAsTouched();
+      const missing: string[] = [];
+      if (this.form.get('batchNumber')?.invalid) missing.push('Batch Number');
+      if (this.form.get('castingDate')?.invalid) missing.push('Casting Date');
+      if (this.form.get('blockSize')?.invalid) missing.push('Block Size');
+      if (this.form.get('shift')?.invalid) missing.push('Shift');
+      if (missing.length) {
+        alert('Please fill required fields: ' + missing.join(', '));
+      }
       return;
     }
 
@@ -300,8 +344,14 @@ export class BlockSeparatingComponent implements OnInit {
 
     const payload = {
       ...this.form.value,
-      userId: userId
+      userId: userId,
+      branchId: 1,
+      orgId: 1
     };
+
+    if (payload.shift) {
+      payload.shift = payload.shift.split(' ')[0];
+    }
 
     const request$ = this.editId
       ? this.service.update(this.editId, payload)
@@ -391,21 +441,50 @@ export class BlockSeparatingComponent implements OnInit {
 
 
   exportExcel() {
-    if (!this.filterFromDate || !this.filterToDate) {
-      alert('Please select date range');
-      return;
-    }
-    this.workflowService.exportReport('BLOCK_SEPARATING', this.filterFromDate, this.filterToDate, 'excel').subscribe({
-      next: (blob) => {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `BlockSeparating_Report_${this.filterFromDate}_to_${this.filterToDate}.xlsx`;
-        a.click();
-        URL.revokeObjectURL(url);
-      },
-      error: () => alert('Failed to export Excel')
-    });
+    const data = this.filteredList.map(r => ({
+      ReportDate: r.reportDate ?? '',
+      PlantName: r.plantName ?? '',
+      BatchNumber: r.batchNumber ?? '',
+      CastingDate: r.castingDate ?? '',
+      BlockSize: r.blockSize ?? '',
+      Shift: r.shift ?? '',
+      Time: r.time ?? '',
+      Remark: r.remark ?? '',
+      Remarks: r.remarks ?? '',
+      StartTime: r.startTime ?? '',
+      EndTime: r.endTime ?? '',
+      Duration: r.duration ?? '',
+      Operator: r.operator ?? '',
+      AutoclaveId: r.autoclaveId ?? '',
+      MiddleCrack: r.middleCrack ?? '',
+      RisingCrack: r.risingCrack ?? '',
+      CornerDamage: r.cornerDamage ?? '',
+      BottomLineMiddleCrack: r.bottomLineMiddleCrack ?? '',
+      UpperLineCrack: r.upperLineCrack ?? '',
+      AutoclaveDamage: r.autoclaveDamage ?? '',
+      SideCrack: r.sideCrack ?? '',
+      Chipping: r.chipping ?? '',
+      CraneDamage: r.craneDamage ?? '',
+      Unrise: r.unrise ?? '',
+      Unsize: r.unsize ?? '',
+      Uncut: r.uncut ?? '',
+      Collapse: r.collapse ?? '',
+      TotalBreakage: r.totalBreakage ?? '',
+      TotalPcs: r.totalPcs ?? '',
+      BreakagePercent: r.breakagePercent ?? ''
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'BlockSeparating');
+    const buffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `BlockSeparating_Report_${this.filterFromDate || 'all'}_to_${this.filterToDate || 'all'}.xlsx`;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
 
@@ -485,7 +564,7 @@ export class BlockSeparatingComponent implements OnInit {
   /** Export horizontal report for the selected date range */
   exportHorizontalReport() {
     if (!this.filterFromDate || !this.filterToDate) { alert('Please select a date range first'); return; }
-    this.horizontalReportService.downloadExcel(this.filterFromDate, this.filterToDate, undefined, 'BLOCK_SEPARATING').subscribe({
+    this.horizontalReportService.downloadExcel(this.filterFromDate, this.filterToDate, undefined, 'BLOCK_SEPARATING', this.filterPlant, this.filterShift).subscribe({
       next: (blob) => {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');

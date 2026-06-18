@@ -19,9 +19,11 @@ import java.util.List;
 public class CastingHallReportServiceImpl implements CastingHallReportService {
 
     private final CastingHallReportRepository repository;
+    private final com.schoolapp.repository.ProductionEntryRepository productionRepo;
 
-    public CastingHallReportServiceImpl(CastingHallReportRepository repository) {
+    public CastingHallReportServiceImpl(CastingHallReportRepository repository, com.schoolapp.repository.ProductionEntryRepository productionRepo) {
         this.repository = repository;
+        this.productionRepo = productionRepo;
     }
 
     @Override
@@ -125,9 +127,10 @@ public class CastingHallReportServiceImpl implements CastingHallReportService {
 
     private void mapDtoToEntity(CastingHallReportRequestDto dto, CastingHallReport r) {
         r.setBatchNo(dto.getBatchNo());
-        r.setHeight(dto.getHeight());
         r.setMouldNo(dto.getMouldNo());
-        r.setFlowInCm(dto.getFlowInCm());
+        r.setMouldHeight(dto.getMouldHeight());
+        r.setMouldFlow(dto.getMouldFlow());
+        r.setHeight(dto.getHeight());
         r.setCastingTempC(dto.getCastingTempC());
         r.setRemark(dto.getRemark());
         r.setUserId(dto.getUserId());
@@ -135,6 +138,13 @@ public class CastingHallReportServiceImpl implements CastingHallReportService {
         r.setOrgId(dto.getOrgId());
         r.setPlantName(dto.getPlantName());
         r.setShift(dto.getShift());
+
+        if (dto.getBatchNo() != null) {
+            List<com.schoolapp.entity.ProductionEntry> prodList = productionRepo.findByBatchNo(dto.getBatchNo());
+            if (!prodList.isEmpty()) {
+                r.setProductionEntry(prodList.get(0));
+            }
+        }
     }
 
     @Override

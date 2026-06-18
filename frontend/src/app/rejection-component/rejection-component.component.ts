@@ -10,8 +10,7 @@ import { Router } from '@angular/router';
 import { WorkflowService } from '../services/workflow.service';
 import { FilterService } from '../services/filter.service';
 import { HorizontalReportService } from '../services/horizontal-report.service';
-
-
+import { BatchLookupService } from '../services/batch-lookup.service';
 
 @Component({
   selector: 'app-rejection-component',
@@ -40,9 +39,9 @@ export class RejectionComponentComponent implements OnInit {
   totalPages = 0;
 
   shifts: string[] = [
-    'Night (00:00 - 08:00)',
-    'Morning (08:00 - 16:00)',
-    'Afternoon (16:00 - 00:00)'
+    'Night (00:00 - 08:00) [1st Shift]',
+    'Morning (08:00 - 16:00) [2nd Shift]',
+    'Afternoon (16:00 - 00:00) [3rd Shift]'
   ];
 
 
@@ -52,8 +51,35 @@ export class RejectionComponentComponent implements OnInit {
     private router: Router,
     private workflowService: WorkflowService,
     private filterService: FilterService,
-    private horizontalReportService: HorizontalReportService
+    private horizontalReportService: HorizontalReportService,
+    private batchLookup: BatchLookupService
   ) { }
+
+  onBatchChange(event?: any): void {
+    const batchNo = this.form.get('batchNo')?.value;
+    if (!batchNo) return;
+    this.batchLookup.getBatchDetails(batchNo).subscribe({
+      next: (res) => {
+        const shared = res?.sharedFields || {};
+        const src = res?.cubeTest || res?.separating || res?.production;
+        if (src) {
+          this.form.patchValue({
+            shift: shared.shift || src.shift || this.form.value.shift,
+            plantName: shared.plantName || src.plantName || this.form.value.plantName
+          });
+        }
+        const size = shared.blockSize || res?.separating?.blockSize || res?.cutting?.size;
+        if (size) {
+          this.form.patchValue({ blockSize: size });
+        }
+        const cuttingQty = res?.cutting?.totalItem;
+        if (cuttingQty !== undefined && cuttingQty !== null) {
+          this.form.patchValue({ qty: cuttingQty });
+        }
+      },
+      error: (err) => console.log('Batch lookup error:', err)
+    });
+  }
 
   ngOnInit() {
 
@@ -73,6 +99,13 @@ export class RejectionComponentComponent implements OnInit {
       risingCrack: [0],
       centreCrack: [0],
       bottomUncutBlocks: [0],
+      autoclaveDamage: [0],
+      craneDamage: [0],
+      collapse: [0],
+      unrise: [0],
+      unsize: [0],
+      uncut: [0],
+      chipping: [0],
       totalBreakages: [0],
       isActive: [1]
     });
@@ -152,6 +185,8 @@ export class RejectionComponentComponent implements OnInit {
         date: selected.castDate   // optional
       });
     }
+
+    this.onBatchChange();
   }
 
   setupPagination() {
@@ -265,7 +300,14 @@ export class RejectionComponentComponent implements OnInit {
       sideCrackThermalCrack: +r.sideCrackThermalCrack || 0,
       risingCrack: +r.risingCrack || 0,
       centreCrack: +r.centreCrack || 0,
-      bottomUncutBlocks: +r.bottomUncutBlocks || 0
+      bottomUncutBlocks: +r.bottomUncutBlocks || 0,
+      autoclaveDamage: +r.autoclaveDamage || 0,
+      craneDamage: +r.craneDamage || 0,
+      collapse: +r.collapse || 0,
+      unrise: +r.unrise || 0,
+      unsize: +r.unsize || 0,
+      uncut: +r.uncut || 0,
+      chipping: +r.chipping || 0
     });
 
     // Filter batches by the plant of the row
@@ -302,17 +344,26 @@ export class RejectionComponentComponent implements OnInit {
       +f.sideCrackThermalCrack +
       +f.risingCrack +
       +f.centreCrack +
-      +f.bottomUncutBlocks;
+      +f.bottomUncutBlocks +
+      +f.autoclaveDamage +
+      +f.craneDamage +
+      +f.collapse +
+      +f.unrise +
+      +f.unsize +
+      +f.uncut +
+      +f.chipping;
     +f.remainingQty;
 
     const payload = {
       ...f,
-      userId: userId
+      userId: userId,
+      branchId: 1,
+      orgId: 1
     };
 
     const req = this.editId
-      ? this.service.update(this.editId, f)
-      : this.service.create(f);
+      ? this.service.update(this.editId, payload)
+      : this.service.create(payload);
 
     req.subscribe(() => {
       alert('Saved');
@@ -341,21 +392,48 @@ export class RejectionComponentComponent implements OnInit {
   }
 
   exportExcel() {
-    if (!this.filterFromDate || !this.filterToDate) {
-      alert('Please select date range');
-      return;
-    }
-    this.workflowService.exportReport('REJECTION', this.filterFromDate, this.filterToDate, 'excel').subscribe({
-      next: (blob) => {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `Rejection_Report_${this.filterFromDate}_to_${this.filterToDate}.xlsx`;
-        a.click();
-        URL.revokeObjectURL(url);
-      },
-      error: () => alert('Failed to export Excel')
-    });
+    const data = this.filtered.map(r => ({
+      Date: r.date ?? '',
+      PlantName: r.plantName ?? '',
+      BatchNo: r.batchNo ?? '',
+      Shift: r.shift ?? '',
+      BlockSize: r.blockSize ?? '',
+      Qty: r.qty ?? '',
+      CornerDamage: r.cornerDamage ?? '',
+      EruptionType: r.eruptionType ?? '',
+      TopSideDamages: r.topSideDamages ?? '',
+      SideCrackThermalCrack: r.sideCrackThermalCrack ?? '',
+      RisingCrack: r.risingCrack ?? '',
+      CentreCrack: r.centreCrack ?? '',
+      BottomUncutBlocks: r.bottomUncutBlocks ?? '',
+      AutoclaveDamage: r.autoclaveDamage ?? '',
+      CraneDamage: r.craneDamage ?? '',
+      Collapse: r.collapse ?? '',
+      Unrise: r.unrise ?? '',
+      Unsize: r.unsize ?? '',
+      Uncut: r.uncut ?? '',
+      Chipping: r.chipping ?? '',
+      TotalBreakages: r.totalBreakages ?? '',
+      CrackRejection: r.crackRejection ?? '',
+      DimensionFailure: r.dimensionFailure ?? '',
+      DensityFailure: r.densityFailure ?? '',
+      StrengthFailure: r.strengthFailure ?? '',
+      OtherRejection: r.otherRejection ?? '',
+      TotalRejection: r.totalRejection ?? '',
+      Remarks: r.remarks ?? ''
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Rejection');
+    const buffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Rejection_Report_${this.filterFromDate || 'all'}_to_${this.filterToDate || 'all'}.xlsx`;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
 
@@ -395,7 +473,14 @@ export class RejectionComponentComponent implements OnInit {
       (+f.sideCrackThermalCrack || 0) +
       (+f.risingCrack || 0) +
       (+f.centreCrack || 0) +
-      (+f.bottomUncutBlocks || 0)
+      (+f.bottomUncutBlocks || 0) +
+      (+f.autoclaveDamage || 0) +
+      (+f.craneDamage || 0) +
+      (+f.collapse || 0) +
+      (+f.unrise || 0) +
+      (+f.unsize || 0) +
+      (+f.uncut || 0) +
+      (+f.chipping || 0)
     );
   }
 

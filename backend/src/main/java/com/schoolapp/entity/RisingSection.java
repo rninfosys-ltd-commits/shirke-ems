@@ -21,17 +21,27 @@ public class RisingSection {
     private String plantNo;
     private String batchNo;
 
-    private String risingTime;
-    private Double risingTempC;
-
-    private Double moldPenetration;
-    private String ballTest;
+    private String risingStartTime;  // when rising begins
+    private String dischargeTime;    // when rising ends / discharge (was risingEndTime)
+    private String risingEndTime;    // kept for backward compat
+    private String risingTime;       // auto-calculated duration
+    private Integer totalRisingTimeMin; // total rising time in minutes (computed)
+    private Double risingTempC; // kept for legacy if any, mapped as well
+    private String mouldNo;
+    private Double mouldHeight;
+    private Double mouldFlow;
+    private Double risingTemperature;
     private String remark;
+    private String remarks;
 
     private String shift;
 
     @Column(name = "plant_name", length = 50)
     private String plantName;
+
+    @OneToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "casting_id")
+    private CastingHallReport castingReport;
 
     private int userId;
     private int branchId;

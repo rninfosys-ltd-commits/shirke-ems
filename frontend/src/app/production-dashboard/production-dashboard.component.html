@@ -27,6 +27,16 @@
                     </select>
                 </div>
 
+                <div class="date-field top-label">
+                    <label>Shift</label>
+                    <select [(ngModel)]="filterShift" (change)="applyFilters()">
+                        <option value="">All Shifts</option>
+                        <option *ngFor="let s of shifts" [value]="s">
+                            {{ s }}
+                        </option>
+                    </select>
+                </div>
+
                 <button class="toggle-btn" (click)="toggleHideCompleted()">
                     {{ hideCompleted ? 'Show All' : 'Hide Completed' }}
                 </button>

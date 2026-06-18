@@ -542,3 +542,158 @@ select.field-control {
         grid-template-columns: 1fr;
     }
 }
+
+/* Custom Multi-select Dropdown */
+.custom-multiselect {
+    position: relative;
+    width: 100%;
+}
+
+.custom-multiselect .select-box {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #333;
+    background: #f9f9f9;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-height: 42px;
+}
+
+.custom-multiselect .select-box:hover {
+    border-color: #cbd5e1;
+}
+
+.custom-multiselect .select-box .arrow {
+    font-size: 10px;
+    color: #64748b;
+    transition: transform 0.2s;
+}
+
+.custom-multiselect .select-box .arrow.open {
+    transform: rotate(180deg);
+}
+
+.custom-multiselect .dropdown-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background: white;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 50;
+    margin-top: 4px;
+    padding: 8px 0;
+}
+
+.custom-multiselect .dropdown-item {
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+}
+
+.custom-multiselect .dropdown-item:hover {
+    background-color: #f1f5f9;
+}
+
+.custom-multiselect .dropdown-item label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    cursor: pointer;
+    font-size: 14px;
+    color: #334155;
+    text-transform: none; /* overrides uppercase labels */
+}
+
+.custom-multiselect .dropdown-item input[type="checkbox"] {
+    cursor: pointer;
+    width: 16px;
+    height: 16px;
+}
+
+/* Filter bar aligned with Rising Section style */
+.filters {
+    gap: 16px;
+    padding: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    margin-bottom: 25px;
+}
+
+.date-field,
+.filter-select {
+    gap: 4px;
+    min-width: 160px;
+}
+
+.field-label-bottom {
+    font-size: 12px;
+    font-weight: 600;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.date-field input[type="date"],
+.filter-select select {
+    height: 42px;
+    padding: 0 14px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background: #f9f9f9;
+    color: #333;
+}
+
+.date-field input[type="date"]:focus,
+.filter-select select:focus {
+    border-color: #7f46ff;
+    box-shadow: 0 0 0 4px rgba(127, 70, 255, 0.1);
+}
+
+/* Filter bar aligned with Rising Section style */
+.filters {
+    gap: 16px;
+    padding: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    margin-bottom: 25px;
+}
+
+.date-field,
+.filter-select {
+    gap: 4px;
+    min-width: 160px;
+}
+
+.date-field label,
+.filter-select label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.date-field input[type="date"],
+.filter-select select {
+    height: 42px;
+    padding: 0 14px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background: #f9f9f9;
+    color: #333;
+}
+
+.date-field input[type="date"]:focus,
+.filter-select select:focus {
+    border-color: #7f46ff;
+    box-shadow: 0 0 0 4px rgba(127, 70, 255, 0.1);
+}

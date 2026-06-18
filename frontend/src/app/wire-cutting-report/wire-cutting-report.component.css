@@ -102,6 +102,44 @@
     cursor: pointer;
 }
 
+/* Filter bar aligned with Rising Section style */
+.filters {
+    gap: 16px;
+    padding: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    margin-bottom: 25px;
+}
+
+.date-field,
+.filter-select {
+    gap: 4px;
+    min-width: 160px;
+}
+
+.field-label-bottom {
+    font-size: 12px;
+    font-weight: 600;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.date-field input[type="date"],
+.filter-select select {
+    height: 42px;
+    padding: 0 14px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background: #f9f9f9;
+    color: #333;
+}
+
+.date-field input[type="date"]:focus,
+.filter-select select:focus {
+    border-color: #7f46ff;
+    box-shadow: 0 0 0 4px rgba(127, 70, 255, 0.1);
+}
+
 /* BUTTONS */
 .add-btn {
     height: 42px;

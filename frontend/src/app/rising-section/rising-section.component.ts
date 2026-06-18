@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RisingSectionService } from '../services/RisingSectionService';
 import { ProductionService } from '../services/ProductionService';
@@ -22,6 +22,7 @@ export class RisingSectionComponent implements OnInit {
   list: any[] = [];
   productionList: any[] = [];
   editId: number | null = null;
+  remarksDropdownOpen = false;
 
   shifts: string[] = [
     'Night (00:00 - 08:00) [1st Shift]',
@@ -95,6 +96,7 @@ export class RisingSectionComponent implements OnInit {
       batchNo: ['', Validators.required],
       risingStartTime: [now],
       dischargeTime: [''],
+      risingTempC: [0],
       mouldNo: [''],
       mouldHeight: [0],
       mouldFlow: [0],
@@ -142,6 +144,7 @@ export class RisingSectionComponent implements OnInit {
   }
 
   toggleRemark(value: string, event: Event): void {
+    event.stopPropagation();
     const checked = (event.target as HTMLInputElement).checked;
     const current: string[] = this.form.get('remarks')?.value ?? [];
 
@@ -155,6 +158,29 @@ export class RisingSectionComponent implements OnInit {
       // keep backward compatible string field in sync
       remark: this.buildRemarkTextFromIds(next)
     });
+  }
+
+  toggleRemarksDropdown(event: Event): void {
+    event.stopPropagation();
+    this.remarksDropdownOpen = !this.remarksDropdownOpen;
+  }
+
+  isRemarkSelected(value: string): boolean {
+    return (this.form.get('remarks')?.value ?? []).includes(value);
+  }
+
+  getSelectedRemarksPlaceholder(): string {
+    const selected: string[] = this.form?.get('remarks')?.value ?? [];
+    if (!selected.length) return 'Select Remarks';
+    return selected.length === 1 ? '1 Remark Selected' : `${selected.length} Remarks Selected`;
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.remarks-multiselect')) {
+      this.remarksDropdownOpen = false;
+    }
   }
 
   getCurrentTime(): string {
