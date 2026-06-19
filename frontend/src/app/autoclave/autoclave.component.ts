@@ -40,7 +40,9 @@ export class AutoclaveComponent implements OnInit {
     { value: 'Mixer agitator jammed.', label: 'Mixer agitator jammed. / मिक्सर अॅजिटेटर जॅम झाला आहे.' },
     { value: 'Cement and lime powder screw jammed.', label: 'Cement and lime powder screw jammed. / सिमेंट आणि लाईम पावडर स्क्रू जॅम झाला आहे.' },
     { value: 'Temperature increased due to ferry carriage under maintenance.', label: 'Temperature increased due to ferry carriage under maintenance. / फेरी कॅरेज देखभालीखाली असल्यामुळे तापमान वाढले.' },
-    { value: 'Mould derailed on ferry carriage.', label: 'Mould derailed on ferry carriage. / फेरी कॅरेजवर साचा (मोल्ड) रुळावरून घसरला.' }
+    { value: 'Mould derailed on ferry carriage.', label: 'Mould derailed on ferry carriage. / फेरी कॅरेजवर साचा (मोल्ड) रुळावरून घसरला.' },
+    { value: 'Heavy leakage bottom side packing escaped.', label: 'Heavy leakage bottom side packing escaped. / खालच्या बाजूची पॅकिंग निघाल्यामुळे मोठी गळती.' },
+    { value: 'Mould arm slipped, heavy leakage.', label: 'Mould arm slipped, heavy leakage. / मोल्ड आर्म सटकल्यामुळे मोठी गळती.' }
   ];
 
   // ================= MAIN FORM =================

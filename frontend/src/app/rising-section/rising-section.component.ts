@@ -86,7 +86,9 @@ export class RisingSectionComponent implements OnInit {
     { id: 6, english: 'Mixer agitator jammed.', marathi: 'मिक्सर अॅजिटेटर जॅम झाला आहे.', value: '6' },
     { id: 7, english: 'Cement and lime powder screw jammed.', marathi: 'सिमेंट आणि लाईम पावडर स्क्रू जॅम झाला आहे.', value: '7' },
     { id: 8, english: 'Temperature increased due to ferry carriage under maintenance.', marathi: 'फेरी कॅरेज देखभालीखाली असल्यामुळे तापमान वाढले.', value: '8' },
-    { id: 9, english: 'Mould derailed on ferry carriage.', marathi: 'फेरी कॅरेजवर साचा (मोल्ड) रुळावरून घसरला.', value: '9' }
+    { id: 9, english: 'Mould derailed on ferry carriage.', marathi: 'फेरी कॅरेजवर साचा (मोल्ड) रुळावरून घसरला.', value: '9' },
+    { id: 10, english: 'Heavy leakage bottom side packing escaped.', marathi: 'खालच्या बाजूची पॅकिंग निघाल्यामुळे मोठी गळती.', value: '10' },
+    { id: 11, english: 'Mould arm slipped, heavy leakage.', marathi: 'मोल्ड आर्म सटकल्यामुळे मोठी गळती.', value: '11' }
   ];
 
   initForm(): void {
