@@ -47,6 +47,7 @@ import { TransactionExportComponent } from './components/transaction-export/tran
 import { HorizontalReportComponent } from './horizontal-report/horizontal-report.component';
 import { RisingSectionComponent } from './rising-section/rising-section.component';
 import { BatchHistoryComponent } from './batch-history/batch-history.component';
+import { BatcherMasterComponent } from './components/batcher-master/batcher-master.component';
 
 // import { PartyPriceComponent } from './components/price-list/price-list.component';
 
@@ -130,6 +131,7 @@ const routes: Routes = [
     canActivate: [AuthGuard]
   },
   { path: 'batch-history', component: BatchHistoryComponent, canActivate: [AuthGuard] },
+  { path: 'batcher-master', component: BatcherMasterComponent, canActivate: [AuthGuard] },
 
   { path: '**', redirectTo: '/login' }
 ];

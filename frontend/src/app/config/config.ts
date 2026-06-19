@@ -34,6 +34,7 @@ export const APP_CONFIG = {
         PRODUCTION_DASHBOARD: '/api/productiondashboard',
         MATERIAL_MASTER: '/api/material-master',
         WORKFLOW: '/api/workflow',
-        RISING_SECTION: '/api/rising-section'
+        RISING_SECTION: '/api/rising-section',
+        BATCHERS: '/api/batchers'
     }
 };

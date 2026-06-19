@@ -102,6 +102,7 @@ import { TransactionExportComponent } from './components/transaction-export/tran
 import { HorizontalReportComponent } from './horizontal-report/horizontal-report.component';
 import { RisingSectionComponent } from './rising-section/rising-section.component';
 import { BatchHistoryComponent } from './batch-history/batch-history.component';
+import { BatcherMasterComponent } from './components/batcher-master/batcher-master.component';
 
 
 
@@ -177,7 +178,8 @@ import { BatchHistoryComponent } from './batch-history/batch-history.component';
     TransactionExportComponent,
     HorizontalReportComponent,
     RisingSectionComponent,
-    BatchHistoryComponent
+    BatchHistoryComponent,
+    BatcherMasterComponent
   ],
   imports: [
     BrowserModule,

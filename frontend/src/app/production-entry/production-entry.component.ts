@@ -11,6 +11,7 @@ import { AuthService } from '../services/auth.service';
 import { Router } from '@angular/router';
 import { WorkflowService } from '../services/workflow.service';
 import { HorizontalReportService } from '../services/horizontal-report.service';
+import { BatcherService } from '../services/batcher.service';
 
 @Component({
   selector: 'app-production-entry',
@@ -66,12 +67,7 @@ export class ProductionEntryComponent implements OnInit {
     waterSolidRatio: 0
   };
 
-  batchers = [
-    { id: 1, name: 'S. S. Bhosale' },
-    { id: 2, name: 'S. J. Bhosale' },
-    { id: 3, name: 'R. M. Swami' },
-    { id: 4, name: 'P. D. Vanjare' }
-  ];
+  batchers: any[] = [];
   filteredBatchers: any[] = [];
   showBatcherDropdown = false;
   shifts: string[] = [
@@ -87,7 +83,8 @@ export class ProductionEntryComponent implements OnInit {
     private auth: AuthService,
     private router: Router,
     private workflowService: WorkflowService,
-    private horizontalReportService: HorizontalReportService
+    private horizontalReportService: HorizontalReportService,
+    private batcherService: BatcherService
   ) { }
 
   ngOnInit(): void {
@@ -150,7 +147,19 @@ export class ProductionEntryComponent implements OnInit {
     this.loadData();
     this.loadUsers();
     this.loadMaterials();
-    this.filteredBatchers = [...this.batchers];
+    this.loadBatchers();
+  }
+
+  loadBatchers() {
+    this.batcherService.getAllBatchers().subscribe({
+      next: (data) => {
+        this.batchers = data || [];
+        this.filteredBatchers = [...this.batchers];
+      },
+      error: () => {
+        console.warn('Failed to load batchers');
+      }
+    });
   }
 
 
