@@ -94,6 +94,7 @@ public class ProductionEntryServiceImpl implements ProductionEntryService {
 
         e.setShift(r.shift);
         e.setPlantName(r.plantName);
+        e.setProductionDate(r.getProductionDate());
 
         e.setSiloNo1(r.siloNo1);
         e.setFaSolid1(r.faSolid1);
@@ -308,6 +309,16 @@ public class ProductionEntryServiceImpl implements ProductionEntryService {
                 ProductionEntry e = new ProductionEntry();
                 e.setShift(get(row, "Shift"));
                 e.setBatchNo(get(row, "Batch No"));
+                
+                String prodDateStr = get(row, "Production Date");
+                if(prodDateStr == null) prodDateStr = get(row, "ProductionDate");
+                if(prodDateStr != null && !prodDateStr.trim().isEmpty()){
+                    try{
+                        e.setProductionDate(java.time.LocalDate.parse(prodDateStr.trim()));
+                    } catch(Exception ex){
+                        // Ignore parse error
+                    }
+                }
 
                 Double faSolid1Import = toDouble(row.get("FA Solid 1"));
                 double totalSolid = (faSolid1Import != null ? faSolid1Import : 0);

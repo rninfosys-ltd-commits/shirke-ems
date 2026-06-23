@@ -58,6 +58,8 @@ public class ProductionEntry {
 	private Long batcherId;
 	private String batcherName;
 
+	private java.time.LocalDate productionDate;
+
 	// ---------- ADDED CALCULATIONS ----------
 	private Double cbmVolume;
 	private Double totalSolidsPerCbm;

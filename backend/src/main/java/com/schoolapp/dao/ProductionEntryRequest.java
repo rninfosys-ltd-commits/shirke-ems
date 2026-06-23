@@ -6,6 +6,7 @@ public class ProductionEntryRequest {
 
 	public String shift;
 	public String plantName;
+	public java.time.LocalDate productionDate;
 
 	public String siloNo1;
 	public Double faSolid1;
@@ -58,6 +59,14 @@ public class ProductionEntryRequest {
 
 	public void setPlantName(String plantName) {
 		this.plantName = plantName;
+	}
+
+	public java.time.LocalDate getProductionDate() {
+		return productionDate;
+	}
+
+	public void setProductionDate(java.time.LocalDate productionDate) {
+		this.productionDate = productionDate;
 	}
 
 	public String getSiloNo1() {

@@ -218,7 +218,9 @@ export class ProductionEntryComponent implements OnInit {
 
       // Fix productionDate if returned as array [year, month, day]
       this.productionList.forEach(p => {
-        if (Array.isArray(p.productionDate) && p.productionDate.length >= 3) {
+        if (!p.productionDate && p.createdDate) {
+          p.productionDate = p.createdDate;
+        } else if (Array.isArray(p.productionDate) && p.productionDate.length >= 3) {
           const [y, m, d] = p.productionDate;
           p.productionDate = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
         }
