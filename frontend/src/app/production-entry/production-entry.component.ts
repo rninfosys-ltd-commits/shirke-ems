@@ -215,6 +215,15 @@ export class ProductionEntryComponent implements OnInit {
   loadData(preservePage = false) {
     this.service.getAll().subscribe(res => {
       this.productionList = res || [];
+
+      // Fix productionDate if returned as array [year, month, day]
+      this.productionList.forEach(p => {
+        if (Array.isArray(p.productionDate) && p.productionDate.length >= 3) {
+          const [y, m, d] = p.productionDate;
+          p.productionDate = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        }
+      });
+
       this.applyFilters(preservePage);
       this.updatePagination();
     });
