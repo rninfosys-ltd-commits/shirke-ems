@@ -175,7 +175,7 @@ export class BlockSeparatingComponent implements OnInit {
     const ss = String(now.getSeconds()).padStart(2, '0');
     return `${hh}:${mm}:${ss}`;
   }
-  loadList() {
+  loadList(preservePage = false) {
     this.service.getAll().subscribe(res => {
 
       const map = new Map<string, any>();
@@ -190,7 +190,9 @@ export class BlockSeparatingComponent implements OnInit {
         ...new Set(this.list.map(r => r.blockSize).filter(Boolean))
       ];
 
-      this.currentPage = 1;
+      if (!preservePage) {
+        this.currentPage = 1;
+      }
       this.updatePagination();      // 🔥 ADD THIS
 
       this.loadCuttingBatches();    // dropdown refresh
@@ -328,15 +330,8 @@ export class BlockSeparatingComponent implements OnInit {
 
     const now = this.getCurrentTime();
 
-    // ✅ NEW record → always take current time
-    if (!this.editId) {
-      this.form.patchValue({
-        time: now
-      });
-    }
-
-    // ✅ Edit mode → if time empty then take current time
-    if (this.editId && !this.form.value.time) {
+    // ✅ NEW record or Edit mode → if time empty then take current time
+    if (!this.form.value.time) {
       this.form.patchValue({
         time: now
       });
@@ -364,7 +359,7 @@ export class BlockSeparatingComponent implements OnInit {
         this.editId = null;
         this.isEdit = false;
 
-        this.loadList();
+        this.loadList(true);
       },
       error: () => {
         alert('Error while saving');

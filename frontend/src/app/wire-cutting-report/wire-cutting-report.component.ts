@@ -168,10 +168,10 @@ export class WireCuttingReportComponent implements OnInit {
     this.form.patchValue({ cuttingStartTime: `${hh}:${mm}` });
   }
   // ================= LOAD =================
-  load() {
+  load(preservePage = false) {
     this.service.getAll().subscribe(res => {
       this.list = res || [];
-      this.applyFilters();
+      this.applyFilters(preservePage);
       this.filterAvailableBatches();   // ⭐ IMPORTANT
       this.updatePagination();
     });
@@ -247,7 +247,7 @@ export class WireCuttingReportComponent implements OnInit {
   }
 
   // ================= FILTER =================
-  applyFilters() {
+  applyFilters(preservePage = false) {
     if (
       this.filterFromDate &&
       this.filterToDate &&
@@ -273,7 +273,9 @@ export class WireCuttingReportComponent implements OnInit {
       const d = new Date(r.createdDate).getTime();
       return (!from || d >= from) && (!to || d <= to);
     });
-    this.currentPage = 1;
+    if (!preservePage) {
+      this.currentPage = 1;
+    }
     this.updatePagination();
   }
 
@@ -418,7 +420,7 @@ export class WireCuttingReportComponent implements OnInit {
     const userId = this.auth.getLoggedInUserId();
     const currentTime = this.getCurrentTime();
 
-    if (!this.editId) {
+    if (!this.form.value.time) {
       this.form.patchValue({ time: currentTime });
     }
 
@@ -441,7 +443,7 @@ export class WireCuttingReportComponent implements OnInit {
       next: () => {
         this.showForm = false;
         this.editId = null;
-        this.load();
+        this.load(true);
       },
       error: (err) => {
         console.error('Wire cutting save failed', err);

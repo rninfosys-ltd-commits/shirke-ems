@@ -371,19 +371,18 @@ export class AutoclaveComponent implements OnInit {
   }
 
   // ================= LOAD =================
-  loadList(): void {
+  loadList(preservePage = false): void {
     this.service.getAll().subscribe(res => {
 
       console.log('API RESPONSE:', res);
       console.log('TOTAL RECORDS FROM API:', res.length);
 
       this.list = res || [];
-      this.applyFilters();
+      this.applyFilters(preservePage);
     });
   }
 
-
-  applyFilters(): void {
+  applyFilters(preservePage = false): void {
     const from = this.filterFromDate
       ? new Date(this.filterFromDate).getTime()
       : null;
@@ -408,7 +407,9 @@ export class AutoclaveComponent implements OnInit {
 
     console.log('FILTERED LIST COUNT:', this.filteredList.length);
 
-    this.currentPage = 1;
+    if (!preservePage) {
+      this.currentPage = 1;
+    }
     this.updatePagination();
   }
 
@@ -531,8 +532,8 @@ export class AutoclaveComponent implements OnInit {
     const userId = this.auth.getLoggedInUserId();
     const now = this.getCurrentTime();
 
-    // ✅ NEW record → ensure start time exists
-    if (!this.editId) {
+    // ✅ NEW record or Edit mode → ensure start time exists
+    if (!this.form.value.startedAt) {
       this.form.patchValue({
         startedAt: now
       });
@@ -587,7 +588,7 @@ export class AutoclaveComponent implements OnInit {
       this.editId = null;
       this.wagonForm.reset();
       this.wagons.clear();
-      this.loadList();
+      this.loadList(true);
     });
   }
 

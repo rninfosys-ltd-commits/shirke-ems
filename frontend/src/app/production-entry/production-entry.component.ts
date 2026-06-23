@@ -98,6 +98,7 @@ export class ProductionEntryComponent implements OnInit {
     const today = new Date().toISOString().substring(0, 10);
 
     this.productionForm = this.fb.group({
+      batchNo: [''],
       plantName: ['Plant 1', Validators.required],
       shift: ['', Validators.required],
       productionDate: [today],
@@ -211,15 +212,15 @@ export class ProductionEntryComponent implements OnInit {
     modal.show();
   }
 
-  loadData() {
+  loadData(preservePage = false) {
     this.service.getAll().subscribe(res => {
       this.productionList = res || [];
-      this.applyFilters();
+      this.applyFilters(preservePage);
       this.updatePagination();
     });
   }
 
-  applyFilters() {
+  applyFilters(preservePage = false) {
     if (
       this.filterFromDate &&
       this.filterToDate &&
@@ -281,7 +282,9 @@ export class ProductionEntryComponent implements OnInit {
       }
     });
 
-    this.currentPage = 1;
+    if (!preservePage) {
+      this.currentPage = 1;
+    }
     this.updatePagination();
   }
 
@@ -626,11 +629,12 @@ export class ProductionEntryComponent implements OnInit {
       return;
     }
 
-    const currentTime = this.getCurrentTime();
-
-    this.productionForm.patchValue({
-      productionTime: currentTime
-    });
+    if (!this.productionForm.value.productionTime) {
+      const currentTime = this.getCurrentTime();
+      this.productionForm.patchValue({
+        productionTime: currentTime
+      });
+    }
 
     // Build dynamic materials array
     const materialsPayload = this.materialList.map(m => ({
@@ -660,7 +664,7 @@ export class ProductionEntryComponent implements OnInit {
 
     req$.subscribe(() => {
       this.showForm = false;
-      this.loadData();
+      this.loadData(true);
     });
   }
 
