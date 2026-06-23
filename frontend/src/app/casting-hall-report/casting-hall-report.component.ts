@@ -407,7 +407,7 @@ export class CastingHallReportComponent implements OnInit {
 
     // ===== COMMON (once) =====
     { label: 'Batch No', key: 'batchNo' },
-    { label: 'Production Date', key: 'createdDate', format: 'date' },
+    { label: 'Production Date', key: 'reportDate', format: 'date' },
     { label: 'Shift', key: 'shift' },
 
     // ===== PRODUCTION =====
@@ -624,7 +624,7 @@ export class CastingHallReportComponent implements OnInit {
   }
   private castingPdfFields = [
     { label: 'Batch No', key: 'batchNo' },
-    { label: 'Date', key: 'createdDate', format: 'date' },
+    { label: 'Date', key: 'reportDate', format: 'date' },
 
     { label: 'Height', key: 'height' },
     { label: 'Mould No', key: 'mouldNo' },

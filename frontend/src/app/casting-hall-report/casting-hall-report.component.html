@@ -92,7 +92,7 @@
                             <td class="clickable" (click)="openCastingModal(r)">
                                 {{ r.batchNo }}
                             </td>
-                            <td>{{ r.createdDate | date:'dd-MM-yyyy' }}</td>
+                            <td>{{ r.reportDate | date:'dd-MM-yyyy' }}</td>
                             <td>{{ r.shift }}</td>
                             <td>{{ r.plantName }}</td>
                             <td>{{ r.height }}</td>
@@ -285,7 +285,7 @@
 
                         <div class="meta-text">
                             <strong>Date:</strong>
-                            {{ selectedCasting?.createdDate | date:'longDate' }}
+                            {{ selectedCasting?.reportDate | date:'longDate' }}
                         </div>
 
                         <div class="meta-text">

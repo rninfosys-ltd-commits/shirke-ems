@@ -269,8 +269,9 @@ export class WireCuttingReportComponent implements OnInit {
       // ✅ SHIFT FILTER
       if (this.filterShift && r.shift !== this.filterShift) return false;
 
-      if (!r.createdDate) return false;
-      const d = new Date(r.createdDate).getTime();
+      // ✅ DATE
+      if (!r.cuttingDate) return false;
+      const d = new Date(r.cuttingDate).getTime();
       return (!from || d >= from) && (!to || d <= to);
     });
     if (!preservePage) {
@@ -566,7 +567,7 @@ export class WireCuttingReportComponent implements OnInit {
 
     // ===== COMMON (once) =====
     { label: 'Batch No', key: 'batchNo' },
-    { label: 'Production Date', key: 'createdDate', format: 'date' },
+    { label: 'Production Date', key: 'cuttingDate', format: 'date' },
     { label: 'Shift', key: 'shift' },
 
     // ===== PRODUCTION =====

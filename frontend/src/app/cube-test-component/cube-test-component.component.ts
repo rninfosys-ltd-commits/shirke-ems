@@ -285,8 +285,8 @@ export class CubeTestComponent implements OnInit {
 
     this.filtered = this.list.filter(r => {
 
-      // 🔥 USE createdDate instead of castDate
-      const rowDate = new Date(r.createdDate).getTime();
+      // 🔥 USE reportDate instead of createdDate
+      const rowDate = new Date(r.reportDate).getTime();
 
       const from = this.filterFromDate
         ? new Date(this.filterFromDate).setHours(0, 0, 0, 0)

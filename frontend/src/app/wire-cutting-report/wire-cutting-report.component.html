@@ -93,7 +93,7 @@
                             <td class="clickable" (click)="openModal(r)">
                                 {{ r.batchNo }}
                             </td>
-                            <td>{{ r.createdDate | date:'dd-MM-yyyy' }}</td>
+                            <td>{{ r.cuttingDate | date:'dd-MM-yyyy' }}</td>
                             <td>{{ r.cuttingDate | date:'dd-MM-yyyy' }}</td>
                             <td>{{ r.mouldNo }}</td>
                             <td>{{ r.size }}</td>
@@ -341,7 +341,7 @@
 
             <div class="modal-header modal-header-big">
                 <h4 class="modal-title">Batch No - {{ selected?.batchNo }}</h4>
-                <div class="meta-text"><b>Date:</b> {{ selected?.createdDate | date:'longDate' }}</div>
+                <div class="meta-text"><b>Date:</b> {{ selected?.cuttingDate | date:'longDate' }}</div>
                 <button class="btn-close" data-bs-dismiss="modal"></button>
             </div>
 

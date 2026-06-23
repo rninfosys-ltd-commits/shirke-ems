@@ -252,7 +252,7 @@ export class ProductionEntryComponent implements OnInit {
       }
 
       // ✅ DATE FILTER
-      const date = new Date(p.createdDate).getTime();
+      const date = new Date(p.productionDate).getTime();
       const dateOk =
         (!from || date >= from) &&
         (!to || date <= to);
@@ -737,7 +737,7 @@ export class ProductionEntryComponent implements OnInit {
   getFieldConfig(): { label: string; key: string; format?: string }[] {
     const baseConfig = [
       { label: 'Batch No', key: 'batchNo' },
-      { label: 'Date', key: 'createdDate', format: 'date' },
+      { label: 'Date', key: 'productionDate', format: 'date' },
       { label: 'Shift', key: 'shift' },
 
       { label: 'Silo No 1', key: 'siloNo1' },

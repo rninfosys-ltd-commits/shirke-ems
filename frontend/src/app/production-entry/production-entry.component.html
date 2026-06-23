@@ -97,7 +97,7 @@
                                 {{ p.batchNo }}
                             </td>
                             <td>{{ p.plantName || '—' }}</td>
-                            <td>{{ p.createdDate | date:'dd-MM-yyyy' }}</td>
+                            <td>{{ p.productionDate | date:'dd-MM-yyyy' }}</td>
                             <td>{{ p.batcherName || p.createdByName || getUserName(p.userId) }}</td>
                             <td>{{ p.shift }}</td>
                             <td>{{ p.totalSolid }}</td>
@@ -474,7 +474,7 @@
 
                         <div class="meta-text">
                             <strong>Date:</strong>
-                            {{ selectedProduction?.createdDate | date:'longDate' }}
+                            {{ selectedProduction?.productionDate | date:'longDate' }}
                         </div>
 
                         <div class="meta-text">
