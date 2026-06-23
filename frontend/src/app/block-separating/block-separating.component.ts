@@ -152,11 +152,31 @@ export class BlockSeparatingComponent implements OnInit {
       });
     }
 
+    let formattedReportDate = row.reportDate;
+    if (formattedReportDate) {
+      if (typeof formattedReportDate === 'string' && formattedReportDate.includes('T')) {
+        formattedReportDate = formattedReportDate.substring(0, 10);
+      } else {
+        formattedReportDate = new Date(formattedReportDate).toISOString().substring(0, 10);
+      }
+    } else if (row.createdDate) {
+      formattedReportDate = new Date(row.createdDate).toISOString().substring(0, 10);
+    }
+
+    let formattedCastingDate = row.castingDate;
+    if (formattedCastingDate) {
+      if (typeof formattedCastingDate === 'string' && formattedCastingDate.includes('T')) {
+        formattedCastingDate = formattedCastingDate.substring(0, 10);
+      } else {
+        formattedCastingDate = new Date(formattedCastingDate).toISOString().substring(0, 10);
+      }
+    }
+
     this.form.patchValue({
-      reportDate: row.reportDate,
+      reportDate: formattedReportDate,
       plantName: row.plantName,
       batchNumber: row.batchNumber,
-      castingDate: row.castingDate,
+      castingDate: formattedCastingDate,
       blockSize: row.blockSize,
       shift: row.shift,
       time: row.time,

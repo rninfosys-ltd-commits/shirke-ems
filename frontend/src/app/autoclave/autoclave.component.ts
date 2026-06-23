@@ -510,7 +510,18 @@ export class AutoclaveComponent implements OnInit {
     this.showForm = true;
     this.editId = row.id;
 
-    this.form.patchValue(row);
+    const rowData = { ...row };
+    ['startedDate', 'completedDate'].forEach(field => {
+      if (rowData[field]) {
+        if (typeof rowData[field] === 'string' && rowData[field].includes('T')) {
+          rowData[field] = rowData[field].substring(0, 10);
+        } else {
+          rowData[field] = new Date(rowData[field]).toISOString().substring(0, 10);
+        }
+      }
+    });
+
+    this.form.patchValue(rowData);
 
     this.wagons.clear();
     if (row.wagons?.length) {

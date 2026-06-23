@@ -340,7 +340,17 @@ export class WireCuttingReportComponent implements OnInit {
     this.editId = row.id;
     this.showForm = true;
 
-    this.form.patchValue(row);
+    // Clone the row to modify the date format for input type="date"
+    const rowData = { ...row };
+    if (rowData.cuttingDate) {
+      if (typeof rowData.cuttingDate === 'string' && rowData.cuttingDate.includes('T')) {
+        rowData.cuttingDate = rowData.cuttingDate.substring(0, 10);
+      } else {
+        rowData.cuttingDate = new Date(rowData.cuttingDate).toISOString().substring(0, 10);
+      }
+    }
+
+    this.form.patchValue(rowData);
     this.sizeDetails = row.sizeDetails || [];
 
     // ✅ EDIT MODE → show ALL batches matching the plant

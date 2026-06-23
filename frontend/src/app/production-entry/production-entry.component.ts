@@ -219,10 +219,13 @@ export class ProductionEntryComponent implements OnInit {
       // Fix productionDate if returned as array [year, month, day]
       this.productionList.forEach(p => {
         if (!p.productionDate && p.createdDate) {
-          p.productionDate = p.createdDate;
+          // ensure it is yyyy-MM-dd
+          p.productionDate = new Date(p.createdDate).toISOString().substring(0, 10);
         } else if (Array.isArray(p.productionDate) && p.productionDate.length >= 3) {
           const [y, m, d] = p.productionDate;
           p.productionDate = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        } else if (p.productionDate && typeof p.productionDate === 'string' && p.productionDate.includes('T')) {
+          p.productionDate = p.productionDate.substring(0, 10);
         }
       });
 

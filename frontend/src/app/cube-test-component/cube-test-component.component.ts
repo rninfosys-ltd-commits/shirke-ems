@@ -343,7 +343,24 @@ export class CubeTestComponent implements OnInit {
 
 
   edit(row: any) {
-    this.form.patchValue(row);
+    const rowData = { ...row };
+    
+    // Format dates for input type="date"
+    ['reportDate', 'castDate', 'testingDate'].forEach(field => {
+      let dateVal = rowData[field];
+      if (!dateVal && field === 'reportDate' && rowData.createdDate) {
+        dateVal = rowData.createdDate;
+      }
+      if (dateVal) {
+        if (typeof dateVal === 'string' && dateVal.includes('T')) {
+          rowData[field] = dateVal.substring(0, 10);
+        } else {
+          rowData[field] = new Date(dateVal).toISOString().substring(0, 10);
+        }
+      }
+    });
+
+    this.form.patchValue(rowData);
     this.editId = row.id;
     this.showLeads = false;
 

@@ -285,10 +285,17 @@ export class RejectionComponentComponent implements OnInit {
   }
 
   edit(r: any) {
-    const date = r.date ? r.date.split('T')[0] : '';
+    let formattedDate = '';
+    if (r.date) {
+      if (typeof r.date === 'string' && r.date.includes('T')) {
+        formattedDate = r.date.substring(0, 10);
+      } else {
+        formattedDate = new Date(r.date).toISOString().substring(0, 10);
+      }
+    }
 
     this.form.patchValue({
-      date: date,
+      date: formattedDate,
       plantName: r.plantName,
       batchNo: r.batchNo,
       blockSize: r.blockSize,

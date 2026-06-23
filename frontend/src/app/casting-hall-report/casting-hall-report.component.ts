@@ -302,7 +302,18 @@ export class CastingHallReportComponent implements OnInit {
     this.editId = row.id;
     this.showForm = true;
 
-    this.reportForm.patchValue(row);
+    const rowData = { ...row };
+    // fallback to createdDate if reportDate is not present
+    let dateVal = rowData.reportDate || rowData.createdDate;
+    if (dateVal) {
+      if (typeof dateVal === 'string' && dateVal.includes('T')) {
+        rowData.reportDate = dateVal.substring(0, 10);
+      } else {
+        rowData.reportDate = new Date(dateVal).toISOString().substring(0, 10);
+      }
+    }
+
+    this.reportForm.patchValue(rowData);
 
     // ✅ EDIT MODE → show ALL batches matching the plant
     const selectedPlant = row.plantName;
