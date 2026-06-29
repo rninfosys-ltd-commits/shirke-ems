@@ -12,7 +12,7 @@
     <groupId>com.demo</groupId>
     <artifactId>empcrm</artifactId> <!-- Change the artifactId to empcrm -->
     <version>0.0.1-SNAPSHOT</version>
-    <packaging>jar</packaging>
+    <packaging>war</packaging>
 
     <name>empcrm</name> <!-- Change the project name to empcrm -->
     <description>empcrm project</description>
@@ -111,6 +111,11 @@
             <groupId>org.apache.poi</groupId>
             <artifactId>poi-ooxml</artifactId>
             <version>5.2.3</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-tomcat</artifactId>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 
