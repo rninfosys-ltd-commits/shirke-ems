@@ -1,7 +1,9 @@
 
 package com.schoolapp.config;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -33,7 +35,7 @@ public class SecurityConfig {
         @Autowired
         private JwtAuthenticationFilter jwtAuthenticationFilter;
 
-        @Value("${app.cors.allowed-origins:http://localhost:4200}")
+        @Value("${app.cors.allowed-origins:http://localhost:4200,https://shirke-ems-production.up.railway.app}")
         private String allowedOrigins;
 
         @Bean
@@ -129,8 +131,13 @@ public class SecurityConfig {
                 UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
                 CorsConfiguration config = new CorsConfiguration();
                 config.setAllowCredentials(true);
-                config.setAllowedOriginPatterns(
-                                List.of(allowedOrigins.split("\\s*,\\s*")));
+                List<String> origins = Arrays.stream(allowedOrigins.split("\\s*,\\s*"))
+                                .filter(s -> !s.isBlank())
+                                .collect(Collectors.toList());
+                if (origins.isEmpty()) {
+                        origins = List.of("http://localhost:4200", "https://shirke-ems-production.up.railway.app");
+                }
+                config.setAllowedOriginPatterns(origins);
                 config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
                 config.setAllowedHeaders(List.of("*"));
                 config.setExposedHeaders(List.of("Authorization"));
