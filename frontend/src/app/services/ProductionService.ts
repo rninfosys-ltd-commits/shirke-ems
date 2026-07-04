@@ -24,8 +24,8 @@ export class ProductionService {
 
         if (noCache) {
             headersConfig['Cache-Control'] = 'no-cache, no-store, must-revalidate';
-            headersConfig.Pragma = 'no-cache';
-            headersConfig.Expires = '0';
+            headersConfig['Pragma'] = 'no-cache';
+            headersConfig['Expires'] = '0';
         }
 
         return {
