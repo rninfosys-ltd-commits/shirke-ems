@@ -497,25 +497,11 @@ export class ProductionEntryComponent implements OnInit {
       data.push(totalsRow);
     }
 
-    // Collect unique plant names from the filtered list
+    // Collect unique plant names for the filename
     const plantNames = [...new Set(this.filteredProductionList.map(p => p.plantName).filter(Boolean))];
-    const plantLabel = plantNames.length > 0 ? plantNames.join(', ') : 'N/A';
-    const fromDate = this.filterFromDate || 'All';
-    const toDate = this.filterToDate || 'All';
+    const plantLabel = plantNames.length > 0 ? plantNames.join('_') : 'All';
 
-    // Build header rows at top: Plant Name + Date Range
-    const headerRows = [
-      [`Plant Name: ${plantLabel}`],
-      [`Date Range: ${fromDate} to ${toDate}`],
-      [] // blank spacer row
-    ];
-
-    // Create sheet from header rows first
-    const worksheet = XLSX.utils.aoa_to_sheet(headerRows);
-
-    // Append actual data rows below (starting at row 4, origin row index 3)
-    XLSX.utils.sheet_add_json(worksheet, data, { origin: 3, skipHeader: false });
-
+    const worksheet = XLSX.utils.json_to_sheet(data);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Production');
     const buffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
@@ -523,7 +509,7 @@ export class ProductionEntryComponent implements OnInit {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `Production_Report_${this.filterFromDate || 'all'}_to_${this.filterToDate || 'all'}.xlsx`;
+    a.download = `Production_Report_${plantLabel}_${this.filterFromDate || 'all'}_to_${this.filterToDate || 'all'}.xlsx`;
     a.click();
     URL.revokeObjectURL(url);
   }
