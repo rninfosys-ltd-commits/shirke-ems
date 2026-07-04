@@ -95,12 +95,11 @@ export class RisingSectionComponent implements OnInit {
     const now = this.getCurrentTime();
     this.form = this.fb.group({
       plantNo: [''],
-      batchNo: ['', Validators.required],
+      batchNo: [''],
       risingStartTime: [now],
       dischargeTime: [''],
       risingTempC: [0],
       mouldNo: [''],
-      mouldHeight: [0],
       mouldFlow: [0],
 
       // Keep `remark` for backward compatibility (backend expects string),
@@ -108,7 +107,7 @@ export class RisingSectionComponent implements OnInit {
       remark: [''],
       remarks: [[] as string[]],
 
-      shift: ['1', Validators.required],
+      shift: [''],
       plantName: ['Plant 1']
     });
 
@@ -240,7 +239,11 @@ export class RisingSectionComponent implements OnInit {
         filtered = filtered.filter((r: any) => (r.shift || '').toLowerCase().includes(this.filterShift.toLowerCase()));
       }
 
-      this.list = filtered;
+      this.list = filtered.sort((a: any, b: any) => {
+        const dateA = this.parseDateValue(a.createdDate || a.productionDate || a.reportDate);
+        const dateB = this.parseDateValue(b.createdDate || b.productionDate || b.reportDate);
+        return dateA.getTime() - dateB.getTime();
+      });
       this.updatePagination();
     });
   }
@@ -279,8 +282,8 @@ export class RisingSectionComponent implements OnInit {
             shift: shared.shift || res?.casting?.shift || res?.production?.shift || this.form.value.shift,
             plantName: shared.plantName || res?.casting?.plantName || res?.production?.plantName || this.form.value.plantName,
             mouldNo: shared.mouldNo ?? res?.casting?.mouldNo ?? this.form.value.mouldNo,
-            mouldHeight: shared.mouldHeight ?? res?.casting?.mouldHeight ?? res?.casting?.height ?? this.form.value.mouldHeight,
-            mouldFlow: shared.mouldFlow ?? res?.casting?.mouldFlow ?? this.form.value.mouldFlow
+            mouldFlow: shared.mouldFlow ?? res?.casting?.mouldFlow ?? this.form.value.mouldFlow,
+            dischargeTime: res?.production?.productionTime || res?.production?.castingTime || res?.production?.time || this.form.value.dischargeTime
           });
         }
       },
@@ -299,6 +302,15 @@ export class RisingSectionComponent implements OnInit {
     this.updatePagination();
   }
 
+  private parseDateValue(value: any): Date {
+    if (!value) return new Date(0);
+    if (Array.isArray(value) && value.length >= 3) {
+      const [y, m, d] = value;
+      return new Date(y, m - 1, d);
+    }
+    return new Date(value);
+  }
+
   openForm(): void {
     const now = this.getCurrentTime();
     this.showForm = true;
@@ -308,13 +320,13 @@ export class RisingSectionComponent implements OnInit {
       risingStartTime: now,
       dischargeTime: '',
       mouldNo: '',
-      mouldHeight: 0,
       mouldFlow: 0,
       plantName: 'Plant 1',
       remark: '',
       remarks: []
     });
     this.setShiftByTime();
+    setTimeout(() => this.calcTotalRisingTime(), 0);
   }
 
   edit(row: any): void {
@@ -331,6 +343,7 @@ export class RisingSectionComponent implements OnInit {
       // keep remark updated too for backward compat/export
       remark: this.buildRemarkTextFromIds(selectedIds)
     });
+    setTimeout(() => this.calcTotalRisingTime(), 0);
   }
 
   delete(id: number): void {
@@ -407,7 +420,6 @@ export class RisingSectionComponent implements OnInit {
       DischargeTime: r.dischargeTime ?? r.risingEndTime ?? '',
       TotalRisingTime: r.risingTime ?? '',
       MouldNo: r.mouldNo ?? '',
-      MouldHeight: r.mouldHeight ?? '',
       MouldFlow: r.mouldFlow ?? '',
       RisingTemperature: r.risingTemperature ?? '',
       Remark: r.remark ?? '',

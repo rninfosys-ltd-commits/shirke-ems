@@ -311,6 +311,14 @@ export class ProductionEntryComponent implements OnInit {
       this.filteredProductionList.length / this.pageSize
     );
 
+    if (this.totalPages > 0 && this.currentPage > this.totalPages) {
+      this.currentPage = this.totalPages;
+    }
+
+    if (this.totalPages === 0) {
+      this.currentPage = 1;
+    }
+
     const start = (this.currentPage - 1) * this.pageSize;
     const end = start + this.pageSize;
 
@@ -672,13 +680,15 @@ export class ProductionEntryComponent implements OnInit {
       materials: materialsPayload
     };
 
-    const req$ = this.editId
-      ? this.service.update(this.editId, payload)
+    const isEdit = this.editId !== null;
+    const req$ = isEdit
+      ? this.service.update(this.editId as number, payload)
       : this.service.save(payload);
 
     req$.subscribe(() => {
       this.showForm = false;
-      this.loadData(true);
+      this.loadData(isEdit);
+      this.editId = null;
     });
   }
 

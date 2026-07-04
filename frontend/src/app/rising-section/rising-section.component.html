@@ -68,12 +68,12 @@
             <table class="custom-table">
                 <thead>
                     <tr>
+                        <th>Date</th>
                         <th>Batch No</th>
                         <th>Plant Name</th>
                         <th>Rising Time</th>
                         <th>Rising Temp (°C)</th>
                         <th>Mould No</th>
-                        <th>Mould Height</th>
                         <th>Mould Flow</th>
                         <th>Shift</th>
                         <th>Action</th>
@@ -81,12 +81,12 @@
                 </thead>
                 <tbody>
                     <tr *ngFor="let row of pagedList">
+                        <td>{{ row.createdDate | date:'dd/MM/yyyy' }}</td>
                         <td>{{ row.batchNo }}</td>
                         <td>{{ row.plantName }}</td>
                         <td>{{ row.risingTime }}</td>
                         <td>{{ row.risingTempC }}</td>
                         <td>{{ row.mouldNo || '—' }}</td>
-                        <td>{{ row.mouldHeight }}</td>
                         <td>{{ row.mouldFlow }}</td>
                         <td>{{ row.shift }}</td>
                         <td class="action-cell">
@@ -99,7 +99,7 @@
                         </td>
                     </tr>
                     <tr *ngIf="list.length === 0">
-                        <td colspan="8" style="text-align: center; padding: 20px;">No records found.</td>
+                        <td colspan="9" style="text-align: center; padding: 20px;">No records found.</td>
                     </tr>
                 </tbody>
             </table>
@@ -158,9 +158,9 @@
 
             <div class="form-grid">
 
-                <!-- Rising Start Time -->
+                <!-- Rising Time -->
                 <div class="form-group">
-                    <label class="label-blue">Rising Start Time</label>
+                    <label class="label-blue">Rising Time</label>
                     <div style="display:flex;gap:6px;">
                         <input type="time" formControlName="risingStartTime" step="60">
                         <button type="button" class="btn-now" (click)="useCurrentTimeForRisingStart()">Now</button>
@@ -195,12 +195,6 @@
                     <input type="number" formControlName="mouldNo" placeholder="Mould No">
                 </div>
 
-                <!-- Mould Height -->
-                <div class="form-group">
-                    <label class="label-blue">Mould Height</label>
-                    <input type="number" formControlName="mouldHeight" placeholder="0">
-                </div>
-
                 <!-- Mould Flow -->
                 <div class="form-group">
                     <label>Mould Flow</label>
@@ -208,28 +202,6 @@
                 </div>
 
 
-
-                <!-- Rising Remarks (dropdown multi-select) -->
-                <div class="form-group full-width">
-                    <label>Rising Section Remarks</label>
-                    <div class="remarks-multiselect">
-                        <button type="button" class="remarks-select-box" (click)="toggleRemarksDropdown($event)">
-                            <span>{{ getSelectedRemarksPlaceholder() }}</span>
-                            <span class="arrow" [class.open]="remarksDropdownOpen">▼</span>
-                        </button>
-
-                        <div class="remarks-dropdown-list" *ngIf="remarksDropdownOpen" (click)="$event.stopPropagation()">
-                            <label class="remarks-dropdown-item" *ngFor="let opt of risingRemarkOptions">
-                                <input
-                                    type="checkbox"
-                                    [checked]="isRemarkSelected(opt.value)"
-                                    (change)="toggleRemark(opt.value, $event)"
-                                />
-                                <span>{{ opt.english }} / {{ opt.marathi }}</span>
-                            </label>
-                        </div>
-                    </div>
-                </div>
             </div>
 
             <div class="form-actions">

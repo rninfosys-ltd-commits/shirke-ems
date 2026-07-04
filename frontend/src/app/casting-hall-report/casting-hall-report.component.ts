@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { CastingHallReportService } from '../services/CastingHallReportService';
 import { ProductionService } from '../services/ProductionService';
@@ -23,6 +23,14 @@ export class CastingHallReportComponent implements OnInit {
   currentUserRole = '';
 
   showForm = false;
+  remarkDropdownOpen = false;
+  remarkOptions: { value: string; label: string }[] = [
+    { value: 'OK', label: 'OK' },
+    { value: 'Needs Review', label: 'Needs Review' },
+    { value: 'Hold', label: 'Hold' },
+    { value: 'Rework', label: 'Rework' }
+  ];
+  customRemark = '';
   reportForm!: FormGroup;
   // ================= IMPORT =================
   showImportModal = false;
@@ -97,7 +105,7 @@ export class CastingHallReportComponent implements OnInit {
       flowInCm: [0],
       mouldHeight: [0],
       mouldFlow: [0],
-      remark: ['']
+      remark: ['OK']
     });
 
     this.setShiftByTime();
@@ -119,6 +127,43 @@ export class CastingHallReportComponent implements OnInit {
     if (hour >= 0 && hour < 8) this.reportForm.patchValue({ shift: this.shifts[0] });
     else if (hour >= 8 && hour < 16) this.reportForm.patchValue({ shift: this.shifts[1] });
     else this.reportForm.patchValue({ shift: this.shifts[2] });
+  }
+
+  normalizeRemarkValue(value: string | null | undefined): string {
+    const trimmed = (value ?? '').toString().trim();
+    return trimmed ? trimmed : 'OK';
+  }
+
+  getRemarkSelectionValue(value: string | null | undefined): string {
+    const trimmed = (value ?? '').toString().trim();
+    if (!trimmed) return 'custom';
+    return this.remarkOptions.some(option => option.value === trimmed) ? 'preset' : 'custom';
+  }
+
+  toggleRemarkSelection(value: string): void {
+    this.reportForm.patchValue({ remark: value });
+    this.customRemark = '';
+    this.remarkDropdownOpen = false;
+  }
+
+  onRemarkInput(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    const value = target.value;
+    this.customRemark = value;
+    this.reportForm.patchValue({ remark: this.normalizeRemarkValue(value) });
+  }
+
+  toggleRemarkDropdown(event: Event): void {
+    event.stopPropagation();
+    this.remarkDropdownOpen = !this.remarkDropdownOpen;
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.remark-dropdown')) {
+      this.remarkDropdownOpen = false;
+    }
   }
   private buildMergedExportData() {
     return this.filteredList.map(casting => {
@@ -283,6 +328,8 @@ export class CastingHallReportComponent implements OnInit {
   openForm() {
     this.showForm = true;
     this.editId = null;
+    this.customRemark = '';
+    this.remarkDropdownOpen = false;
 
     this.reportForm.reset({
       reportDate: new Date().toISOString().substring(0, 10),
@@ -290,7 +337,8 @@ export class CastingHallReportComponent implements OnInit {
       mouldNo: 0,
       flowInCm: 0,
       mouldHeight: 0,
-      mouldFlow: 0
+      mouldFlow: 0,
+      remark: 'OK'
     });
     this.setShiftByTime();
 
@@ -301,6 +349,8 @@ export class CastingHallReportComponent implements OnInit {
   edit(row: any) {
     this.editId = row.id;
     this.showForm = true;
+    this.customRemark = '';
+    this.remarkDropdownOpen = false;
 
     const rowData = { ...row };
     // fallback to createdDate if reportDate is not present
@@ -313,7 +363,12 @@ export class CastingHallReportComponent implements OnInit {
       }
     }
 
-    this.reportForm.patchValue(rowData);
+    const initialRemark = this.normalizeRemarkValue(rowData.remark);
+    this.reportForm.patchValue({
+      ...rowData,
+      remark: initialRemark
+    });
+    this.customRemark = this.getRemarkSelectionValue(initialRemark) === 'custom' ? initialRemark : '';
 
     // ✅ EDIT MODE → show ALL batches matching the plant
     const selectedPlant = row.plantName;
@@ -333,8 +388,10 @@ export class CastingHallReportComponent implements OnInit {
 
     const currentTime = this.getCurrentTime();
 
+    const finalRemark = this.normalizeRemarkValue(this.reportForm.value.remark);
     const payload = {
       ...this.reportForm.value,
+      remark: finalRemark,
       userId,
       branchId: 1,
       orgId: 1

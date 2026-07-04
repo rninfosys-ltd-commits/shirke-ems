@@ -182,7 +182,26 @@
 
                 <div class="form-group full-width">
                     <label>Remark</label>
-                    <input type="text" formControlName="remark" placeholder="Remark">
+                    <div class="remark-dropdown">
+                        <button type="button" class="remarks-select-box" (click)="toggleRemarkDropdown($event)">
+                            <span>{{ reportForm.get('remark')?.value || 'OK' }}</span>
+                            <span class="arrow" [class.open]="remarkDropdownOpen">▼</span>
+                        </button>
+
+                        <div class="remarks-dropdown-list" *ngIf="remarkDropdownOpen" (click)="$event.stopPropagation()">
+                            <label class="remarks-dropdown-item" *ngFor="let option of remarkOptions">
+                                <input type="radio" name="remarkPreset" [checked]="reportForm.get('remark')?.value === option.value" (change)="toggleRemarkSelection(option.value)" />
+                                <span>{{ option.label }}</span>
+                            </label>
+                        </div>
+                    </div>
+                    <input
+                        type="text"
+                        [value]="customRemark"
+                        placeholder="Custom remark"
+                        (input)="onRemarkInput($event)"
+                        style="margin-top: 8px;"
+                    />
                 </div>
             </div>
 

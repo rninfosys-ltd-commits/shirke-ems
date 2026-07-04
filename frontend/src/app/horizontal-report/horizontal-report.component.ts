@@ -46,18 +46,19 @@ export class HorizontalReportComponent implements OnInit {
                 { key: 'date', label: 'Date' },
                 { key: 'shift', label: 'Shift' },
                 { key: 'siloNo1', label: 'Silo No.' },
-                { key: 'literWeight1', label: 'Liter Weight' },
                 { key: 'faSolid1', label: 'Fa Solid' },
-                { key: 'siloNo2', label: 'Silo No.' },
-                { key: 'literWeight2', label: 'Liter Weight' },
-                { key: 'faSolid2', label: 'Fa Solid' },
                 { key: 'totalSolid', label: 'Total Solid' },
+                { key: 'faSlurryQty', label: 'FA Slurry Qty' },
+                { key: 'excessSlurryQty', label: 'Excess Slurry Qty' },
                 { key: 'waterLiter', label: 'Water Lite' },
                 { key: 'cementKg', label: 'Cement Kg' },
                 { key: 'limeKg', label: 'Lime Kg' },
                 { key: 'gypsumKg', label: 'Gypsum K' },
                 { key: 'solOilKg', label: 'Dol Oil K' },
-                { key: 'aiPowerGm', label: 'Al Power' },
+                { key: 'surfactant', label: 'Surfactant' },
+                { key: 'aluminumPowderKg', label: 'Al Powder' },
+                { key: 'dcmrt', label: 'DC MRT' },
+                { key: 'mixingTime', label: 'Mixing Time' },
                 { key: 'tempC', label: 'CnTemp' },
                 { key: 'productionTime', label: 'Production Tim' },
                 { key: 'remark', label: 'Remark' },
@@ -68,18 +69,9 @@ export class HorizontalReportComponent implements OnInit {
             columns: [
                 { key: 'date', label: 'Date' },
                 { key: 'shift', label: 'Shift' },
-                { key: 'height', label: 'Size' },
-                { key: 'bedNo', label: 'Bed No' },
                 { key: 'mouldNo', label: 'Mould No' },
-                { key: 'castingTime', label: 'Casting Tim' },
-                { key: 'consistency', label: 'Consistency' },
                 { key: 'flowInCm', label: 'Flow In C' },
                 { key: 'tempC', label: 'CnTemp C' },
-                { key: 'vt', label: 'Wt' },
-                { key: 'massTemp', label: 'Mass Temp' },
-                { key: 'fallingTestMm', label: 'alling Test M' },
-                { key: 'testTime', label: 'lfezt Tim' },
-                { key: 'hTime', label: 'H Time' },
                 { key: 'remark', label: 'Remark' },
             ]
         },
@@ -92,20 +84,23 @@ export class HorizontalReportComponent implements OnInit {
                 { key: 'mouldNo', label: 'Mould No' },
                 { key: 'size', label: 'Size' },
                 { key: 'ballTestMm', label: 'Ball Test M' },
-                { key: 'otherReason', label: 'Other Reason' },
+                { key: 'totalItem', label: 'Total Item' },
+                { key: 'cuttingTempC', label: 'Cutting Temp' },
+                { key: 'cuttingHours', label: 'Cutting Hours' },
                 { key: 'time', label: 'Time' },
+                { key: 'remark', label: 'Remark' },
             ]
         },
         {
             key: 'autoclave', label: 'Autoclave', theme: 'autoclave',
             columns: [
+                { key: 'date', label: 'Date' },
+                { key: 'shift', label: 'Shift' },
                 { key: 'autoclaveNo', label: 'Auto No' },
                 { key: 'runNo', label: 'Run No' },
-                { key: 'shift', label: 'Shift' },
-                { key: 'startDate', label: 'Start Date' },
+                { key: 'currentStatus', label: 'Status' },
                 { key: 'startedAt', label: 'Started At' },
-                { key: 'compDate', label: 'Comp Date' },
-                { key: 'completedAt', label: 'Comp At' },
+                { key: 'completedAt', label: 'Completed At' },
                 { key: 'remarks', label: 'Remarks' },
             ]
         },
@@ -114,6 +109,7 @@ export class HorizontalReportComponent implements OnInit {
             columns: [
                 { key: 'date', label: 'Date' },
                 { key: 'shift', label: 'Shift' },
+                { key: 'batchNumber', label: 'Batch No' },
                 { key: 'blockSize', label: 'Block Size' },
                 { key: 'time', label: 'Time' },
             ]
@@ -121,10 +117,11 @@ export class HorizontalReportComponent implements OnInit {
         {
             key: 'cubeTest', label: 'Cube Test', theme: 'cube',
             columns: [
+                { key: 'date', label: 'Date' },
                 { key: 'castDate', label: 'Cast Date' },
                 { key: 'testingDate', label: 'Test Date' },
                 { key: 'shift', label: 'Shift' },
-                { key: 'cubeDimension', label: 'Dimension' },
+                { key: 'cubeDimensionImmediate', label: 'Dimension' },
                 { key: 'densityKgM3', label: 'Density (kg/m³)' },
             ]
         },
@@ -136,6 +133,7 @@ export class HorizontalReportComponent implements OnInit {
                 { key: 'blockSize', label: 'Block Size' },
                 { key: 'qty', label: 'Qty' },
                 { key: 'totalBreakages', label: 'Breakages' },
+                { key: 'remarks', label: 'Remarks' },
             ]
         }
     ];

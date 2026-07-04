@@ -16,12 +16,20 @@ export class ProductionService {
     constructor(private http: HttpClient) { }
 
     // ================= AUTH HEADERS =================
-    private getAuthHeaders() {
+    private getAuthHeaders(noCache: boolean = false) {
         const token = localStorage.getItem('token');
+        const headersConfig: { [name: string]: string } = {
+            Authorization: token ? `Bearer ${token}` : ''
+        };
+
+        if (noCache) {
+            headersConfig['Cache-Control'] = 'no-cache, no-store, must-revalidate';
+            headersConfig.Pragma = 'no-cache';
+            headersConfig.Expires = '0';
+        }
+
         return {
-            headers: new HttpHeaders({
-                Authorization: token ? `Bearer ${token}` : ''
-            })
+            headers: new HttpHeaders(headersConfig)
         };
     }
 
@@ -29,7 +37,7 @@ export class ProductionService {
     getAll(): Observable<any[]> {
         return this.http.get<any[]>(
             this.baseUrl,
-            this.getAuthHeaders()
+            this.getAuthHeaders(true)
         );
     }
 
