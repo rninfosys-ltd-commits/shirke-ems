@@ -396,9 +396,28 @@ export class ProductionEntryComponent implements OnInit {
 
 
   exportExcel() {
+    const totals: any = {
+      FaSolid1: 0, TotalSolid: 0, FaSlurryQty: 0, ExcessSlurryQty: 0,
+      WaterLiter: 0, LimeKg: 0, CementKg: 0, GypsumKg: 0,
+      SolOilKg: 0, Surfactant: 0, AluminumPowderKg: 0, Dcmrt: 0
+    };
+
     const data = this.filteredProductionList.map(p => {
+      totals.FaSolid1 += Number(p.faSolid1 || 0);
+      totals.TotalSolid += Number(p.totalSolid || 0);
+      totals.FaSlurryQty += Number(p.faSlurryQty || 0);
+      totals.ExcessSlurryQty += Number(p.excessSlurryQty || 0);
+      totals.WaterLiter += Number(p.waterLiter || 0);
+      totals.LimeKg += Number(p.limeKg || 0);
+      totals.CementKg += Number(p.cementKg || 0);
+      totals.GypsumKg += Number(p.gypsumKg || 0);
+      totals.SolOilKg += Number(p.solOilKg || 0);
+      totals.Surfactant += Number(p.surfactant || 0);
+      totals.AluminumPowderKg += Number(p.aluminumPowderKg || 0);
+      totals.Dcmrt += Number(p.dcmrt || 0);
+
       const row: any = {
-        PlantName: p.plantName ?? '',
+        BatchNo: p.batchNo ?? '',
         Shift: p.shift ?? '',
         ProductionDate: p.productionDate ?? '',
         BatcherName: p.batcherName ?? '',
@@ -437,6 +456,46 @@ export class ProductionEntryComponent implements OnInit {
 
       return row;
     });
+
+    const totalsRow: any = {
+      BatchNo: 'TOTALS',
+      Shift: '',
+      ProductionDate: '',
+      BatcherName: '',
+      BatcherId: '',
+      SiloNo1: '',
+      FaSolid1: totals.FaSolid1,
+      FaDensity: '',
+      ExcessDensity: '',
+      ExcessSolid: '',
+      FaSlurryQty: totals.FaSlurryQty,
+      ExcessSlurryQty: totals.ExcessSlurryQty,
+      WaterLiter: totals.WaterLiter,
+      LimeKg: totals.LimeKg,
+      CementKg: totals.CementKg,
+      GypsumKg: totals.GypsumKg,
+      SolOilKg: totals.SolOilKg,
+      Surfactant: totals.Surfactant,
+      AluminumPowderKg: totals.AluminumPowderKg,
+      Dcmrt: totals.Dcmrt,
+      MixingTime: '',
+      TempC: '',
+      CastingTime: '',
+      ProductionTime: '',
+      ProductionRemark: '',
+      CbmVolume: '',
+      TotalSolid: totals.TotalSolid,
+      TotalSolidsPerCbm: '',
+      TotalBindersPerCbm: '',
+      TotalWaterPerCbm: '',
+      WaterSolidRatio: ''
+    };
+
+    if (data.length > 0) {
+      // Add empty row for spacing
+      data.push({});
+      data.push(totalsRow);
+    }
 
     const worksheet = XLSX.utils.json_to_sheet(data);
     const workbook = XLSX.utils.book_new();
