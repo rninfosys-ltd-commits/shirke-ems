@@ -537,11 +537,12 @@ public class WorkflowReportService {
         RisingSection r = entries.get(0);
         addRow(table, "Date", formatDate(r.getCreatedDate()));
         addRow(table, "Shift", r.getShift() != null ? r.getShift() : "—");
-        addRow(table, "Rising Time", r.getRisingTime() != null ? r.getRisingTime() : "—");
-        addRow(table, "Rising Temp (C)", String.valueOf(r.getRisingTempC()));
-        addRow(table, "Mould No", String.valueOf(r.getMouldNo()));
-        addRow(table, "Mould Flow", String.valueOf(r.getMouldFlow()));
+        addRow(table, "Rising Time", r.getRisingStartTime() != null ? r.getRisingStartTime() : "—");
         addRow(table, "Discharge Time", r.getDischargeTime() != null ? r.getDischargeTime() : "—");
+        addRow(table, "Total Rising Time", r.getRisingTime() != null ? r.getRisingTime() : "—");
+        addRow(table, "Rising Temp (C)", r.getRisingTempC() != null ? String.valueOf(r.getRisingTempC()) : "—");
+        addRow(table, "Mould No", r.getMouldNo() != null ? String.valueOf(r.getMouldNo()) : "—");
+        addRow(table, "Mould Flow", r.getMouldFlow() != null ? String.valueOf(r.getMouldFlow()) : "—");
         addRow(table, "Remark", r.getRemark() != null ? r.getRemark() : "—");
     }
 
@@ -1025,22 +1026,14 @@ public class WorkflowReportService {
         m.put("date", formatDate(r.getCreatedDate()));
         m.put("shift", nvl(r.getShift()));
         m.put("plantName", nvl(r.getPlantName()));
-        m.put("plantNo", nvl(r.getPlantNo()));
-        m.put("batchNo", nvl(r.getBatchNo()));
         m.put("risingStartTime", nvl(r.getRisingStartTime()));
-        m.put("risingEndTime", nvl(r.getRisingEndTime()));
+        m.put("risingEndTime", nvl(r.getDischargeTime() != null ? r.getDischargeTime() : r.getRisingEndTime()));
         m.put("risingTime", nvl(r.getRisingTime()));
         m.put("risingTempC", nvl(r.getRisingTempC()));
-        m.put("risingTemperature", nvl(r.getRisingTemperature()));
         m.put("mouldNo", nvl(r.getMouldNo()));
-        m.put("mouldHeight", nvl(r.getMouldHeight()));
         m.put("mouldFlow", nvl(r.getMouldFlow()));
         m.put("remark", nvl(r.getRemark()));
         m.put("remarks", nvl(r.getRemarks()));
-        m.put("risingTempC", nvl(r.getRisingTempC()));
-        m.put("mouldNo", nvl(r.getMouldNo()));
-        m.put("mouldHeight", nvl(r.getMouldHeight()));
-        m.put("mouldFlow", nvl(r.getMouldFlow()));
         return m;
     }
 
@@ -1148,38 +1141,26 @@ public class WorkflowReportService {
             // ── Column order per stage ────────────────────────────────────────────
             LinkedHashMap<String, String[]> stageFields = new LinkedHashMap<>();
             stageFields.put("production",
-                    new String[] { "date", "shift", "plantName", "siloNo1", "faSolid1", "totalSolid",
+                    new String[] { "date", "shift", "siloNo1", "faSolid1", "totalSolid",
                             "faSlurryQty", "excessSlurryQty", "waterLiter", "cementKg", "limeKg",
                             "gypsumKg", "solOilKg", "surfactant", "aluminumPowderKg", "dcmrt",
                             "mixingTime", "tempC", "productionTime", "remark" });
             stageFields.put("casting",
-                    new String[] { "date", "shift", "plantName", "mouldNo", "flowInCm", "tempC",
-                            "remark" });
+                    new String[] { "date", "shift", "mouldNo", "flowInCm", "tempC", "remark" });
+            stageFields.put("rising", new String[] { "date", "shift", "risingStartTime", "risingEndTime",
+                    "risingTime", "risingTempC", "mouldNo", "mouldFlow", "remark" });
             stageFields.put("cutting",
-                    new String[] { "date", "shift", "plantName", "cuttingDate", "mouldNo", "size", "ballTestMm",
+                    new String[] { "date", "shift", "cuttingDate", "mouldNo", "size", "ballTestMm",
                             "sizeDetails", "totalItem", "cuttingTempC", "cuttingHours", "time", "remark" });
-            stageFields.put("autoclave", new String[] { "autoclaveNo", "runNo", "shift", "plantName", "currentStatus",
-                    "batchNo", "startDate", "startedAt", "compDate", "completedAt",
-                    "cycleStartTime", "transferStartTime", "transferredToAutoclaveNo",
-                    "transferEndTime", "releaseStartTime", "releaseEndTime", "doorOpenTime",
-                    "pressure1Hr", "pressure2Hr", "pressure3Hr",
-                    "pressureCompletion", "pressureRelease", "plant1BatchCount", "plant2BatchCount",
-                    "remarks" });
-            stageFields.put("blockSeparating", new String[] { "date", "shift", "plantName", "batchNumber",
-                    "castingDate", "blockSize", "time", "reportDate", "remark" });
-            stageFields.put("rising", new String[] { "date", "shift", "plantName", "plantNo", "batchNo",
-                    "risingStartTime", "risingEndTime", "risingTime", "risingTempC", "mouldNo",
-                    "mouldFlow", "remark" });
+            stageFields.put("autoclave", new String[] { "date", "shift", "autoclaveNo", "runNo", "currentStatus",
+                    "startedAt", "completedAt", "remarks" });
+            stageFields.put("blockSeparating", new String[] { "date", "shift", "batchNumber",
+                    "blockSize", "time" });
             stageFields.put("cubeTest",
-                    new String[] { "batchNo", "reportDate", "castDate", "testingDate", "shift", "plantName",
-                            "cubeDimensionImmediate", "cubeDimensionOverDry", "weightImmediateKg", "weightOverDryKg",
-                            "weightWithMoistureKg", "loadOverDryTonn", "loadMoistureTonn",
-                            "compStrengthOverDry", "compStrengthMoisture", "densityKgM3", "demouldDensity",
-                            "wetDensity", "wetStrength", "dryDensity", "dryStrength" });
-            stageFields.put("rejection", new String[] { "date", "shift", "plantName", "blockSize", "qty",
-                    "cornerDamage", "eruptionType", "topSideDamages", "sideCrackThermalCrack", "risingCrack",
-                    "centreCrack", "bottomUncutBlocks", "autoclaveDamage", "craneDamage", "collapse", "unrise",
-                    "unsize", "uncut", "chipping", "totalBreakages", "remarks" });
+                    new String[] { "date", "castDate", "testingDate", "shift", "cubeDimensionImmediate",
+                            "densityKgM3" });
+            stageFields.put("rejection", new String[] { "date", "shift", "blockSize", "qty",
+                    "totalBreakages", "remarks" });
 
             // ── Build CellStyles per stage (header + body) ────────────────────────
             java.util.Map<String, CellStyle> headerStyles = new HashMap<>();
@@ -1275,6 +1256,16 @@ public class WorkflowReportService {
 
             // ── DATA ROWS ─────────────────────────────────────────────────────────
             int rowIdx = 2;
+            
+            // Map to store totals for production raw materials
+            Map<String, Double> rawMaterialTotals = new HashMap<>();
+            String[] rawMaterialFields = { "faSolid1", "totalSolid", "faSlurryQty", "excessSlurryQty", 
+                "waterLiter", "cementKg", "limeKg", "gypsumKg", "solOilKg", "surfactant", 
+                "aluminumPowderKg", "dcmrt" };
+            for (String f : rawMaterialFields) {
+                rawMaterialTotals.put(f, 0.0);
+            }
+
             for (Map<String, Object> row : rows) {
                 Row dataRow = sheet.createRow(rowIdx++);
 
@@ -1293,8 +1284,50 @@ public class WorkflowReportService {
                     CellStyle bStyle = bodyStyles.get(key);
                     for (String field : fields) {
                         Cell c = dataRow.createCell(col++);
-                        c.setCellValue(nvl(stageData.get(field)));
+                        Object val = stageData.get(field);
+                        c.setCellValue(nvl(val));
                         c.setCellStyle(bStyle);
+
+                        // Accumulate totals for raw materials
+                        if ("production".equals(key) && rawMaterialTotals.containsKey(field)) {
+                            if (val instanceof Number) {
+                                rawMaterialTotals.put(field, rawMaterialTotals.get(field) + ((Number) val).doubleValue());
+                            } else if (val != null) {
+                                try {
+                                    rawMaterialTotals.put(field, rawMaterialTotals.get(field) + Double.parseDouble(val.toString()));
+                                } catch (NumberFormatException ignored) {}
+                            }
+                        }
+                    }
+                }
+            }
+            // ── ADD TOTALS ROW ─────────────────────────────────────────────────────────
+            Row totalsRow = sheet.createRow(rowIdx++);
+            
+            CellStyle totalsStyle = wb.createCellStyle();
+            org.apache.poi.ss.usermodel.Font totalsFont = wb.createFont();
+            totalsFont.setBold(true);
+            totalsStyle.setFont(totalsFont);
+            totalsStyle.setFillForegroundColor(IndexedColors.LIGHT_YELLOW.getIndex());
+            totalsStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+            totalsStyle.setBorderTop(BorderStyle.THICK);
+
+            Cell totalsLabelCell = totalsRow.createCell(0);
+            totalsLabelCell.setCellValue("TOTALS (Raw Materials)");
+            totalsLabelCell.setCellStyle(totalsStyle);
+
+            int totalsCol = 1;
+            for (String[] stage : stages) {
+                String key = stage[0];
+                String[] fields = stageFields.get(key);
+                for (String field : fields) {
+                    Cell c = totalsRow.createCell(totalsCol++);
+                    c.setCellStyle(totalsStyle);
+                    if ("production".equals(key) && rawMaterialTotals.containsKey(field)) {
+                        double totalVal = rawMaterialTotals.get(field);
+                        c.setCellValue(String.format("%.2f", totalVal).replace(".00", ""));
+                    } else {
+                        c.setCellValue("-");
                     }
                 }
             }

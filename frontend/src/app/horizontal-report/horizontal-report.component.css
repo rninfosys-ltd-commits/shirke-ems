@@ -242,7 +242,7 @@
 .col-batch {
     position: sticky;
     left: 0;
-    z-index: 5;
+    z-index: 15;
     background: #edf2f7;
     font-weight: 700;
     color: #2d3748;
@@ -251,6 +251,48 @@
     border-right: 2px solid #cbd5e0;
     text-align: center;
     font-size: 0.82rem;
+}
+
+.col-plant,
+.col-date {
+    position: sticky;
+    z-index: 10;
+    background: #f7fafc;
+    font-weight: 700;
+    color: #2d3748;
+    padding: 8px 12px;
+    white-space: nowrap;
+    border-right: 2px solid #cbd5e0;
+    text-align: center;
+    font-size: 0.82rem;
+}
+
+.col-plant {
+    left: 110px;
+}
+
+.col-date {
+    left: 220px;
+}
+
+.col-plant-banner,
+.col-date-banner {
+    position: sticky;
+    left: auto;
+    z-index: 11;
+    background: #2d3748;
+    color: #fff;
+    font-size: 0.82rem;
+    font-weight: 700;
+    padding: 10px 14px;
+    white-space: nowrap;
+    text-align: center;
+    letter-spacing: .4px;
+    border-right: 1px solid rgba(255, 255, 255, .15);
+}
+
+.col-date-banner {
+    left: 220px;
 }
 
 /* ── Stage Banner Row ─────────────────────────────────────────────────────── */
@@ -270,6 +312,7 @@
     padding: 7px 8px;
     font-size: 0.73rem;
     font-weight: 600;
+    color: #2d3748;
     white-space: nowrap;
     border-right: 1px solid rgba(0, 0, 0, .06);
 }

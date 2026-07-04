@@ -66,6 +66,8 @@ export class CastingHallReportComponent implements OnInit {
   importColumns: string[] = [];   // Excel headers (unique)
   importPreviewList: any[] = [];  // Excel rows
 
+  rawMaterialTotals: any = {};
+
   filterFromDate = '';
   filterToDate = '';
   selectedCasting: any = null;
@@ -210,8 +212,46 @@ export class CastingHallReportComponent implements OnInit {
       // Since we are doing server-side pagination, filteredList is just reportList
       this.filteredList = this.reportList;
 
+      this.computeTotals();
       this.filterAvailableBatches();
     });
+  }
+
+  computeTotals(): void {
+      this.rawMaterialTotals = {
+          faSolid1: 0,
+          totalSolid: 0,
+          faSlurryQty: 0,
+          excessSlurryQty: 0,
+          waterLiter: 0,
+          cementKg: 0,
+          limeKg: 0,
+          gypsumKg: 0,
+          solOilKg: 0,
+          surfactant: 0,
+          aluminumPowderKg: 0,
+          dcmrt: 0
+      };
+
+      for (const row of this.reportList) {
+          const prod = row.productionEntry || {};
+          this.rawMaterialTotals.faSolid1 += Number(prod['faSolid1'] || 0);
+          this.rawMaterialTotals.totalSolid += Number(prod['totalSolid'] || 0);
+          this.rawMaterialTotals.faSlurryQty += Number(prod['faSlurryQty'] || 0);
+          this.rawMaterialTotals.excessSlurryQty += Number(prod['excessSlurryQty'] || 0);
+          this.rawMaterialTotals.waterLiter += Number(prod['waterLiter'] || 0);
+          this.rawMaterialTotals.cementKg += Number(prod['cementKg'] || 0);
+          this.rawMaterialTotals.limeKg += Number(prod['limeKg'] || 0);
+          this.rawMaterialTotals.gypsumKg += Number(prod['gypsumKg'] || 0);
+          this.rawMaterialTotals.solOilKg += Number(prod['solOilKg'] || 0);
+          this.rawMaterialTotals.surfactant += Number(prod['surfactant'] || 0);
+          this.rawMaterialTotals.aluminumPowderKg += Number(prod['aluminumPowderKg'] || 0);
+          this.rawMaterialTotals.dcmrt += Number(prod['dcmrt'] || 0);
+      }
+  }
+
+  formatTotal(value: number): string {
+      return isNaN(value) ? '0' : value.toFixed(2).replace(/\.00$/, '');
   }
 
 

@@ -7,6 +7,7 @@ export interface HorizontalReportRow {
     batchNo: string;
     production: { [key: string]: string };
     casting: { [key: string]: string };
+    rising: { [key: string]: string };
     cutting: { [key: string]: string };
     autoclave: { [key: string]: string };
     blockSeparating: { [key: string]: string };

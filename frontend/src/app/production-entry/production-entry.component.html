@@ -211,7 +211,8 @@
 
                 <div class="form-group">
                     <label>Batch No</label>
-                    <input type="text" [value]="editId ? productionForm.get('batchNo')?.value : 'Auto-generated'" readonly class="readonly-input">
+                    <input type="text" [value]="editId ? productionForm.get('batchNo')?.value : 'Auto-generated'"
+                        readonly class="readonly-input">
                 </div>
 
                 <div class="form-group">
@@ -423,10 +424,10 @@
                         <span>FINAL SOLID %</span>
                         <div class="solid-value">{{ liveCalc.finalSolidPercent | number:'1.2-2' }}%</div>
                     </div>
-                    
+
                     <div class="divider"></div>
                     <div class="calc-header" style="margin-top:10px;">PER CBM METRICS</div>
-                    
+
                     <div class="calc-row">
                         <span>Solids/CBM</span>
                         <strong>{{ liveCalc.totalSolidsPerCbm | number:'1.2-2' }} kg/m³</strong>

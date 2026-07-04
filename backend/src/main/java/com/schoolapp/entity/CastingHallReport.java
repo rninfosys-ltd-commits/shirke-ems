@@ -21,7 +21,6 @@ public class CastingHallReport {
 
     private String batchNo;
 
-    @JsonIgnore
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "production_id")
     private ProductionEntry productionEntry;

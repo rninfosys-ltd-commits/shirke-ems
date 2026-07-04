@@ -8,6 +8,9 @@
                 <h1 class="hr-title">Production Workflow Report</h1>
                 <p class="hr-subtitle">All process stages — side by side</p>
                 <p class="hr-subtitle" *ngIf="plantFilter">Plant: {{ plantFilter }}</p>
+                <p class="hr-subtitle" *ngIf="fromDate || toDate">
+                    Date range: {{ fromDate || 'Any' }} – {{ toDate || 'Any' }}
+                </p>
             </div>
         </div>
     </div>
@@ -53,6 +56,11 @@
         </span>
     </div>
 
+    <div class="hr-report-summary" *ngIf="allRows.length > 0">
+        Showing {{ allRows.length }} batch(es) for {{ getBatchPlant(allRows[0]) }}
+        from {{ fromDate || 'Any' }} to {{ toDate || 'Any' }}.
+    </div>
+
     <!-- ═══════════════════ LOADING / ERROR ═══════════════════ -->
     <div class="hr-loading" *ngIf="loading">
         <div class="spinner"></div>
@@ -80,6 +88,8 @@
                 <!-- ROW-1: Stage Banners -->
                 <tr class="stage-banner-row">
                     <th class="col-batch-banner" rowspan="2">Batch No</th>
+                    <th class="col-plant-banner" rowspan="2">Plant</th>
+                    <th class="col-date-banner" rowspan="2">Date</th>
                     <ng-container *ngFor="let stage of stages">
                         <th [attr.colspan]="stage.columns.length" class="stage-banner theme-{{ stage.theme }}-banner">
                             {{ stage.label }}
@@ -105,6 +115,8 @@
 
                     <!-- Batch No sticky column -->
                     <td class="col-batch">{{ row.batchNo }}</td>
+                    <td class="col-plant">{{ getBatchPlant(row) }}</td>
+                    <td class="col-date">{{ getBatchDate(row) }}</td>
 
                     <!-- Stage data cells -->
                     <ng-container *ngFor="let stage of stages">
@@ -116,7 +128,25 @@
 
                 </tr>
             </tbody>
-
+            <tfoot *ngIf="allRows.length > 0">
+                <tr class="summary-row">
+                    <td [attr.colspan]="totalColumns" class="summary-full">
+                        <strong>Totals (Raw Materials Used):</strong>
+                        FA Solid: {{ formatTotal(rawMaterialTotals.faSolid1) }} •
+                        Total Solid: {{ formatTotal(rawMaterialTotals.totalSolid) }} •
+                        FA Slurry: {{ formatTotal(rawMaterialTotals.faSlurryQty) }} •
+                        Excess Slurry: {{ formatTotal(rawMaterialTotals.excessSlurryQty) }} •
+                        Water: {{ formatTotal(rawMaterialTotals.waterLiter) }} •
+                        Cement: {{ formatTotal(rawMaterialTotals.cementKg) }} •
+                        Lime: {{ formatTotal(rawMaterialTotals.limeKg) }} •
+                        Gypsum: {{ formatTotal(rawMaterialTotals.gypsumKg) }} •
+                        Sol Oil: {{ formatTotal(rawMaterialTotals.solOilKg) }} •
+                        Surfactant: {{ formatTotal(rawMaterialTotals.surfactant) }} •
+                        Al Powder: {{ formatTotal(rawMaterialTotals.aluminumPowderKg) }} •
+                        DC MRT: {{ formatTotal(rawMaterialTotals.dcmrt) }}
+                    </td>
+                </tr>
+            </tfoot>
         </table>
     </div>
 

@@ -92,7 +92,7 @@
                             <td class="clickable" (click)="openCastingModal(r)">
                                 {{ r.batchNo }}
                             </td>
-                            <td>{{ r.reportDate | date:'dd-MM-yyyy' }}</td>
+                            <td>{{ r.createdDate | date:'dd-MM-yyyy' }}</td>
                             <td>{{ r.shift }}</td>
                             <td>{{ r.plantName }}</td>
                             <td>{{ r.height }}</td>
@@ -108,6 +108,25 @@
                         </tr>
                     </ng-container>
                 </tbody>
+                <tfoot *ngIf="reportList && reportList.length > 0">
+                    <tr class="summary-row" style="background: var(--bg-hover, #f8f9fa); border-top: 2px solid #ddd;">
+                        <td colspan="7" class="summary-full" style="padding: 15px; font-size: 0.9rem;">
+                            <strong>Totals (Raw Materials Used):</strong>
+                            FA Solid: {{ formatTotal(rawMaterialTotals.faSolid1) }} &bull;
+                            Total Solid: {{ formatTotal(rawMaterialTotals.totalSolid) }} &bull;
+                            FA Slurry: {{ formatTotal(rawMaterialTotals.faSlurryQty) }} &bull;
+                            Excess Slurry: {{ formatTotal(rawMaterialTotals.excessSlurryQty) }} &bull;
+                            Water: {{ formatTotal(rawMaterialTotals.waterLiter) }} &bull;
+                            Cement: {{ formatTotal(rawMaterialTotals.cementKg) }} &bull;
+                            Lime: {{ formatTotal(rawMaterialTotals.limeKg) }} &bull;
+                            Gypsum: {{ formatTotal(rawMaterialTotals.gypsumKg) }} &bull;
+                            Sol Oil: {{ formatTotal(rawMaterialTotals.solOilKg) }} &bull;
+                            Surfactant: {{ formatTotal(rawMaterialTotals.surfactant) }} &bull;
+                            Al Powder: {{ formatTotal(rawMaterialTotals.aluminumPowderKg) }} &bull;
+                            DC MRT: {{ formatTotal(rawMaterialTotals.dcmrt) }}
+                        </td>
+                    </tr>
+                </tfoot>
             </table>
         </div>
 
