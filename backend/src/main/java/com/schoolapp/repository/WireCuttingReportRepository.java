@@ -19,11 +19,11 @@ public interface WireCuttingReportRepository
         List<WireCuttingReport> findByBatchNo(String batchNo);
         List<WireCuttingReport> findByBatchNoAndShift(String batchNo, String shift);
 
-        @org.springframework.data.jpa.repository.Query("SELECT w FROM WireCuttingReport w WHERE w.plantName = :plantName")
+        @org.springframework.data.jpa.repository.Query("SELECT w FROM WireCuttingReport w WHERE w.plantName = :plantName ORDER BY w.batchNo ASC")
         List<WireCuttingReport> findByPlantName(
                         @org.springframework.data.repository.query.Param("plantName") String plantName);
 
-        @org.springframework.data.jpa.repository.Query("SELECT w FROM WireCuttingReport w WHERE w.createdDate BETWEEN :start AND :end AND w.plantName = :plantName")
+        @org.springframework.data.jpa.repository.Query("SELECT w FROM WireCuttingReport w WHERE w.createdDate BETWEEN :start AND :end AND w.plantName = :plantName ORDER BY w.batchNo ASC")
         List<WireCuttingReport> findByCreatedDateBetweenAndPlantName(
                         @org.springframework.data.repository.query.Param("start") Date start,
                         @org.springframework.data.repository.query.Param("end") Date end,

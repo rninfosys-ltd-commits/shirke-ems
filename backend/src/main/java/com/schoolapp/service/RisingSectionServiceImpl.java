@@ -5,6 +5,7 @@ import com.schoolapp.entity.RisingSection;
 import com.schoolapp.repository.RisingSectionRepository;
 import org.springframework.stereotype.Service;
 
+import org.springframework.data.domain.Sort;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -137,7 +138,7 @@ public class RisingSectionServiceImpl implements RisingSectionService {
 
     @Override
     public List<RisingSectionDTO> getAll() {
-        return repository.findByIsActive(1)
+        return repository.findByIsActive(1, Sort.by("batchNo").ascending())
                 .stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());

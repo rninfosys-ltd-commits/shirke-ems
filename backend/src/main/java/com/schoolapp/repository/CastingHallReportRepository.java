@@ -1,7 +1,6 @@
 package com.schoolapp.repository;
 
 //package com.Crmemp.repository;
-
 //import com.Crmemp.entity.CastingHallReport;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -24,11 +23,11 @@ public interface CastingHallReportRepository
 
         List<CastingHallReport> findByCreatedDateBetween(Date start, Date end);
 
-        @org.springframework.data.jpa.repository.Query("SELECT c FROM CastingHallReport c WHERE c.plantName = :plantName")
+        @org.springframework.data.jpa.repository.Query("SELECT c FROM CastingHallReport c WHERE c.plantName = :plantName ORDER BY c.batchNo ASC")
         List<CastingHallReport> findByPlantName(
                         @org.springframework.data.repository.query.Param("plantName") String plantName);
 
-        @org.springframework.data.jpa.repository.Query("SELECT c FROM CastingHallReport c WHERE c.createdDate BETWEEN :start AND :end AND c.plantName = :plantName")
+        @org.springframework.data.jpa.repository.Query("SELECT c FROM CastingHallReport c WHERE c.createdDate BETWEEN :start AND :end AND c.plantName = :plantName ORDER BY c.batchNo ASC")
         List<CastingHallReport> findByCreatedDateBetweenAndPlantName(
                         @org.springframework.data.repository.query.Param("start") Date start,
                         @org.springframework.data.repository.query.Param("end") Date end,

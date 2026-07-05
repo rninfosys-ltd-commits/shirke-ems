@@ -792,7 +792,7 @@ public class WorkflowReportService {
             result.add(row);
         }
 
-        result.sort(Comparator.comparing(this::getBatchSortDate));
+        result.sort(Comparator.comparing(r -> (String) r.get("batchNo")));
         return result;
     }
 

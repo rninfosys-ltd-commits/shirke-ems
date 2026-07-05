@@ -128,25 +128,6 @@
 
                 </tr>
             </tbody>
-            <tfoot *ngIf="allRows.length > 0">
-                <tr class="summary-row">
-                    <td [attr.colspan]="totalColumns" class="summary-full">
-                        <strong>Totals (Raw Materials Used):</strong>
-                        FA Solid: {{ formatTotal(rawMaterialTotals.faSolid1) }} •
-                        Total Solid: {{ formatTotal(rawMaterialTotals.totalSolid) }} •
-                        FA Slurry: {{ formatTotal(rawMaterialTotals.faSlurryQty) }} •
-                        Excess Slurry: {{ formatTotal(rawMaterialTotals.excessSlurryQty) }} •
-                        Water: {{ formatTotal(rawMaterialTotals.waterLiter) }} •
-                        Cement: {{ formatTotal(rawMaterialTotals.cementKg) }} •
-                        Lime: {{ formatTotal(rawMaterialTotals.limeKg) }} •
-                        Gypsum: {{ formatTotal(rawMaterialTotals.gypsumKg) }} •
-                        Sol Oil: {{ formatTotal(rawMaterialTotals.solOilKg) }} •
-                        Surfactant: {{ formatTotal(rawMaterialTotals.surfactant) }} •
-                        Al Powder: {{ formatTotal(rawMaterialTotals.aluminumPowderKg) }} •
-                        DC MRT: {{ formatTotal(rawMaterialTotals.dcmrt) }}
-                    </td>
-                </tr>
-            </tfoot>
         </table>
     </div>
 

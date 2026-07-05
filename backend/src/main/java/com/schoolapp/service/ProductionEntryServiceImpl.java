@@ -13,6 +13,7 @@ import com.schoolapp.entity.ProductionMaterial;
 import com.schoolapp.repository.CastingHallReportRepository;
 import com.schoolapp.repository.ProductionEntryRepository;
 
+import org.springframework.data.domain.Sort;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -161,7 +162,7 @@ public class ProductionEntryServiceImpl implements ProductionEntryService {
 
     @Override
     public List<ProductionEntry> getAll() {
-        return repository.findAll();
+        return repository.findAll(Sort.by("batchNo").ascending());
     }
 
     @Override

@@ -40,8 +40,8 @@ public class CastingHallReportController {
     public Page<CastingHallReport> getAll(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "desc") String direction,
+            @RequestParam(defaultValue = "batchNo") String sortBy,
+            @RequestParam(defaultValue = "asc") String direction,
             @RequestParam(required = false) String plantName) {
 
         Sort sort = direction.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending()
