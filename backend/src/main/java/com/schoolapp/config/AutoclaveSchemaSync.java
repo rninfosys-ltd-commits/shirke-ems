@@ -1,7 +1,5 @@
 package com.schoolapp.config;
 
-import java.util.List;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -36,12 +34,12 @@ public class AutoclaveSchemaSync {
     private void dropColumnIfExists(String table, String column) {
         Integer count = jdbcTemplate.queryForObject(
                 """
-                SELECT COUNT(*)
-                FROM information_schema.columns
-                WHERE table_schema = DATABASE()
-                  AND table_name = ?
-                  AND column_name = ?
-                """,
+                        SELECT COUNT(*)
+                        FROM information_schema.columns
+                        WHERE table_schema = DATABASE()
+                          AND table_name = ?
+                          AND column_name = ?
+                        """,
                 Integer.class,
                 table,
                 column);
@@ -54,12 +52,12 @@ public class AutoclaveSchemaSync {
     private void addTransferredColumnIfMissing() {
         Integer count = jdbcTemplate.queryForObject(
                 """
-                SELECT COUNT(*)
-                FROM information_schema.columns
-                WHERE table_schema = DATABASE()
-                  AND table_name = 'autoclave_cycle'
-                  AND column_name = 'transferred_to_autoclave_no'
-                """,
+                        SELECT COUNT(*)
+                        FROM information_schema.columns
+                        WHERE table_schema = DATABASE()
+                          AND table_name = 'autoclave_cycle'
+                          AND column_name = 'transferred_to_autoclave_no'
+                        """,
                 Integer.class);
         if (count == null || count == 0) {
             jdbcTemplate.execute(
