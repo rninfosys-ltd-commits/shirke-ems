@@ -108,7 +108,8 @@ export class RisingSectionComponent implements OnInit {
       remarks: [[] as string[]],
 
       shift: [''],
-      plantName: ['Plant 1']
+      plantName: ['Plant 1'],
+      reportDate: [new Date().toISOString().split('T')[0]]
     });
 
     // Auto-calculate total rising time whenever either time changes
@@ -207,14 +208,6 @@ export class RisingSectionComponent implements OnInit {
       const m = diff % 60;
       this.totalRisingTimeDisplay = `${h} Hours ${m} Minutes`;
     } catch { this.totalRisingTimeDisplay = ''; }
-  }
-
-  useCurrentTimeForRisingStart(): void {
-    this.form.patchValue({ risingStartTime: this.getCurrentTime() });
-  }
-
-  useCurrentTimeForDischarge(): void {
-    this.form.patchValue({ dischargeTime: this.getCurrentTime() });
   }
 
   loadList(): void {
@@ -322,6 +315,7 @@ export class RisingSectionComponent implements OnInit {
       mouldNo: '',
       mouldFlow: 0,
       plantName: 'Plant 1',
+      reportDate: new Date().toISOString().split('T')[0],
       remark: '',
       remarks: []
     });

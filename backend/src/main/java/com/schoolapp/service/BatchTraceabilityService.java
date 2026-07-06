@@ -8,6 +8,7 @@ import com.schoolapp.repository.*;
 
 import java.lang.reflect.Method;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -26,7 +27,7 @@ public class BatchTraceabilityService {
         BatchTraceabilityDTO dto = new BatchTraceabilityDTO();
         Map<String, Object> sharedFields = new LinkedHashMap<>();
 
-        var prodList = productionRepo.findByBatchNo(batchNo);
+        List<com.schoolapp.entity.ProductionEntry> prodList = productionRepo.findByBatchNo(batchNo);
         if (prodList != null && !prodList.isEmpty()) {
             var production = prodList.get(0);
             dto.setProduction(production);
@@ -34,7 +35,7 @@ public class BatchTraceabilityService {
                 "batchNo", "shift", "plantName", "createdDate", "productionTime", "castingTime", "siloNo1");
         }
 
-        var castList = castingRepo.findByBatchNo(batchNo);
+        List<com.schoolapp.entity.CastingHallReport> castList = castingRepo.findByBatchNo(batchNo);
         if (castList != null && !castList.isEmpty()) {
             var casting = castList.get(0);
             dto.setCasting(casting);
@@ -43,7 +44,7 @@ public class BatchTraceabilityService {
                 "mouldNo", "mouldHeight", "mouldFlow", "height", "castingTempC", "remark", "bedNo");
         }
 
-        var risingList = risingRepo.findByBatchNo(batchNo);
+        List<com.schoolapp.entity.RisingSection> risingList = risingRepo.findByBatchNo(batchNo);
         if (risingList != null && !risingList.isEmpty()) {
             var rising = risingList.get(0);
             dto.setRising(rising);
@@ -52,7 +53,7 @@ public class BatchTraceabilityService {
                 "mouldNo", "mouldHeight", "mouldFlow", "remark");
         }
 
-        var cutList = cuttingRepo.findByBatchNo(batchNo);
+        List<com.schoolapp.entity.WireCuttingReport> cutList = cuttingRepo.findByBatchNo(batchNo);
         if (cutList != null && !cutList.isEmpty()) {
             var cutting = cutList.get(0);
             dto.setCutting(cutting);
@@ -61,7 +62,7 @@ public class BatchTraceabilityService {
                 "ballTestMm", "time", "cuttingTempC", "remark");
         }
 
-        var autoList = autoclaveRepo.findByBatchNo(batchNo);
+        List<com.schoolapp.entity.AutoclaveCycle> autoList = autoclaveRepo.findByBatchNo(batchNo);
         if (autoList != null && !autoList.isEmpty()) {
             var autoclave = autoList.get(0);
             dto.setAutoclave(autoclave);
@@ -69,7 +70,7 @@ public class BatchTraceabilityService {
                 "batchNo", "shift", "plantName", "autoclaveNo", "runNo", "holdingHours");
         }
 
-        var sepList = separatingRepo.findByBatchNumber(batchNo);
+        List<com.schoolapp.entity.BlockSeparating> sepList = separatingRepo.findByBatchNumber(batchNo);
         if (sepList != null && !sepList.isEmpty()) {
             var separating = sepList.get(0);
             dto.setSeparating(separating);
@@ -77,7 +78,7 @@ public class BatchTraceabilityService {
                 "batchNumber", "batchNo", "shift", "plantName", "blockSize");
         }
 
-        var cubeList = cubeTestRepo.findByBatchNo(batchNo);
+        List<com.schoolapp.entity.CubeTestEntity> cubeList = cubeTestRepo.findByBatchNo(batchNo);
         if (cubeList != null && !cubeList.isEmpty()) {
             var cubeTest = cubeList.get(0);
             dto.setCubeTest(cubeTest);
@@ -89,7 +90,7 @@ public class BatchTraceabilityService {
                 "compStrengthOverDry", "compStrengthMoisture", "densityKgM3", "cubeDimensionImmediate");
         }
 
-        var rejList = rejectionRepo.findByBatchNo(batchNo);
+        List<com.schoolapp.entity.RejectionDataEntity> rejList = rejectionRepo.findByBatchNo(batchNo);
         if (rejList != null && !rejList.isEmpty()) {
             var rejection = rejList.get(0);
             dto.setRejection(rejection);
